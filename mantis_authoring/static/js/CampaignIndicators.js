@@ -892,7 +892,7 @@ $(function() {
 		stix_base = instance.get_json();
 		$('#dda-gen-output').slideUp('fast',function(){		    
 		    var editor = ace.edit('dda-gen-output-content');
-		    $.post('transform', {'jsn':JSON.stringify(stix_base), 'submit_name' : guid_gen()}, function(data){
+		    $.post('transform', {'jsn':JSON.stringify(stix_base), 'submit_name' : guid_gen(), 'action' : 'implement'}, function(data){
 			if(data.xml !== undefined){
 			    $('#dda-gen-output').slideDown('fast');
 			    editor.setOptions({
@@ -916,8 +916,16 @@ $(function() {
             $('#dda-gen-output').slideUp('fast',function(){
                 var editor = ace.edit('dda-gen-output-content');
                 $.post('transform', {'jsn':JSON.stringify(stix_base), 'submit_name' : guid_gen(), 'action': 'save'}, function(data){
-
-                    if (data.msg !== undefined){
+                    if(data.xml !== undefined){
+                        $('#dda-gen-output').slideDown('fast');
+                        editor.setOptions({
+                            maxLines: Infinity
+                        });
+                        editor.setReadOnly(true);
+                        editor.getSession().setMode("ace/mode/xml");
+                        editor.setValue(data.xml);
+                    }
+                    else if (data.msg !== undefined){
                         alert(data.msg);
 
 

@@ -466,11 +466,8 @@ class stixTransformer:
 
 class ProcessingView(BasicProcessingView):
 
-    processor = ''
-    display_view = FORM_VIEW_NAME
+    author_view = FORM_VIEW_NAME
     transformer = stixTransformer
-
-
 
 
 if __name__ == '__main__':

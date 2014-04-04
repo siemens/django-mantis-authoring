@@ -23,12 +23,8 @@ prefix = package.__name__ + '.'
 for importer, modname, ispkg in pkgutil.iter_modules(package.__path__, prefix):
 
     module = __import__(modname, fromlist="dummy")
-    print module.__name__
-    print dir(module)
     for key in dir(module):
         if 'TEMPLATE_' in key:
-            #if 'mantis_client' in modname:
-            #    modname = modname.split('mantis_client.')[1]
             CYBOX_OBJECT_TEMPLATE_REGISTRY[(modname.split('.')[-1],key.split("TEMPLATE_")[1])] = getattr(module,key)
 
 
