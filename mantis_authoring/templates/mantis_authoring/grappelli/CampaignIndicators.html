@@ -1,0 +1,165 @@
+{% extends "mantis_authoring/grappelli/base.html" %}
+
+
+{% block content %}
+
+<div id="dda-container-tabs">
+  <ul>
+    <li><a href="#dda-tab-1">Stix Package</a></li>
+    <li><a href="#dda-tab-2">Campaign Info</a></li>
+    <li><a href="#dda-tab-3">Indicator Pool</a></li>
+    <li><a href="#dda-tab-4">Observable Pool</a></li>
+    <li><a href="#dda-tab-5">Observable Relations</a></li>
+  </ul>
+
+
+  <!-- Object Package Tab -->
+  <div id="dda-tab-1" class="l-2cr-fluid l-d-12"> 
+    <div class="c-1">
+
+      <div class="grp-module">
+        <h2>Package Meta</h2>
+        <div class="grp-row" id="dda-stix-meta">
+	  <input type="text" name="stix_header_title" placeholder="Title">
+	  <textarea rows="3" type="text" name="stix_header_description" placeholder="Description"></textarea>
+	  <select name="stix_header_tlp"><option value="white">White</option><option value="green">Green</option><option value="amber">Amber</option><option value="red">Red</option></select>
+	  <hr>
+	  <button id="dda-stix-generate">Generate STIX</button>
+      <button id="dda-stix-save">Save Draft</button>
+        </div>
+      </div>
+
+      <div class="grp-module">
+        <h2>Observables</h2>
+	<div class="grp-row" id="dda-observable-pool"></div>
+      </div>
+    </div>
+    <div class="c-2">
+      <div class="grp-module">
+        <h2>Package Contents</h2>
+        <div id="dda-package-indicators" class="grp-row">
+        </div>
+      </div>
+    </div>
+
+    <div id="dda-gen-output" class="grp-module" style="display:none;">
+      <h2>Package Output</h2>
+      <div class="grp-row">
+	<div id="dda-gen-output-content" style="width:100%;height:100%;"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Campaign Info Tab -->
+  <div id="dda-tab-2" class="l-2cr-fluid l-d-12"> 
+    <div class="grp-module">
+      <h2 class="clearfix">Campaign Information</h2>
+      <div class="grp-row" id="dda-campaign-container"></div>
+    </div>
+  </div>
+
+
+  <!-- Indicator Tab -->
+  <div id="dda-tab-3" class="l-2cr-fluid l-d-12"> 
+    <div class="grp-module">
+      <h2 class="clearfix">
+	Indicator Configuration
+	<button id="dda-indicator-add-btn" class="pull-right">Add Indicator</button>
+	<ul id="dda-indicator-add-btn-menu" style="display:none;"></ul>
+      </h2>
+      <div class="grp-row" id="dda-indicator-list"></div>
+    </div>
+  </div>
+
+
+  <!-- Observable Pool Tab -->
+  <div id="dda-tab-4" class="l-2cr-fluid l-d-12"> 
+    <div class="c-1">
+      <div class="grp-module">
+        <h2>Observable Templates</h2>
+        <div class="grp-row">
+	  <div class="grp-row" id="dda-pool-elements">
+          </div>
+	</div>
+      </div>
+    </div>
+    <div class="c-2">
+      <div class="grp-module">
+        <h2 id="dda-template-head" class="clearfix">Pool <button id="dda-template-head-toogle" class="pull-right">Toggle All</button> </h2>
+        <div class="grp-row" id="dda-pool-list"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Object Relations Tab -->
+  <div id="dda-tab-5" class="l-2cr-fluid l-d-12"> 
+    <div class="c-1">
+      <div class="grp-module">
+        <h2>Relation Type</h2>
+        <div class="grp-row" id="dda-relation-list">
+	  {% for rel in relations %}
+	     {% if forloop.first %} 
+<div class="dda-add-element dda-rel-selected"><input type="radio"  name="dda-selected-relation" value="{{ rel.value}}" style="display:none;" checked="true"><h3>{{ rel.label }}</h3><p>{{ rel.description }}</p></div>
+	     {% else %}
+<div class="dda-add-element"><input type="radio"  name="dda-selected-relation" value="{{ rel.value}}" style="display:none;"><h3>{{ rel.label }}</h3><p>{{ rel.description }}</p></div>
+	     {% endif %}	  
+	  {% endfor %}
+	</div>
+      </div>
+    </div>
+    <div class="c-2">
+      <div id="relation-pane"></div>
+      <div class="grp-module">
+	<h2>Object Properties</h2>
+	<div id="dda-relation-object-details" class="grp-row"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div id="dda-campaign-template-pool" style="display:none;"> 
+ {% for campaignForm in campaignForms %}
+ <div class="dda-campaign-template" id="dda-campaign-template_{{ campaignForm.object_type.value }}">
+   <table>
+     {{ campaignForm.as_table }} 
+   </table>
+ </div>
+ {% endfor %} 
+</div>
+
+<div id="dda-threatactor-template-pool" style="display:none;"> 
+ {% for threatActorForm in threatActorForms %}
+ <div class="dda-threatactor-template" id="dda-threatactor-template_{{ threatActorForm.object_type.value }}">
+   <table>
+     {{ threatActorForm.as_table }} 
+   </table>
+ </div>
+ {% endfor %} 
+</div>
+
+<div id="dda-observable-template-pool" style="display:none;"> 
+ {% for observableForm in observableForms %}
+ <div class="dda-observable-template" id="dda-observable-template_{{ observableForm.object_type.value }}">
+   <table>
+     {{ observableForm.as_table }} 
+   </table>
+ </div>
+ {% endfor %} 
+</div>
+
+
+<div id="dda-indicator-template-pool" style="display:none;"> 
+ {% for indicatorForm in indicatorForms %}
+ <div class="dda-indicator-template"  id="dda-indicator-template_{{ indicatorForm.object_type.value }}">
+   <table>
+     {{ indicatorForm.as_table }} 
+   </table>
+ </div>
+ {% endfor %} 
+</div>
+
+{% endblock content %}
+
