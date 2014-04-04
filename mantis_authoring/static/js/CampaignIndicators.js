@@ -892,7 +892,7 @@ $(function() {
 		stix_base = instance.get_json();
 		$('#dda-gen-output').slideUp('fast',function(){		    
 		    var editor = ace.edit('dda-gen-output-content');
-		    $.post('transform', {'jsn':JSON.stringify(stix_base), 'submit_name' : guid_gen(), 'action' : 'implement'}, function(data){
+		    $.post('transform', {'jsn':JSON.stringify(stix_base), 'submit_name' : guid_gen(), 'action' : 'import'}, function(data){
 			if(data.xml !== undefined){
 			    $('#dda-gen-output').slideDown('fast');
 			    editor.setOptions({

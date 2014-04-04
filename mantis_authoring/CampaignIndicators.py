@@ -46,6 +46,8 @@ from dingos import DINGOS_DEFAULT_ID_NAMESPACE_URI, DINGOS_TEMPLATE_FAMILY
 
 from .view_classes import BasicSTIXPackageTemplateView
 
+from mantis_stix_importer.importer import STIX_Import
+
 from dingos_authoring.view_classes import BasicProcessingView
 
 from django.templatetags.static import static
@@ -468,7 +470,7 @@ class ProcessingView(BasicProcessingView):
 
     author_view = FORM_VIEW_NAME
     transformer = stixTransformer
-
+    importer_class = STIX_Import
 
 if __name__ == '__main__':
     fn = sys.argv[1]
