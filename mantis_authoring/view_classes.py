@@ -37,7 +37,8 @@ class BasicSTIXPackageTemplateView(BasicTemplateView):
 
     @property
     def cybox_object_template_forms(self):
-        return map(lambda x: x.ObjectForm, self.cybox_object_template_registry.values())
+        existing_templates= sorted(self.cybox_object_template_registry.items(),key=itemgetter(1))
+        return map(lambda x: x[1].ObjectForm, existing_templates)
 
     cybox_relations = [
         {'label': 'Created', 'value': 'Created', 'description': 'Specifies that this object created the related object.'},
