@@ -44,6 +44,121 @@ $(function() {
 	}
     });
 
+    function deepCompare () {
+	var leftChain, rightChain;
+
+	function compare2Objects (x, y) {
+	    var p;
+
+	    // remember that NaN === NaN returns false
+	    // and isNaN(undefined) returns true
+	    if (isNaN(x) && isNaN(y) && typeof x === 'number' && typeof y === 'number') {
+		return true;
+	    }
+
+	    // Compare primitives and functions.
+	    // Check if both arguments link to the same object.
+	    // Especially useful on step when comparing prototypes
+	    if (x === y) {
+		return true;
+	    }
+
+	    // Works in case when functions are created in constructor.
+	    // Comparing dates is a common scenario. Another built-ins?
+	    // We can even handle functions passed across iframes
+	    if ((typeof x === 'function' && typeof y === 'function') ||
+		(x instanceof Date && y instanceof Date) ||
+		(x instanceof RegExp && y instanceof RegExp) ||
+		(x instanceof String && y instanceof String) ||
+		(x instanceof Number && y instanceof Number)) {
+		return x.toString() === y.toString();
+	    }
+
+	    // At last checking prototypes as good a we can
+	    if (!(x instanceof Object && y instanceof Object)) {
+		return false;
+	    }
+
+	    if (x.isPrototypeOf(y) || y.isPrototypeOf(x)) {
+		return false;
+	    }
+
+	    if (x.constructor !== y.constructor) {
+		return false;
+	    }
+
+	    if (x.prototype !== y.prototype) {
+		return false;
+	    }
+
+	    // check for infinitive linking loops
+	    if (leftChain.indexOf(x) > -1 || rightChain.indexOf(y) > -1) {
+		return false;
+	    }
+
+	    // Quick checking of one object beeing a subset of another.
+	    // todo: cache the structure of arguments[0] for performance
+	    for (p in y) {
+		if (y.hasOwnProperty(p) !== x.hasOwnProperty(p)) {
+		    return false;
+		}
+		else if (typeof y[p] !== typeof x[p]) {
+		    return false;
+		}
+	    }
+
+	    for (p in x) {
+		if (y.hasOwnProperty(p) !== x.hasOwnProperty(p)) {
+		    return false;
+		}
+		else if (typeof y[p] !== typeof x[p]) {
+		    return false;
+		}
+
+		switch (typeof (x[p])) {
+		case 'object':
+		case 'function':
+
+                    leftChain.push(x);
+                    rightChain.push(y);
+
+                    if (!compare2Objects (x[p], y[p])) {
+			return false;
+                    }
+
+                    leftChain.pop();
+                    rightChain.pop();
+                    break;
+
+		default:
+                    if (x[p] !== y[p]) {
+			return false;
+                    }
+                    break;
+		}
+	    }
+
+	    return true;
+	}
+
+	if (arguments.length < 1) {
+	    return true; //Die silently? Don't know how to handle such case, please help...
+	    // throw "Need two or more arguments to compare";
+	}
+
+	for (var i = 1, l = arguments.length; i < l; i++) {
+
+	    leftChain = []; //todo: this can be cached
+	    rightChain = [];
+
+	    if (!compare2Objects(arguments[0], arguments[i])) {
+		return false;
+	    }
+	}
+
+	return true;
+    }
+
     function s4(){
 	return Math.floor((1 + Math.random()) * 0x10000)
             .toString(16)
@@ -85,6 +200,37 @@ $(function() {
 
 
 
+    /*
+     * Logs a message, which is shown to the user and removed again after a specified timeout
+     */
+    function log_message(message, type, timeout){
+	type = type || 'info';
+	var message_row = $('<li class="dda-grp-message grp-'+type+'"></li>').text(message);
+	message_row.append(
+	    $('<span class="ui-icon ui-icon-close pull-right"></span>').click(function(){
+		$(this).parent().remove();
+	    })
+	);
+	var message_container = $('#dda-messages > .grp-messagelist').first();
+
+	if(type=="info")
+	    message_row.prepend('<span class="ui-icon ui-icon-info"></span>');
+	else if(type=="success")
+	    message_row.prepend('<span class="ui-icon ui-icon-check"></span>');
+	else if(type=="error")
+	    message_row.prepend('<span class="ui-icon ui-icon-alert"></span>');
+
+	var msg = message_row.appendTo(message_container);
+	if(timeout!=undefined && timeout!=NaN && timeout > 0)
+	    msg.delay(timeout).queue(function() {
+		    $(this).remove();
+	    });
+    };
+
+
+    /*
+     * The main builder object.
+     */
     var builder = function(){
 	var instance = this;
 
@@ -98,8 +244,12 @@ $(function() {
 	this.indicator_list = $('#dda-indicator-list');
 	this.package_indicators = $('#dda-package-indicators');
 
-	this.observable_registry = {};
-	this.indicator_registry = {};
+	this.load_name = false; // Holds the name of the currently loaded template-json
+	this.load_uuid = false; // Holds the uuid of the currently loaded template-json
+	this._last_save = false; // last saved json for change-detection
+
+	this.observable_registry = {}; // Holds the observables currently loaded
+	this.indicator_registry = {}; // Holds the indicators currently loaded
 
 	/****************************************************************
 	 Init each tab
@@ -107,7 +257,10 @@ $(function() {
 
 	// Stix package tab
 	this.init_stix_package_tab = function(){
-	    // Add various buttons to the tab's content; TODO: move to template
+	    // Reset GUI because some browsers keep values in inputs on reload
+	    this.reset_gui();
+
+	    // Add various buttons to the tab's content; TODO: move to template?
 	    var get_jsn_btn = $('<button>Show JSON</button>').button().click(function(){
 		result = JSON.stringify(instance.get_json(), null, "    ");
 		var dlg = $('<div id="dda-show-json-dlg" title="JSON"><div id="dda-show-json-edit"></div></div>');
@@ -128,7 +281,7 @@ $(function() {
 		editor.getSession().setMode("ace/mode/javascript");
 		editor.setValue(result);
 	    });
-	    $('#dda-stix-generate').after(get_jsn_btn);
+	    //$('#dda-stix-generate').after(get_jsn_btn);
 
 	    var import_jsn_btn = $('<button>Import JSON</button>').button().click(function(){
 		result = JSON.stringify(instance.get_json(), null, "    ");
@@ -167,10 +320,10 @@ $(function() {
 		    btn
 		);
 	    });
-	    $('#dda-stix-generate').after(import_jsn_btn);
+	    //$('#dda-stix-generate').after(import_jsn_btn);
 
 	};
-	this.init_stix_package_tab();	
+
 
 
 
@@ -181,7 +334,7 @@ $(function() {
 	    var from = ne.find('#id_activity_timestamp_from');
 	    var to = ne.find('#id_activity_timestamp_to');
 
-	    from.datetimepicker({ 
+	    from.datetimepicker({
 		timeFormat: 'HH:mm z',
 		onClose: function(dateText, inst) {
 		    if (to.val() != '') {
@@ -198,7 +351,7 @@ $(function() {
 		    to.datetimepicker('option', 'minDate', from.datetimepicker('getDate') );
 		}
 	    });
-	    to.datetimepicker({ 
+	    to.datetimepicker({
 		timeFormat: 'HH:mm z',
 		onClose: function(dateText, inst) {
 		    if (from.val() != '') {
@@ -217,16 +370,15 @@ $(function() {
 	    });
 	    $('#dda-campaign-container').append(ne);
 
-	    
+
 	    // We inject the threat actor information right after the
 	    // campaign info, because currently, we only allow one
 	    // campaign and one threat actor associated with it
 	    var ta_template = instance.pool_threatactor_templates.first();
 	    ne.after(ta_template.clone())
 		.after('<br><h3>Threat Actor Information</h3>');
-	    
+
 	};
-	this.init_campaign_tab();
 
 
 
@@ -254,7 +406,7 @@ $(function() {
 
 		var title = $('#id_I_object_display_name',v).val();
 		var description = '';
-		
+
 		div.append('<h3>'+title+'</h3>');
 		div.append('<p>'+description+'</p>');
 
@@ -271,7 +423,7 @@ $(function() {
 	    });
 
 	};
-	this.init_observable_pool_tab();
+
 
 
 
@@ -279,16 +431,16 @@ $(function() {
 	this.init_indicator_pool_tab = function(){
 	    $('#dda-indicator-add-btn').button({
 		icons:{
-		    primary:  'ui-icon-circle-plus'
+		    primary: 'ui-icon-circle-plus'
 		}
 	    }).click(function(){
 		instance.ind_pool_add_elem();
 	    });
 
 	};
-	this.init_indicator_pool_tab();
 
-	
+
+
 	// Object relations tab
 	this.init_object_relations_tab = function(){
             var getData = function(){
@@ -302,7 +454,7 @@ $(function() {
             var getLinks = function() {
 		var data_set = getData();
 		return data_set.reduce( function( initial, element) {
-                    return initial.concat( 
+                    return initial.concat(
 			element.relations.map( function( relation) {
                             var src, tgt;
                             $.each(data_set, function(i,v){
@@ -509,7 +661,7 @@ $(function() {
 	    }
 
 	    function tick() {
-		
+
 		// Correct position of the nodes
 		node.call(updateNode);
 		labelAnchor.each(function(d,i){
@@ -537,7 +689,7 @@ $(function() {
 		    }
 		});
 		labelAnchor.call(updateNode);
-		
+
 		// Correct position of links
 		//link.call(updateLink);
 		link.attr("d", function(d) {
@@ -580,11 +732,11 @@ $(function() {
 		link = link.data(links);
 		link.enter().insert("path", ".node")
 		    .attr("class", "link").attr('marker-end', 'url(#end)')
-		    .on("mousedown", 
-			function(d) { 
-			    mousedown_link = d; 
+		    .on("mousedown",
+			function(d) {
+			    mousedown_link = d;
 			    if (mousedown_link == selected_link) selected_link = null;
-			    else selected_link = mousedown_link; 
+			    else selected_link = mousedown_link;
 			    if(selected_link!==null){
 				//select the relation type from the list
 				$.each(selected_link.source.relations, function(i,v){
@@ -593,8 +745,8 @@ $(function() {
 				    }
 				});
 			    }
-			    selected_node = null; 
-			    instance._d3_redraw(); 
+			    selected_node = null;
+			    instance._d3_redraw();
 			})
 		link.exit().remove();
 
@@ -635,16 +787,16 @@ $(function() {
 		node = node.data(nodes);
 		node.enter()
 		    .insert("g").attr("class", "node").append('circle').attr('r', 10).attr('style', function(d){return 'fill:'+fill(d.type)+';opacity:1;'})
-		    .on("mousedown", 
-			function(d) { 
+		    .on("mousedown",
+			function(d) {
 
 			    // disable zoom
 			    vis.call(d3.behavior.zoom().on("zoom", null));
 
 			    mousedown_node = d;
 			    if (mousedown_node == selected_node) selected_node = null;
-			    else selected_node = mousedown_node; 
-			    selected_link = null; 
+			    else selected_node = mousedown_node;
+			    selected_link = null;
 
 			    // reposition drag line
 			    drag_line
@@ -654,24 +806,24 @@ $(function() {
 				.attr("x2", mousedown_node.x)
 				.attr("y2", mousedown_node.y);
 
-			    instance._d3_redraw(); 
+			    instance._d3_redraw();
 			})
 		    .on("mousedrag",
 			function(d) {
 			    // instance._d3_redraw();
 			})
-		    .on("mouseup", 
-			function(d) { 
+		    .on("mouseup",
+			function(d) {
 			    if (mousedown_node) {
-				mouseup_node = d; 
-				if (mouseup_node == mousedown_node) { 
+				mouseup_node = d;
+				if (mouseup_node == mousedown_node) {
 				    instance.obs_elem_restore_from_preview();
-				    
+
 				    $('#dda-relation-object-details').append(
 					mouseup_node.element.find('.dda-pool-element')
 				    );
-				    resetMouseVars(); 
-				    return; 
+				    resetMouseVars();
+				    return;
 				}
 
 				// add link
@@ -736,7 +888,7 @@ $(function() {
 
 	    function spliceLinksForNode(node) {
 		toSplice = links.filter(
-		    function(l) { 
+		    function(l) {
 			return (l.source === node) || (l.target === node); });
 		toSplice.map(
 		    function(l) {
@@ -774,7 +926,7 @@ $(function() {
 
 	    instance._d3_redraw();
 	};
-	this.init_object_relations_tab();
+
 
 
 
@@ -799,7 +951,7 @@ $(function() {
 		});
 		return ret;
 	    }
-	    
+
 	    //Init the observable pool
 	    instance.observable_pool.html('');
 	    $.each(instance.observable_registry, function(i,v){
@@ -842,7 +994,7 @@ $(function() {
 			.addClass('pull-left')
 			.css({'width': '30px', 'margin-right': '5px'})
 		);
-		
+
 		// Put the indicator title, use the 'title' input, or if empty, the guid
 		title = $('#id_indicator_title', indicator_element.element).val();
 		if(title=='')
@@ -890,10 +1042,10 @@ $(function() {
 	     */
 	    $('#dda-stix-generate').off('click').on('click', function(){
 		stix_base = instance.get_json();
-		$('#dda-gen-output').slideUp('fast',function(){		    
+		$('#dda-gen-output').slideUp('fast',function(){
 		    var editor = ace.edit('dda-gen-output-content');
-		    $.post('transform', {'jsn':JSON.stringify(stix_base), 'submit_name' : guid_gen(), 'action' : 'import'}, function(data){
-			if(data.xml !== undefined){
+		    $.post('transform', {'jsn':JSON.stringify(stix_base), 'submit_name' : guid_gen(), 'action' : 'generate'}, function(data){
+			if(data.status){
 			    $('#dda-gen-output').slideDown('fast');
 			    editor.setOptions({
 				maxLines: Infinity
@@ -901,43 +1053,123 @@ $(function() {
 			    editor.setReadOnly(true);
 			    editor.getSession().setMode("ace/mode/xml");
 			    editor.setValue(data.xml);
+			    log_message('Successfully generated', 'success');
+			}else{
+			    log_message(data.msg, 'error');
 			}
-            else if (data.msg !== undefined){
-                alert(data.msg);
-
-
-            }
 		    }, 'json');
 		});
 		return false;
 	    });
-        $('#dda-stix-save').off('click').on('click', function(){
-            stix_base = instance.get_json();
-            $('#dda-gen-output').slideUp('fast',function(){
-                var editor = ace.edit('dda-gen-output-content');
-                $.post('transform', {'jsn':JSON.stringify(stix_base), 'submit_name' : guid_gen(), 'action': 'save'}, function(data){
-                    if(data.xml !== undefined){
-                        $('#dda-gen-output').slideDown('fast');
-                        editor.setOptions({
-                            maxLines: Infinity
-                        });
-                        editor.setReadOnly(true);
-                        editor.getSession().setMode("ace/mode/xml");
-                        editor.setValue(data.xml);
-                    }
-                    else if (data.msg !== undefined){
-                        alert(data.msg);
+
+	    // Save draft button
+            $('#dda-stix-save').off('click').on('click', function(){
+		stix_base = instance.get_json();
+
+		var _save_fcn = function(){
+		    $('#dda-gen-output').slideUp('fast',function(){
+			var editor = ace.edit('dda-gen-output-content');
+			$.post('transform',
+			       {'jsn':JSON.stringify(stix_base), 'submit_name' : instance.load_name, 'id': instance.load_uuid, 'action': 'save'},
+			       function(data){
+				   if(data.status){
+				       // Set last-saved json so we have a copy of what's been saved to check against (to detect changes)
+				       instance._last_save = stix_base;
+				       log_message(data.msg, 'success');
+				   }else{
+				       log_message(data.msg, 'error');
+				   }
+			       }, 'json');
+		    });
+		};
 
 
-                    }
-                }, 'json');
+		if(!instance.load_name || !instance.load_uuid){
+		    //Ask user for meaningful name and generate uuid
+		    var dlg = $('<div id="dda-save-json-dlg" title="Save JSON"><p>Please provide a meaningful name for your package:</p></div>');
+		    var inp = $('<input id="dda-save-json-input" type="text"/>').val($('#dda-stix-meta > input[name="stix_header_title"]').first().val());
+		    dlg.append(inp);
+
+		    dlg.dialog({
+		    	modal: true
+		    });
+		    var ok_btn = $('<button>Ok</button>').button().addClass('pull-right').click(function(){
+			pkg_name = $.trim(dlg.find('input').first().val());
+			if(pkg_name != ''){
+			    instance.load_name = pkg_name;
+			    instance.load_uuid = guid_gen();
+			    _save_fcn();
+			    dlg.dialog('close');
+			}else{
+			    inp.focus();
+			}
+
+		    });
+		    dlg.append(ok_btn);
+
+		}else
+		    _save_fcn();
+
+		return false;
             });
-            return false;
-        });
 
+	    //Load draft button
+	    $('#dda-stix-load').off('click').on('click', function(){
+		var dlg = $('<div id="dda-load-json-dlg" title="Load draft"><p>Please choose from your saved templates:</p></div>');
+		var dlg1 = $('<div id="dda-load-json-confirm-dlg" title="Confirmation"><p>You have not yet saved the changes you made to the current draft. Do you really want to continue loading?</p></div>');
 
-    }
-	
+		var sel = $('<select></select>');
+		$.get('load?list', function(data){
+		    if(data.status)
+			$.each(data.data, function(i,v){
+			    var _t_sel = $('<option></option>').attr('value',v.id).text(v.name);
+			    sel.append(_t_sel);
+			});
+		});
+		dlg.append(sel);
+
+		dlg.dialog({
+		    modal: true
+		});
+
+		var _load_saved_json = function(){
+		    instance.reset_gui();
+		    var load_id = $(sel).val();
+		    instance.load_remote_save(load_id);
+		}
+
+		var ok_btn = $('<button>Ok</button>').button().addClass('pull-right').click(function(){
+		    // Check for not-saved changes
+		    if(instance._last_save===false)
+			instance._last_save = instance.get_json();
+
+		    if(!deepCompare(instance.get_json(), instance._last_save)){ // Changes in document
+			var ok_btn1 = $('<button>Ok</button>').button().addClass('pull-right').click(function(){
+			    _load_saved_json();
+			    if(dlg) dlg.dialog('close');
+			    if(dlg1) dlg1.dialog('close');
+			});
+			var cancel_btn1 = $('<button>Cancel</button>').button().addClass('pull-right').click(function(){
+			    dlg.dialog('close');
+			    dlg1.dialog('close');
+			});
+			dlg1.dialog({
+			    modal: true
+			});
+			dlg1.append(cancel_btn1);
+			dlg1.append(ok_btn1);
+		    }else{ // No changes, or already saved.
+			_load_saved_json();
+			if(dlg) dlg.dialog('close');
+		    }
+
+		});
+		dlg.append(ok_btn);
+
+	    });
+
+	}
+
 	// Campaign info tab
 	this.refresh_campaign_tab = function(){
 	}
@@ -964,8 +1196,6 @@ $(function() {
 	 Functionality/Helper functions
 	***************************************************************/
 
-
-
 	/*
 	 * Adds an element to the observable pool. Gets passed a template id
 	 */
@@ -980,7 +1210,7 @@ $(function() {
 
 	    // Create new container element
 	    var div = $('<div class="dda-add-element clearfix" ></div>').data('id', guid_observable);
-	    
+
 	    // Create element from template
 	    var new_elem = template.clone().attr('id', guid_observable);
 	    var _pc_el = $('<div></div>').append( //container for toggling
@@ -1003,13 +1233,13 @@ $(function() {
 
 	    var title = $('#id_I_object_display_name', template).val();
 	    var description = '';
-	    
+
 	    div.append('<p>'+title+'</p>');
 	    div.append( _pc_el );
 	    div.find('button').button();
 	    instance.pool_list.prepend(div);
 
-	    
+
 	    instance.observable_registry[guid_observable] = {
 		observable_id: guid_observable,
 		relations: [],
@@ -1044,7 +1274,7 @@ $(function() {
 			ni.push(v1);
 		});
 		instance.observable_registry[i].relations = ni;
-		
+
 	    });
 
 	    //remove element itself
@@ -1101,7 +1331,7 @@ $(function() {
 	    if(desc.length>trim)
 		desc = desc.substring(0,trim-3) + '...';
 
-	    return desc	    
+	    return desc
 	};
 
 
@@ -1163,7 +1393,7 @@ $(function() {
 	    // Create element from template
 	    var _pc_el = template.clone().attr('id', guid_indicator);
 
-	    
+
 	    // Create container element
 	    var div = $('<div class="dda-add-element"></div>');
 	    div.append(
@@ -1228,7 +1458,7 @@ $(function() {
 
 	    // Include the indicators
 	    $.each(instance.indicator_registry, function(i,v){
-		var tmp = $('.dda-indicator-template', v.element).find('input, select, textarea').serializeObject();
+		var tmp = $('.dda-indicator-template', v.element).find('input, select, textarea').not('[name^="I_"]').serializeObject();
 		tmp.related_observables = v.observables;
 		tmp.related_observables_condition = 'AND';
 		tmp.indicator_id = v.object_id;
@@ -1251,16 +1481,9 @@ $(function() {
 		stix_base.observables.push(tmp);
 	    });
 
-	    // Inlucde the campaing information
+	    // Include the campaing information
 	    stix_base.campaign = $('#dda-campaign-template_Campaign', '#dda-campaign-container')
 		.find('input, select, textarea').not('[name^="I_"]').serializeObject();
-	    //special for the tstamp
-//	    stix_base.campaign.activity_timestamp_from = $('#dda-campaign-template_Campaign', '#dda-campaign-container').find('#id_activity_timestamp_from').datetimepicker('getDate');
-//	    if(stix_base.campaign.activity_timestamp_from!=null)
-//		stix_base.campaign.activity_timestamp_from = stix_base.campaign.activity_timestamp_from.getTime()/1000;
-//            stix_base.campaign.activity_timestamp_to = $('#dda-campaign-template_Campaign', '#dda-campaign-container').find('#id_activity_timestamp_to').datetimepicker('getDate');
-//	    if(stix_base.campaign.activity_timestamp_to!=null)
-//		stix_base.campaign.activity_timestamp_to = stix_base.campaign.activity_timestamp_to.getTime()/1000;
 	    stix_base.campaign.threatactor = $('#dda-threatactor-template_ThreatActor', '#dda-campaign-container')
 		.find('input, select, textarea').not('[name^="I_"]').serializeObject();
 
@@ -1268,12 +1491,43 @@ $(function() {
 	};
 
 
+	/*
+	 * Resets the GUI to a consistent state based on the JSON generated
+	 */
+	this.reset_gui = function(){
+	    $('#dda-stix-meta').find('input, select, textarea').val('');
+
+	    // Reset campaign info
+	    $('#dda-campaign-template_Campaign', '#dda-campaign-container')
+		.find('input, select, textarea').not('[name^="I_"]').val('');
+	    $('#dda-threatactor-template_ThreatActor', '#dda-campaign-container')
+		.find('input, select, textarea').not('[name^="I_"]').val('');
+
+	    // Reset observables
+	    $.each(instance.observable_registry, function(i,v){
+		instance.obs_pool_remove_elem(v.observable_id);
+	    });
+
+	    // Reset indicators
+	    $.each(instance.indicator_registry, function(i,v){
+		instance.ind_pool_remove_elem(v.object_id);
+	    });
+
+
+	};
+
 
 	/*
 	 * Tries to initialize the GUI from a provided JSON
 	 */
-	this.load_from_json = function(jsn){
-	    // Restore Stix header information
+	this.load_from_json = function(jsn, load_name, load_uuid){
+	    instance.load_name = load_name || false;
+	    instance.load_uuid = load_uuid || false;
+
+	    if(instance.load_name)
+	     	$('#grp-content-title h1').text(instance.load_name);
+
+	    // Restore STIX header information
 	    $.each(jsn.stix_header, function(i,v){
 		$('[name="'+i+'"]', '#dda-stix-meta').val(v);
 	    });
@@ -1298,7 +1552,7 @@ $(function() {
 		//TODO: if template does not exitst. issue an error.
 		instance.obs_pool_add_elem(template, v.observable_id);
 		var el = instance.observable_registry[v.observable_id];
-		
+
 		//restore title and description
 		el.element.find('[name="dda-observable-title"]').val(v.observable_title);
 		el.element.find('[name="dda-observable-description"]').val(v.observable_title);
@@ -1314,30 +1568,56 @@ $(function() {
 	    });
 
 	    // Restore the campaign information
-	    $.each(jsn.campaign, function(i,v){
-		$('#dda-campaign-template_Campaign', '#dda-campaign-container').find('[name="'+i+'"]').val(v);
-	    });
+	    if(jsn.campaign!=undefined){
+		$.each(jsn.campaign, function(i,v){
+		    $('#dda-campaign-template_Campaign', '#dda-campaign-container').find('[name="'+i+'"]').val(v);
+		});
 
-	    // Restore the threat actor information
-	    $.each(jsn.campaign.threatactor, function(i,v){
-		$('#dda-threatactor-template_ThreatActor', '#dda-campaign-container').find('[name="'+i+'"]').val(v);
-	    });
+		// Restore the threat actor information
+		$.each(jsn.campaign.threatactor, function(i,v){
+		    $('#dda-threatactor-template_ThreatActor', '#dda-campaign-container').find('[name="'+i+'"]').val(v);
+		});
+	    }
 	};
 
-	// Return ourselfs
+
+	/*
+	 * Loads a remotely saved template
+	 */
+	this.load_remote_save = function(save_uuid){
+	    $.get('load', {name : save_uuid}, function(data){
+		if(data.status){
+		    var jsn_template = $.parseJSON(data.data.jsn);
+		    instance._last_save = jsn_template;
+		    instance.load_from_json(jsn_template, data.data.name, data.data.id);
+		    instance.refresh_stix_package_tab();
+		    log_message(data.msg, 'success', 3000);
+		}else{
+		    log_message(data.msg, 'error');
+		}
+
+            },'json');
+	};
 
 
+	// Init me!
+	this.init_stix_package_tab();
+	this.init_campaign_tab();
+	this.init_observable_pool_tab();
+	this.init_indicator_pool_tab();
+	this.init_object_relations_tab();
 
+	this.refresh_stix_package_tab(); //Initial refresh for button handlers to be bound (in case this tab is the first visible tab)
 
-
-    return instance;
+	// Return myself for reference pleasure
+	return instance;
     };
     var b = builder();
 
 
 
     $('#dda-container-tabs').tabs({
-	active: 1,
+	active: 0,
 	activate:function(event,ui){
 	    if(ui.newTab.index()==0){
 		b.refresh_stix_package_tab();
@@ -1362,24 +1642,11 @@ $(function() {
     $('#dda-relation-list > .dda-add-element').click(function(){
 	$('#dda-relation-list').find('.dda-rel-selected').removeClass('dda-rel-selected').find('input:checked').prop('checked', false);
 	$(this).addClass('dda-rel-selected').find('input:radio').prop('checked', true);
-	
+
     });
 
-
-    if(querystring('load')!='')
-    {
-        $.get('load', {name : querystring('load')[0]}, function(data){
-            //if(data.jsn !== undefined){
-            //    b.load_from_json(data.jsn);
-            //    b.refresh_stix_package_tab();
-            //}
-            if (data.msg !== undefined){
-                alert(data.msg);
-            }
-
-
-        },'json');
+    if(querystring('load')!=''){
+	b.load_remote_save(querystring('load')[0]);
     }
 
 });
-

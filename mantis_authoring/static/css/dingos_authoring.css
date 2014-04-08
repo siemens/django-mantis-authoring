@@ -284,6 +284,28 @@ button span {
 }
 
 
+.dda-grp-message > .ui-icon{
+    display: inline-block !important;
+    margin-bottom: -3px;
+    margin-right: 5px;
+}
+
+
+#dda-save-json-dlg input {
+    width: 100%;
+}
+#dda-save-json-dlg button {
+    margin-top: 10px;
+}
+
+#dda-load-json-dlg select {
+    width: 100%;
+}
+
+#dda-load-json-dlg button {
+    margin-top: 10px;
+}
+
 
 
 /* css for timepicker */

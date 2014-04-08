@@ -3,6 +3,12 @@
 
 {% block content %}
 
+<div id="dda-messages">
+  <ul class="grp-messagelist">
+  </ul>
+</div>
+
+
 <div id="dda-container-tabs">
   <ul>
     <li><a href="#dda-tab-1">Stix Package</a></li>
@@ -25,7 +31,8 @@
 	  <select name="stix_header_tlp"><option value="white">White</option><option value="green">Green</option><option value="amber">Amber</option><option value="red">Red</option></select>
 	  <hr>
 	  <button id="dda-stix-generate">Generate STIX</button>
-      <button id="dda-stix-save">Save Draft</button>
+	  <button id="dda-stix-save" class="pull-right">Save Draft</button>
+	  <button id="dda-stix-load" class="pull-right">Load Draft</button>
         </div>
       </div>
 
