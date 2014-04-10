@@ -248,6 +248,7 @@ $(function() {
      */
     var builder = function(){
 	var instance = this;
+	this.namespace_slug = false;
 
 	this.observable_pool = $('#dda-observable-pool'); // Selector box on STIX tab
 	this.obs_pool_list = $('#dda-observable-pool-list'); // The list of added elements on its own tab
@@ -1364,7 +1365,8 @@ $(function() {
 
 	    // Get a new id
 	    guid = guid_gen();
-	    guid_observable = 'siemens_cert:Observable-' + guid;
+	    guid_observable = instance.namespace_slug + ':Observable-' + guid;
+
 	    if(guid_passed){
 		if(instance.observable_registry[guid_passed] != undefined){
 		    log_message('A observable with this ID already exists.', 'error');
@@ -1372,7 +1374,6 @@ $(function() {
 		}
 		guid_observable = guid_passed;
 	    }
-
 	    // Create new container element
 	    var div = $('<div class="dda-add-element clearfix" ></div>').data('id', guid_observable);
 
@@ -1571,7 +1572,7 @@ $(function() {
 
 	    // Get a new ID or use supplied one
 	    var guid = guid_gen();
-	    var guid_indicator = 'siemens_cert:' + template.find('#id_object_type').val() + '-' + guid;
+	    var guid_indicator = instance.namespace_slug + ':' + template.find('#id_object_type').val() + '-' + guid;
 
 	    if(guid_passed){
 		if(instance.indicator_registry[guid_passed] != undefined){
@@ -1685,7 +1686,7 @@ $(function() {
 
 	    // Get a new ID or use supplied one
 	    var guid = guid_gen();
-	    var guid_test = 'siemens_cert:' + template.find('#id_object_type').val() + '-' + guid;
+	    var guid_test = instance.namespace_slug + ':' + template.find('#id_object_type').val() + '-' + guid;
 
 	    if(guid_passed){
 		if(instance.test_mechanisms_registry[guid_passed] != undefined){
@@ -1761,7 +1762,7 @@ $(function() {
 	this.get_json = function(){
 	    // Generate package id if not already existing
 	    if($('#dda-stix-meta').find('input[name="stix_package_id"]').val()=='')
-		$('#dda-stix-meta').find('input[name="stix_package_id"]').val('siemens_cert:package-' + guid_gen());
+		$('#dda-stix-meta').find('input[name="stix_package_id"]').val(instance.namespace_slug + ':package-' + guid_gen());
 	    var stix_base = {
 		'stix_header': $('#dda-stix-meta').find('input, select, textarea').serializeObject(),
 		'campaign': {},
@@ -1951,20 +1952,30 @@ $(function() {
 		}
 		//TODO: treat other types
             });
-        }
+        };
 
 
-	// Init me!
-	this.init_stix_package_tab();
-	this.init_campaign_tab();
-	this.init_observable_pool_tab();
-	this.init_indicator_pool_tab();
-	this.init_test_mechanisms_tab();
-	this.init_object_relations_tab();
+	/*
+	 * Initialize users namespace
+	 */
+	this.init_user_namespace = function(callback){
+	    $.get('get_namespace', function(data){
+		instance.namespace_slug = data.data.default_ns_slug;
+		callback();
+	    }, 'json');
+	};
 
-	this.refresh_stix_package_tab(); //Initial refresh for button handlers to be bound (in case this tab is the first visible tab)
+	// Init ourselfs, make sure the namespace is set first
+	this.init_user_namespace(function(){
+	    instance.init_stix_package_tab();
+	    instance.init_campaign_tab();
+	    instance.init_observable_pool_tab();
+	    instance.init_indicator_pool_tab();
+	    instance.init_test_mechanisms_tab();
+	    instance.init_object_relations_tab();
+	    instance.refresh_stix_package_tab(); //Initial refresh for button handlers to be bound (in case this tab is the first visible tab)
+	});
 
-	// Return myself for reference pleasure
 	return instance;
     };
     var b = builder();
