@@ -201,6 +201,21 @@ $(function() {
 
 
     /*
+     * Prevent dropping files on browser window
+     */
+    window.addEventListener("dragover",function(e){
+        e = e || event;
+        e.preventDefault();
+    },false);
+    window.addEventListener("drop",function(e){
+        e = e || event;
+        e.preventDefault();
+    },false);
+
+
+
+
+    /*
      * Logs a message, which is shown to the user and removed again after a specified timeout
      */
     function log_message(message, type, timeout){
@@ -234,14 +249,32 @@ $(function() {
     var builder = function(){
 	var instance = this;
 
-	this.pool_list = $('#dda-pool-list');
-	this.pool_elements = $('#dda-pool-elements');
-	this.pool_elements_templates = $('#dda-observable-template-pool > div');
-	this.pool_indicator_templates = $('#dda-indicator-template-pool > div');
-	this.pool_campaign_templates = $('#dda-campaign-template-pool > div');
-	this.pool_threatactor_templates = $('#dda-threatactor-template-pool > div');
-	this.observable_pool = $('#dda-observable-pool');
-	this.indicator_list = $('#dda-indicator-list');
+	this.observable_pool = $('#dda-observable-pool'); // Selector box on STIX tab
+	this.obs_pool_list = $('#dda-observable-pool-list'); // The list of added elements on its own tab
+	this.obs_pool_elements = $('#dda-observable-pool-elements'); // The elements to choose from (for adding)
+	this.obs_pool_elements_templates = $('#dda-observable-template-pool > div'); // The templates
+
+	this.test_mechanisms_pool = $('#dda-test-mechanisms-pool');
+	this.tes_pool_list = $('#dda-test-mechanisms-pool-list');
+	//this.tes_pool_elements
+	this.tes_pool_elements_templates = $('#dda-test-mechanisms-template-pool > div');
+
+	//this.indicator_pool
+	this.ind_pool_list = $('#dda-indicator-pool-list');
+	//this.ind_pool_elements
+	this.ind_pool_elements_templates = $('#dda-indicator-template-pool > div');
+
+	//this.campaign_pool
+	//this.cam_pool_list
+	//this.cam_pool_elements
+	this.cam_pool_elements_templates = $('#dda-campaign-template-pool > div');
+
+	//this.threat_actor_pool
+	//this.tha_pool_list
+	//this.tha_pool_elements
+	this.tha_pool_elements_templates = $('#dda-threatactor-template-pool > div');
+
+
 	this.package_indicators = $('#dda-package-indicators');
 
 	this.load_name = false; // Holds the name of the currently loaded template-json
@@ -250,6 +283,8 @@ $(function() {
 
 	this.observable_registry = {}; // Holds the observables currently loaded
 	this.indicator_registry = {}; // Holds the indicators currently loaded
+	this.test_mechanisms_registry = {}; // Holds the test mechanisms currently loaded
+
 
 	/****************************************************************
 	 Init each tab
@@ -281,7 +316,7 @@ $(function() {
 		editor.getSession().setMode("ace/mode/javascript");
 		editor.setValue(result);
 	    });
-	    //$('#dda-stix-generate').after(get_jsn_btn);
+	    //$('#dda-stix-show').after(get_jsn_btn);
 
 	    var import_jsn_btn = $('<button>Import JSON</button>').button().click(function(){
 		result = JSON.stringify(instance.get_json(), null, "    ");
@@ -320,7 +355,7 @@ $(function() {
 		    btn
 		);
 	    });
-	    //$('#dda-stix-generate').after(import_jsn_btn);
+	    //$('#dda-stix-show').after(import_jsn_btn);
 
 	};
 
@@ -329,7 +364,7 @@ $(function() {
 
 	// Campaign tab
 	this.init_campaign_tab = function(){
-	    var template = instance.pool_campaign_templates.first();
+	    var template = instance.cam_pool_elements_templates.first();
 	    var ne = template.clone();
 	    var from = ne.find('#id_activity_timestamp_from');
 	    var to = ne.find('#id_activity_timestamp_to');
@@ -374,7 +409,7 @@ $(function() {
 	    // We inject the threat actor information right after the
 	    // campaign info, because currently, we only allow one
 	    // campaign and one threat actor associated with it
-	    var ta_template = instance.pool_threatactor_templates.first();
+	    var ta_template = instance.tha_pool_elements_templates.first();
 	    ne.after(ta_template.clone())
 		.after('<br><h3>Threat Actor Information</h3>');
 
@@ -385,7 +420,7 @@ $(function() {
 
 	// Observable pool tab
 	this.init_observable_pool_tab = function(){
-	    $.each(instance.pool_elements_templates, function(i,v){
+	    $.each(instance.obs_pool_elements_templates, function(i,v){
 		var div = $('<div class="dda-add-element clearfix" ></div>');
 		div.append(
 		    $('<object></object>').attr('data', $(v).find('#id_I_icon').val())
@@ -410,21 +445,33 @@ $(function() {
 		div.append('<h3>'+title+'</h3>');
 		div.append('<p>'+description+'</p>');
 
-		instance.pool_elements.append(div);
+		instance.obs_pool_elements.append(div);
 	    });
 
 	    instance._pc_el_shown=true;
 	    $('#dda-template-head-toogle').click(function(){
 		if(instance._pc_el_shown)
-		    $('.dda-pool-element', '#dda-pool-list').parent().hide();
+		    $('.dda-pool-element', '#dda-observable-pool-list').parent().hide();
 		else
-		    $('.dda-pool-element', '#dda-pool-list').parent().show();
+		    $('.dda-pool-element', '#dda-observable-pool-list').parent().show();
 		instance._pc_el_shown = !instance._pc_el_shown;
 	    });
 
+            // Init dropzone
+            var file_dropzone = $("#dda-observable-filedrop").dropzone({
+                'previewTemplate': '<div></div>',
+		'dictDefaultMessage': 'Drop files here to analyze',
+                //'forceFallback': true,
+                'success': function(f, response){
+                    window._handle_file_upload_response(response);
+                    this.removeAllFiles();
+                },
+                'error': function(f, errorMessage){
+		    log_message(errorMessage, 'error');
+		}
+            });
+
 	};
-
-
 
 
 	// Indicator pool tab
@@ -439,6 +486,26 @@ $(function() {
 
 	};
 
+
+
+	// Test mechanisms tab
+	this.init_test_mechanisms_tab = function(){
+            // Init dropzone
+            var file_dropzone = $("#dda-test-mechanism-filedrop").dropzone({
+                'previewTemplate': '<div></div>',
+		'dictDefaultMessage': 'Drop files here to upload',
+                //'forceFallback': true,
+                'success': function(f, response){
+                    window._handle_file_upload_response(response);
+                    this.removeAllFiles();
+                },
+                'error': function(f, errorMessage){
+		    log_message(errorMessage, 'error');
+		}
+            });
+
+
+	};
 
 
 	// Object relations tab
@@ -940,13 +1007,23 @@ $(function() {
 	    // First clear all entries
 	    instance.package_indicators.html('');
 
-
 	    function isObservableInIndicator(id){
 		var ret = false;
 		$.each(instance.indicator_registry, function(i,v){
 		    if($.inArray(id, v.observables)!==-1){
 			ret = true;
-			return false;
+			return false; //break from each
+		    }
+		});
+		return ret;
+	    }
+
+	    function isTestMechanismInIndicator(id){
+		var ret = false;
+		$.each(instance.indicator_registry, function(i,v){
+		    if($.inArray(id, v.test_mechanisms)!==-1){
+			ret = true;
+			return false; //break from each
 		    }
 		});
 		return ret;
@@ -955,7 +1032,7 @@ $(function() {
 	    //Init the observable pool
 	    instance.observable_pool.html('');
 	    $.each(instance.observable_registry, function(i,v){
-		var div = $('<div class="dda-add-element clearfix" ></div>').data('id', i);
+		var div = $('<div class="dda-add-element clearfix" ></div>').data({'id': i, 'type': 'observable'});
 		if(isObservableInIndicator(v.observable_id))
 		    div.append('<span class="pull-right">+</span>')
 		div.append('<h3>'+$('#id_I_object_display_name', $('#'+v.template)).val()+'</h3>');
@@ -975,6 +1052,32 @@ $(function() {
 		});
 
 		instance.observable_pool.prepend(div);
+	    });
+
+	    //Init the test mechanisms pool
+	    instance.test_mechanisms_pool.html('');
+	    $.each(instance.test_mechanisms_registry, function(i,v){
+		var div = $('<div class="dda-add-element clearfix" ></div>').data({'id': i, 'type': 'test_mechanism'});
+		if(isTestMechanismInIndicator(v.observable_id))
+		    div.append('<span class="pull-right">+</span>')
+
+		title = get_tes_elem_desc_name(v);
+		div.append('<h3>'+title+'</h3>');
+
+
+		div.draggable({
+		    "helper": "clone",
+		    "zIndex": 300,
+		    "refreshPositions": true,
+		    "start": function(event, ui) {
+			$(".dda-package-indicators_dropzone").addClass("dda-dropzone-highlight");
+		    },
+		    "stop": function(event, ui) {
+			$(".dda-package-indicators_dropzone").removeClass("dda-dropzone-highlight");
+		    }
+		});
+
+		instance.test_mechanisms_pool.prepend(div);
 	    });
 
 
@@ -1002,12 +1105,31 @@ $(function() {
 		div.append('<h3>'+title+'</h3>');
 
 		// Add the indicator-guid to the dropzone so we know it when dropping onto
-		var refs = $('<div></div>').addClass('dda-package-indicators_dropzone').data('id', indicator_guid);
+		var dropper = $('<div></div>').addClass('dda-package-indicators_dropzone').data('id', indicator_guid);
+		var refs_obs = $('<ul></ul>');
+		var refs_tes = $('<ul></ul>');
 		$.each(indicator_element.observables, function(i,v){
 		    desc = instance.get_obs_elem_desc_name(instance.observable_registry[v], v);
-		    refs.append($('<div></div>').html(desc));
+		    var remove_icon = $('<i class="ui-icon ui-icon-close"></i>').click(function(){
+			instance.ind_remove_obs(indicator_guid, v);
+			instance.refresh_stix_package_tab();
+		    });
+		    refs_obs.append(
+			$('<span></span>').text(desc).append(remove_icon).wrap('<li>').parent()
+		    );
 		});
-		div.append(refs);
+		$.each(indicator_element.test_mechanisms, function(i,v){
+		    desc = get_tes_elem_desc_name(instance.test_mechanisms_registry[v]);
+		    var remove_icon = $('<i class="ui-icon ui-icon-close"></i>').click(function(){
+			instance.ind_remove_tes(indicator_guid, v);
+			instance.refresh_stix_package_tab();
+		    });
+		    refs_tes.append(
+			$('<span></span>').text(desc).append(remove_icon).wrap('<li>').parent()
+		    );
+		});
+		dropper.append(refs_obs).append(refs_tes);
+		div.append(dropper);
 		instance.package_indicators.append(div);
 	    });
 
@@ -1017,13 +1139,19 @@ $(function() {
 		    if(!ui.draggable.hasClass('dda-add-element'))
 			return;
 		    var draggable = $(ui.draggable);
-		    var observable_id = $(draggable).data('id');
+		    var object_id = $(draggable).data('id');
+		    var object_type = $(draggable).data('type');
 		    var indicator_id = $(this).data('id');
 		    if(!indicator_id){ //if we drop on a non-indicator, we generate one
 			indicator_id = instance.ind_pool_add_elem();
 		    }
-		    instance.indicator_registry[indicator_id].observables.push(observable_id);
-		    instance.indicator_registry[indicator_id].observables = uniqueArray(instance.indicator_registry[indicator_id].observables);
+		    if(object_type=='observable'){
+			instance.indicator_registry[indicator_id].observables.push(object_id);
+			instance.indicator_registry[indicator_id].observables=uniqueArray(instance.indicator_registry[indicator_id].observables);
+		    }else if(object_type=='test_mechanism'){
+			instance.indicator_registry[indicator_id].test_mechanisms.push(object_id);
+			instance.indicator_registry[indicator_id].test_mechanisms=uniqueArray(instance.indicator_registry[indicator_id].test_mechanisms);
+		    }
 		    instance.refresh_stix_package_tab();
 		},
                 "over": function (event, ui ) {
@@ -1037,28 +1165,59 @@ $(function() {
 
 
 	    /*
-	     * Register generate button handler
-	     * and export data
+	     * Register the show-stix button handler
 	     */
-	    $('#dda-stix-generate').off('click').on('click', function(){
+	    $('#dda-stix-show').off('click').on('click', function(){
 		stix_base = instance.get_json();
-		$('#dda-gen-output').slideUp('fast',function(){
-		    var editor = ace.edit('dda-gen-output-content');
-		    $.post('transform', {'jsn':JSON.stringify(stix_base), 'submit_name' : guid_gen(), 'action' : 'generate'}, function(data){
-			if(data.status){
-			    $('#dda-gen-output').slideDown('fast');
-			    editor.setOptions({
-				maxLines: Infinity
-			    });
-			    editor.setReadOnly(true);
-			    editor.getSession().setMode("ace/mode/xml");
-			    editor.setValue(data.xml);
-			    log_message('Successfully generated', 'success');
-			}else{
-			    log_message(data.msg, 'error');
-			}
-		    }, 'json');
-		});
+		$.post('transform', {'jsn':JSON.stringify(stix_base), 'submit_name' : guid_gen(), 'action' : 'generate'}, function(data){
+		    if(data.status){
+			var dlg = $('<div id="dda-show-stix-dlg" title="STIX Package Output"><div id="dda-show-stix-edit"></div></div>');
+			dlg.dialog({
+			    width       : $(window).width()-30,
+			    height      : $(window).height()-30,
+			    modal: true,
+			    draggable   : false,
+			    resizable   : false,
+			    create: function(event, ui){
+				$('body').css('overflow', 'hidden');
+			    },
+			    beforeClose: function( event, ui ) {
+				var editor = ace.edit('dda-show-stix-edit');
+				editor.destroy();
+				$('body').css('overflow', 'auto');
+				$('#dda-show-stix-edit').remove();
+			    },
+			    resizeStop: function( event, ui ) {
+				var editor = ace.edit('dda-show-stix-edit');
+				editor.resize();
+			    }
+			});
+			var editor = ace.edit('dda-show-stix-edit');
+			editor.setReadOnly(true);
+			editor.getSession().setMode("ace/mode/xml");
+			editor.setValue(data.xml);
+		    }else{
+			log_message(data.msg, 'error');
+		    }
+		}, 'json');
+
+		return false;
+	    });
+
+
+	    /*
+	     * Register the import-to-mantis button handler
+	     */
+	    $('#dda-stix-import').off('click').on('click', function(){
+		stix_base = instance.get_json();
+		$.post('transform', {'jsn':JSON.stringify(stix_base), 'submit_name' : guid_gen(), 'action' : 'import'}, function(data){
+		    if(data.status){
+			log_message(data.msg, 'success');
+		    }else{
+			log_message(data.msg, 'error');
+		    }
+		}, 'json');
+
 		return false;
 	    });
 
@@ -1067,20 +1226,17 @@ $(function() {
 		stix_base = instance.get_json();
 
 		var _save_fcn = function(){
-		    $('#dda-gen-output').slideUp('fast',function(){
-			var editor = ace.edit('dda-gen-output-content');
-			$.post('transform',
-			       {'jsn':JSON.stringify(stix_base), 'submit_name' : instance.load_name, 'id': instance.load_uuid, 'action': 'save'},
-			       function(data){
-				   if(data.status){
-				       // Set last-saved json so we have a copy of what's been saved to check against (to detect changes)
-				       instance._last_save = stix_base;
-				       log_message(data.msg, 'success');
-				   }else{
-				       log_message(data.msg, 'error');
-				   }
-			       }, 'json');
-		    });
+		    $.post('transform',
+			   {'jsn':JSON.stringify(stix_base), 'submit_name' : instance.load_name, 'id': instance.load_uuid, 'action': 'save'},
+			   function(data){
+			       if(data.status){
+				   // Set last-saved json so we have a copy of what's been saved to check against (to detect changes)
+				   instance._last_save = stix_base;
+				   log_message(data.msg, 'success', 5000);
+			       }else{
+				   log_message(data.msg, 'error');
+			       }
+			   }, 'json');
 		};
 
 
@@ -1184,6 +1340,10 @@ $(function() {
 	this.refresh_indicator_pool_tab = function(){
 	}
 
+	// Test mechanisms tab
+	this.refresh_test_mechanisms_pool_tab = function(){
+	}
+
 	// Object relations tab
 	this.refresh_object_relations_tab = function(){
 	    b._d3_redraw(true);
@@ -1205,8 +1365,13 @@ $(function() {
 	    // Get a new id
 	    guid = guid_gen();
 	    guid_observable = 'siemens_cert:Observable-' + guid;
-	    if(guid_passed)
+	    if(guid_passed){
+		if(instance.observable_registry[guid_passed] != undefined){
+		    log_message('A observable with this ID already exists.', 'error');
+		    return false;
+		}
 		guid_observable = guid_passed;
+	    }
 
 	    // Create new container element
 	    var div = $('<div class="dda-add-element clearfix" ></div>').data('id', guid_observable);
@@ -1237,7 +1402,7 @@ $(function() {
 	    div.append('<p>'+title+'</p>');
 	    div.append( _pc_el );
 	    div.find('button').button();
-	    instance.pool_list.prepend(div);
+	    instance.obs_pool_list.prepend(div);
 
 
 	    instance.observable_registry[guid_observable] = {
@@ -1248,7 +1413,7 @@ $(function() {
 		description: description,
 		type: template.find('#id_object_type').val()
 	    };
-
+	    return instance.observable_registry[guid_observable];
 	};
 
 	/*
@@ -1285,7 +1450,7 @@ $(function() {
 
 
 	/*
-	 * Helper function which returns a display name for a specific object
+	 * Helper function which returns a display name for a specific observable
 	 */
 	this.get_obs_elem_desc_name = function(v, def, trim){
 	    trim=trim||60;
@@ -1333,6 +1498,28 @@ $(function() {
 
 	    return desc
 	};
+	/*
+	 * Helper function which returns a display name for a specific test mechanism
+	 */
+	this.get_tes_elem_desc_name = function(v, trim){
+	    trim=trim||60;
+	    desc = '';
+
+	    subtype = v.element.find('#id_object_subtype').val();
+	    if(subtype == 'IOC'){
+		desc = $(v.element).find('#id_ioc_title').val();
+	    }else if(subtype == 'SNORT'){
+		desc = $.trim($(v.element).find('#id_snort_title').val());
+	    }
+
+	    if(desc=='')
+		desc = v.object_id;
+
+	    if(desc.length>trim)
+		desc = desc.substring(0,trim-3) + '...';
+
+	    return desc
+	};
 
 
 
@@ -1366,13 +1553,13 @@ $(function() {
 	    var template = false;
 
 	    if(!template_id){ // When user clicked the button
-		template = instance.pool_indicator_templates.first();
+		template = instance.ind_pool_elements_templates.first();
 		template_id = template.attr('id');
 		auto_gen = true;
 	    }else{
-		$.each(instance.pool_indicator_templates, function(i,v){
+		$.each(instance.ind_pool_elements_templates, function(i,v){
 		    if($(v).attr('id')==template_id){
-			template = v;
+			template = $(v);
 			return false;
 		    }
 		});
@@ -1386,8 +1573,13 @@ $(function() {
 	    var guid = guid_gen();
 	    var guid_indicator = 'siemens_cert:' + template.find('#id_object_type').val() + '-' + guid;
 
-	    if(guid_passed)
+	    if(guid_passed){
+		if(instance.indicator_registry[guid_passed] != undefined){
+		    log_message('A indicator with this ID already exists.', 'error');
+		    return false;
+		}
 		guid_indicator = guid_passed;
+	    }
 
 
 	    // Create element from template
@@ -1414,7 +1606,7 @@ $(function() {
 
 	    // Insert the element in the DOM
 	    div.append(_pc_el);
-	    instance.indicator_list.prepend(div);
+	    instance.ind_pool_list.prepend(div);
 
 	    // Register the object internally
 	    instance.indicator_registry[guid_indicator] = {
@@ -1422,7 +1614,8 @@ $(function() {
 		object_id: guid_indicator,
 		element: div,
 		description: template.data('description'),
-		observables: []
+		observables: [],
+		test_mechanisms: []
 	    };
 
 	    if(!auto_gen){
@@ -1431,11 +1624,130 @@ $(function() {
 		return guid_indicator;
 	    }
 	};
+	/*
+	 * Removes and indicator from the pool
+	 */
 	this.ind_pool_remove_elem = function(guid){
 	    instance.indicator_registry[guid].element.remove();
 	    delete instance.indicator_registry[guid];
 	    instance.refresh_stix_package_tab();
 	};
+	/* 
+	 * Removes an observable from an indicator
+	 */
+	this.ind_remove_obs = function(ind_guid, obs_guid){
+	    var obs = this.indicator_registry[ind_guid].observables;
+	    var obs_new = [];
+	    $.each(obs, function(i,v){
+		if(v!=obs_guid) obs_new.push(v);
+	    });
+	    this.indicator_registry[ind_guid].observables = obs_new;
+	};
+	/* 
+	 * Removes a test-mechanism from an indicator
+	 */
+	this.ind_remove_tes = function(ind_guid, tes_guid){
+	    var tes = this.indicator_registry[ind_guid].test_mechanisms;
+	    var tes_new = [];
+	    $.each(tes, function(i,v){
+		if(v!=tes_guid) tes_new.push(v);
+	    });
+	    this.indicator_registry[ind_guid].test_mechanisms = tes_new;
+	};
+
+
+
+	/*
+	 * Adds a test mechanism element to the pool. Gets passed a
+	 * template id If template id is not passed the first template
+	 * in the template pool will be used
+	 */
+	this.tes_pool_add_elem = function(template_id, guid_passed){
+	    var auto_gen = false;
+	    var template = false;
+
+	    if(!template_id){
+		template = instance.tes_pool_elements_templates.first();
+		template_id = template.attr('id');
+		auto_gen = true;
+	    }else{
+		$.each(instance.tes_pool_elements_templates, function(i,v){
+		    if($(v).attr('id')==template_id){
+			template = $(v);
+			return false;
+		    }
+		});
+	    }
+	    if(template===false){
+		//TODO: template not found;
+		template = $();
+	    }
+
+	    // Get a new ID or use supplied one
+	    var guid = guid_gen();
+	    var guid_test = 'siemens_cert:' + template.find('#id_object_type').val() + '-' + guid;
+
+	    if(guid_passed){
+		if(instance.test_mechanisms_registry[guid_passed] != undefined){
+		    log_message('A test mechanism with this ID already exists.', 'error');
+		    return false;
+		}
+		guid_test = guid_passed;
+	    }
+
+
+	    // Create element from template
+	    var _pc_el = template.clone().attr('id', guid_test);
+
+
+	    // Create container element
+	    var div = $('<div class="dda-add-element"></div>');
+	    div.append(
+		$('<div class="clearfix" style="margin-bottom:5px;"></div>').append(
+		    $('<button class="dda-tes-remove pull-right"></button>').button({
+			icons:{
+			    primary: 'ui-icon-trash'
+			},
+			text: false
+		    }).click(function(){
+			instance.tes_pool_remove_elem(guid_test);
+		    }),
+		    $('<h3>' + guid_test + '</h3>').click(function(){
+			_pc_el.toggle();
+		    })
+		)
+	    );
+
+	    // Insert the element in the DOM
+	    div.append(_pc_el);
+	    instance.tes_pool_list.prepend(div);
+
+	    // Register the object internally
+	    instance.test_mechanisms_registry[guid_test] = {
+		template: template_id,
+		object_id: guid_test,
+		element: div,
+		description: template.data('description')
+	    };
+	    return instance.test_mechanisms_registry[guid_test]
+	};
+	this.tes_pool_remove_elem = function(guid){
+
+	    //remove from indicators
+	    $.each(instance.indicator_registry, function(i,v){
+		var ni = [];
+		$.each(v.test_mechanisms, function(i1,v1){
+		    if(v1!=guid)
+			ni.push(v1);
+		});
+		instance.indicator_registry[i].test_mechanisms = ni;
+	    });
+
+	    instance.test_mechanisms_registry[guid].element.remove();
+	    delete instance.test_mechanisms_registry[guid];
+	    instance.refresh_stix_package_tab();
+	};
+
 
 
 
@@ -1447,13 +1759,16 @@ $(function() {
 	 * Returns the JSON representation of the current configuration
 	 */
 	this.get_json = function(){
-	    //generated-time
+	    // Generate package id if not already existing
+	    if($('#dda-stix-meta').find('input[name="stix_package_id"]').val()=='')
+		$('#dda-stix-meta').find('input[name="stix_package_id"]').val('siemens_cert:package-' + guid_gen());
 	    var stix_base = {
 		'stix_header': $('#dda-stix-meta').find('input, select, textarea').serializeObject(),
 		'campaign': {},
 		'incidents': [],
 		'indicators': [],
-		'observables': []
+		'observables': [],
+		'test_mechanisms': []
 	    }
 
 	    // Include the indicators
@@ -1462,6 +1777,7 @@ $(function() {
 		tmp.related_observables = v.observables;
 		tmp.related_observables_condition = 'AND';
 		tmp.indicator_id = v.object_id;
+		tmp.related_test_mechanisms = v.test_mechanisms;
 		stix_base.indicators.push(tmp);
 	    });
 
@@ -1479,6 +1795,13 @@ $(function() {
 		    tmp.related_observables[v.target] = v.label;
 		});
 		stix_base.observables.push(tmp);
+	    });
+
+	    // Include the test mechanisms
+	    $.each(instance.test_mechanisms_registry, function(i,v){
+		var tmp = $('.dda-test-mechanism-template', v.element).find('input, select, textarea').not('[name^="I_"]').serializeObject();
+		tmp.test_mechanism_id = v.object_id;
+		stix_base.test_mechanisms.push(tmp);
 	    });
 
 	    // Include the campaing information
@@ -1548,7 +1871,7 @@ $(function() {
 	    // Restore observables
 	    instance.observable_registry = {};
 	    $.each(jsn.observables, function(i,v){
-		var template = 'dda-observable-template_' + v.observable_properties.object_type;
+		var template = 'dda-observable-template_' + v.observable_properties.object_type + '_' + v.observable_properties.object_subtype;
 		//TODO: if template does not exitst. issue an error.
 		instance.obs_pool_add_elem(template, v.observable_id);
 		var el = instance.observable_registry[v.observable_id];
@@ -1591,7 +1914,7 @@ $(function() {
 		    instance._last_save = jsn_template;
 		    instance.load_from_json(jsn_template, data.data.name, data.data.id);
 		    instance.refresh_stix_package_tab();
-		    log_message(data.msg, 'success', 3000);
+		    log_message(data.msg, 'success', 5000);
 		}else{
 		    log_message(data.msg, 'error');
 		}
@@ -1600,11 +1923,43 @@ $(function() {
 	};
 
 
+	/*
+	 * Response callback handler of file uploads (dropzones)
+	 */
+        window._handle_file_upload_response = function(response){
+            if(response.status==0){
+                log_message(response.msg, 'error');
+                return;
+            }
+
+            // Create objects
+            $.each(response.data, function(i,v){
+                if(v.object_class=='observable'){
+                    var el = instance.obs_pool_add_elem('dda-observable-template_' + v.object_type + '_' + v.object_subtype, v.object_id);
+		    if(!el) return true;
+                    $.each(v.properties, function(i1,v1){
+                        $('[name="'+i1+'"]', el.element).val(v1);
+                    });
+		    log_message('Created '+ v.object_type +' ('+ v.object_subtype +') object: ' + el.observable_id, 'success', 5000);
+                }else if(v.object_class=='testmechanism'){
+		    var el = instance.tes_pool_add_elem('dda-test-mechanism-template_' + v.object_type + '_' + v.object_subtype, v.object_id);
+		    if(!el) return true;
+                    $.each(v.properties, function(i1,v1){
+                        $('[name="'+i1+'"]', el.element).val(v1);
+                    });
+		    log_message('Created '+ v.object_subtype +' ('+ v.object_type +') object: ' + el.object_id, 'success', 5000);
+		}
+		//TODO: treat other types
+            });
+        }
+
+
 	// Init me!
 	this.init_stix_package_tab();
 	this.init_campaign_tab();
 	this.init_observable_pool_tab();
 	this.init_indicator_pool_tab();
+	this.init_test_mechanisms_tab();
 	this.init_object_relations_tab();
 
 	this.refresh_stix_package_tab(); //Initial refresh for button handlers to be bound (in case this tab is the first visible tab)
@@ -1629,14 +1984,18 @@ $(function() {
 		b.refresh_indicator_pool_tab();
 	    }
 	    if(ui.newTab.index()==3){
-		b.refresh_observable_pool_tab();
+		b.refresh_test_mechanisms_pool_tab();
 	    }
 	    if(ui.newTab.index()==4){
+		b.refresh_observable_pool_tab();
+	    }
+	    if(ui.newTab.index()==5){
 		b.refresh_object_relations_tab();
 	    }
         }
     });
 
+    Dropzone.autoDiscover = false;
     $('button').button();
 
     $('#dda-relation-list > .dda-add-element').click(function(){

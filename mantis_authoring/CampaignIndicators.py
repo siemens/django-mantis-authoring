@@ -24,11 +24,17 @@ import sys, datetime
 import json, pytz
 import importlib, uuid
 
+from lxml import etree
+from StringIO import StringIO
+from base64 import b64decode
+
 from cybox.core import Observable, Observables
 from cybox.common import Hash, String, Time, ToolInformation, ToolInformationList, ObjectProperties, DateTime
 import cybox.utils
 
 from stix.indicator import Indicator
+from stix.extensions.test_mechanism.open_ioc_2010_test_mechanism import OpenIOCTestMechanism
+from stix.extensions.test_mechanism.snort_test_mechanism import SnortTestMechanism
 from stix.campaign import Campaign, AssociatedCampaigns, Names, Name
 from stix.threat_actor import ThreatActor
 from stix.core import STIXPackage, STIXHeader
@@ -62,7 +68,7 @@ class FormView(BasicSTIXPackageTemplateView):
     title = 'Campaign Indicator'
 
     """
-    Classes describe front-end element. Element properties then show up in the resulting JSON as properties.
+    Classes describe front-end elements. Element properties then show up in the resulting JSON as properties.
     Properties with a leading 'I_' will not be converted to JSON
     """
 
@@ -135,6 +141,31 @@ class FormView(BasicSTIXPackageTemplateView):
         indicator_confidence = forms.ChoiceField(choices=CONFIDENCE_TYPES, required=False, initial="med")
 
 
+    class TestMechanismIOC(forms.Form):
+        object_type = forms.CharField(initial="Test_Mechanism", widget=forms.HiddenInput)
+        object_subtype = forms.CharField(initial="IOC", widget=forms.HiddenInput)
+        I_icon =  forms.CharField(initial=static(''), widget=forms.HiddenInput)
+        ioc_xml = forms.CharField(initial="", widget=forms.HiddenInput)
+        ioc_title = forms.CharField(max_length=1024)
+        ioc_description = forms.CharField(widget=forms.Textarea, required=False)
+
+    class TestMechanismYara(forms.Form):
+        object_type = forms.CharField(initial="Test_Mechanism", widget=forms.HiddenInput)
+        object_subtype = forms.CharField(initial="YARA", widget=forms.HiddenInput)
+        I_icon =  forms.CharField(initial=static(''), widget=forms.HiddenInput)
+        yara_rules = forms.CharField(initial="", widget=forms.HiddenInput)
+        yara_title = forms.CharField(max_length=1024)
+        yara_description = forms.CharField(widget=forms.Textarea, required=False)
+
+    class TestMechanismSnort(forms.Form):
+        object_type = forms.CharField(initial="Test_Mechanism", widget=forms.HiddenInput)
+        object_subtype = forms.CharField(initial="SNORT", widget=forms.HiddenInput)
+        I_icon =  forms.CharField(initial=static(''), widget=forms.HiddenInput)
+        snort_rules = forms.CharField(initial="", widget=forms.HiddenInput)
+        snort_title = forms.CharField(max_length=1024)
+        snort_description = forms.CharField(widget=forms.Textarea, required=False)
+
+
 
     """
     Edit view for STIX object describing indicators for a given campaign.
@@ -145,25 +176,16 @@ class FormView(BasicSTIXPackageTemplateView):
         indicatorForms = [self.StixIndicator]
         campaignForms = [self.StixCampaign]
         threatActorForms = [self.StixThreatActor]
+        testMechanismForms = [self.TestMechanismIOC, self.TestMechanismSnort]
 
-        #for obj_elem in dir(observables):
-        #    if obj_elem.startswith("Cybox"):
-        #        pass
-        #        #_cls = getattr(observables, obj_elem)
-        #        #observableForms.append(_cls())
-        #    elif obj_elem.startswith("StixIndicator"):
-        #        _cls = getattr(observables, obj_elem)
-        #        indicatorForms.append(_cls())
-        #    elif obj_elem.startswith("StixCampaign"):
-        #        _cls = getattr(observables, obj_elem)
-        #        campaignForms.append(_cls())
-        #    elif obj_elem.startswith("StixThreatActor"):
-        #        _cls = getattr(observables, obj_elem)
-        #        threatActorForms.append(_cls())
         context['indicatorForms'] = indicatorForms
         context['campaignForms'] = campaignForms
         context['threatActorForms'] = threatActorForms
+        context['testMechanismForms'] = testMechanismForms
+
         return context
+
+
 
 
 class stixTransformer:
@@ -171,30 +193,17 @@ class stixTransformer:
     Implements the transformer used to transform the JSON produced by
     the MANTIS Authoring GUI into a valid STIX document.
     """
-
-    # Some defaults
-    jsn = None
-    namespace_name = DINGOS_DEFAULT_ID_NAMESPACE_URI
-    namespace_prefix = "dingos_default"
-    stix_header = {}
-    stix_indicators = []
-    campaign = None
-    threatactor = None
-    indicators = {}
-    observables = {}
-    old_observable_mapping = {}
-    cybox_observable_list = None
-
     def __init__(self, *args,**kwargs):
-        jsn = kwargs['jsn']
-        self.namespace_name = kwargs.get('namespace_uri',self.namespace_name)
-        self.namespace_prefix = kwargs.get('namespace_slug',self.namespace_prefix)
 
-
+        # Setup our namespace
+        self.namespace_name = kwargs.get('namespace_uri', DINGOS_DEFAULT_ID_NAMESPACE_URI)
+        self.namespace_prefix = kwargs.get('namespace_slug', "dingos_default")
         self.namespace = cybox.utils.Namespace(self.namespace_name, self.namespace_prefix)
         cybox.utils.set_id_namespace(self.namespace)
         stix.utils.set_id_namespace({self.namespace_name: self.namespace_prefix})
 
+        # See if we have a passed JSON
+        jsn = kwargs['jsn']
         if type(jsn) == dict:
             self.jsn = jsn
         else:
@@ -203,17 +212,26 @@ class stixTransformer:
             except:
                 print 'Error parsing provided JSON'
                 return None
-
         if not self.jsn:
             return None
 
+        # Some defaults
+        self.stix_header = {}
+        self.stix_indicators = []
+        self.test_mechanisms = []
+        self.campaign = None
+        self.threatactor = None
+        self.indicators = {}
+        self.observables = {}
+        self.old_observable_mapping = {}
+        self.cybox_observable_list = None
+
         # Now process the parts
         self.__process_observables()
+        self.__process_test_mechanisms()
         self.__process_indicators()
         self.__process_campaigns()
         self.__create_stix_package()
-
-
 
     def __process_campaigns(self):
         """
@@ -271,6 +289,47 @@ class stixTransformer:
         self.threatactor = tac
 
 
+    def __create_test_mechanism_object(self, test):
+        """
+        Helper function which creates a test mechansim object according to the passed object type.
+        'full' specifies if the structure should be filled, otherweise an empty object is returned (used for referencing)
+        """
+
+        tm = False
+
+        if test['object_subtype'] == 'IOC':
+            tm = OpenIOCTestMechanism(test['test_mechanism_id'])
+            try:
+                ioc = test['ioc_xml']
+                ioc_xml = etree.parse(StringIO(b64decode(ioc)))
+                tm.ioc = ioc_xml
+            except Exception as e:
+                print 'XML of "%s" not valid: %s' % (test['ioc_title'], str(e))
+        
+        elif test['object_subtype'] == 'SNORT':
+            tm = SnortTestMechanism(test['test_mechanism_id'])
+            tm.rules = b64decode(test['snort_rules']).splitlines()
+
+        return tm
+        
+
+    
+    def __process_test_mechanisms(self):
+        """
+        Processes the test mechanisms from the JSON.
+        """
+        try:
+            tests = self.jsn['test_mechanisms']
+        except:
+            print "Error. No test mechanisms passed."
+            return
+
+        
+        for test in tests:
+            tm = self.__create_test_mechanism_object(test)
+            if tm:
+                self.test_mechanisms.append(tm)
+
 
 
     def __process_observables(self):
@@ -293,24 +352,12 @@ class stixTransformer:
 
         for obs in observables:
             object_type = obs['observable_properties']['object_type']
-            subtype = obs['observable_properties'].get('subtype','Default')
+            #object_subtype = obs['observable_properties']['object_subtype']
+            object_subtype = obs.get('object_subtype', 'Default')
 
-            #m = re.match(r"(?P<object_type>[^(]+)( \((?P<subtype>[^)]+)\))?",object_type)
-
-            #if m:
-            #    type_dict = m.groupdict()
-            #    object_type = type_dict.get('object_type')
-            #    subtype = type_dict.get('subtype','Default')
-            #else:
-            #    raise StandardError("Cannot read object type")
-
-            if True: # try:
-                im = importlib.import_module('mantis_authoring.cybox_object_transformers.' + object_type.lower())
-                template_obj = getattr(im,'TEMPLATE_%s' % subtype)()
-                cybox_obs = template_obj.process_form(obs['observable_properties'])
-                #except Exception as e:
-            #    print 'Error in module %s:' % object_type.lower(), e
-            #    continue
+            im = importlib.import_module('mantis_authoring.cybox_object_transformers.' + object_type.lower())
+            template_obj = getattr(im,'TEMPLATE_%s' % object_subtype)()
+            cybox_obs = template_obj.process_form(obs['observable_properties'])
 
             if type(cybox_obs)==list: # We have multiple objects as result. We now need to create new ids and update the relations
                 old_id = obs['observable_id']
@@ -343,7 +390,7 @@ class stixTransformer:
                                     new_relations[obs_id][ni] = orv
                             else: #just insert. this has nothing to do with our old key
                                 new_relations[obs_id][ork] = orv
-                        pass
+
                 relations = new_relations
 
             else: # only one object. No need to adjust relations or ids
@@ -380,7 +427,7 @@ class stixTransformer:
         stix_indicator.description = String(indicator['indicator_description'])
         stix_indicator.confidence = Confidence(indicator['indicator_confidence'])
         stix_indicator.indicator_types = String(indicator['object_type'])
-        return stix_indicator, indicator['related_observables']
+        return stix_indicator
 
 
 
@@ -392,18 +439,20 @@ class stixTransformer:
         observables are not inlcluded in any indicator and will just
         be appended to the package by create_stix_package)
         """
-        if not self.cybox_observable_list:
-            print "Error. Cybox observables not prepared"
-            return
+
 
         indicators = self.jsn['indicators']
-        observable_list = self.cybox_observable_list
+        already_included_tests = [] # used to record already included test_mechanisms so we dont insert doubles but references to the already inserted ones
 
         self.stix_indicators = []
 
         for indicator in indicators:
-            stix_indicator, related_observables = self.__create_stix_indicator(indicator)
-            for observable in observable_list:
+            stix_indicator = self.__create_stix_indicator(indicator)
+            related_observables = indicator['related_observables']
+            related_test_mechanisms = indicator['related_test_mechanisms']
+
+            # add the observables to the indicator
+            for observable in self.cybox_observable_list:
                 check_obs_id = observable.id_
                 # if we have autogenerated observables, we check against the OLD id the item had before generating new ones
                 if check_obs_id in self.old_observable_mapping.keys():
@@ -414,6 +463,20 @@ class stixTransformer:
                     obs_rel.idref=observable.id_
                     obs_rel.id_ = None
                     stix_indicator.add_observable(obs_rel)
+
+            # add the test mechanisms to the indicator
+            for tm in self.test_mechanisms:
+                check_tes_id = tm.id_
+                if check_tes_id in related_test_mechanisms:
+                    # If we already included this test, we only reference it
+                    if check_tes_id in already_included_tests:
+                        test_mechanism_ref = tm.__class__()
+                        test_mechanism_ref.id_ = None
+                        test_mechanism_ref.idref = check_tes_id
+                        stix_indicator.add_test_mechanism(test_mechanism_ref)
+                    else:
+                        stix_indicator.add_test_mechanism(tm)
+                        already_included_tests.append(check_tes_id)
 
             self.stix_indicators.append(stix_indicator)
 
@@ -431,11 +494,12 @@ class stixTransformer:
 
         stix_indicators = self.stix_indicators
 
-        stix_id_generator = stix.utils.IDGenerator(namespace={self.namespace_name: self.namespace_prefix})
-        stix_id = stix_id_generator.create_id()
+        #stix_id_generator = stix.utils.IDGenerator(namespace={self.namespace_name: self.namespace_prefix})
+        #stix_id = stix_id_generator.create_id()
+        stix_id = stix_properties['stix_package_id']
         #spec = MarkingSpecificationType(idref=stix_id)
         spec = MarkingSpecification()
-        spec.idref = stix_id
+        #spec.idref = stix_id
         #spec.set_Controlled_Structure("//node()")
         spec.controlled_structure = "//node()"
         #tlpmark = TLPMarkingStructureType()

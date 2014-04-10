@@ -19,6 +19,7 @@ class TEMPLATE_Default(transformer_object):
             ('Equals', 'Equals')
         )
         object_type = forms.CharField(initial="Address", widget=forms.HiddenInput)
+        object_subtype = forms.CharField(initial="Default", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Address", widget=forms.HiddenInput)
         I_icon =  forms.CharField(initial=static('img/stix/observable.svg'), widget=forms.HiddenInput)
         observable_id = forms.CharField(initial="", widget=forms.HiddenInput)

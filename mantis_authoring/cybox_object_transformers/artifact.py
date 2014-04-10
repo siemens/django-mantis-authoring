@@ -14,6 +14,7 @@ class TEMPLATE_Default(transformer_object):
             ('TYPE_GENERIC', 'Generic Data Region')
         )
         object_type = forms.CharField(initial="Artifact", widget=forms.HiddenInput)
+        object_subtype = forms.CharField(initial="Default", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Artifact", widget=forms.HiddenInput)
         I_icon =  forms.CharField(initial=static('img/stix/observable.svg'), widget=forms.HiddenInput)
         artifact_type = forms.ChoiceField(choices=ARTIFACT_TYPES, required=False, initial="TYPE_GENERIC")

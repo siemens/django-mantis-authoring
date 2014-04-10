@@ -1,16 +1,11 @@
 from .__object_base__ import *
-
 from django import forms
-
 from django.templatetags.static import static
 
 
 
-
-
-
 class Base(transformer_object):
-    def __create_cybox_domain_object(self, domain, ip=None):
+    def create_cybox_domain_object(self, domain, ip=None):
         new_domain_obj = {'URI': None, 'Whois': None, 'DNSQueryV4': None, 'DNSResultV4': None, 'ipv4': None, 'DNSQueryV6': None, 'DNSResultV6': None, 'ipv6': None}
         domain_name_obj = self.__create_domain_name_object(domain)
         if ip:
@@ -18,7 +13,7 @@ class Base(transformer_object):
         new_domain_obj['URI'] = domain_name_obj
         return new_domain_obj
 
-    def __reorder_domain_objects(self, domain_obj_map):
+    def reorder_domain_objects(self, domain_obj_map):
         ordered_objs = [domain_obj_map['URI']]
         if domain_obj_map['Whois']:
             ordered_objs.append(domain_obj_map['Whois'])
@@ -36,7 +31,7 @@ class Base(transformer_object):
             ordered_objs.append(domain_obj_map['ipv6'])
         return ordered_objs
 
-    def __create_cybox_email_links(self, links):
+    def create_cybox_email_links(self, links):
         unique_urls = set()
         unique_domains = set()
         for link in links:
@@ -47,8 +42,8 @@ class Base(transformer_object):
         domain_list = []
         url_list = []
         for domain in unique_domains:
-            domain_obj = self.__create_cybox_domain_object(domain)
-            domain_list.extend(self.__reorder_domain_objects(domain_obj))
+            domain_obj = self.create_cybox_domain_object(domain)
+            domain_list.extend(self.reorder_domain_objects(domain_obj))
             domain_map[domain] = domain_obj['URI']
         for url in unique_urls:
             url_obj = self.create_cybox_uri_object(url)
@@ -62,7 +57,7 @@ class Base(transformer_object):
             url_list.append(url_obj)
         return url_list, domain_list
 
-    def __create_cybox_email_header_part(self, properties):
+    def create_cybox_email_header_part(self, properties):
         cybox_email_header = email_message_object.EmailHeader()
         """ recipients """
         recipient_list = email_message_object.EmailRecipients()
@@ -82,7 +77,7 @@ class Base(transformer_object):
 class TEMPLATE_Default(Base):
     class ObjectForm(forms.Form):
         object_type = forms.CharField(initial="EmailMessage", widget=forms.HiddenInput)
-        subtype = forms.CharField(initial="Default", widget=forms.HiddenInput)
+        object_subtype = forms.CharField(initial="Default", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Email Message (Default)", widget=forms.HiddenInput)
         I_icon =  forms.CharField(initial=static('img/stix/observable.svg'), widget=forms.HiddenInput)
         from_ = forms.CharField(max_length=256, required=False)
@@ -101,9 +96,9 @@ class TEMPLATE_Default(Base):
             cybox_email.raw_body = String(properties['raw_body'])
         if properties['raw_header']:
             cybox_email.raw_header = String(properties['raw_header'])
-        cybox_email.header = self.__create_cybox_email_header_part(properties)
+        cybox_email.header = self.create_cybox_email_header_part(properties)
         if len(properties['links'])>0:
-            url_list, domain_list = self.__create_cybox_email_links(properties['links'])
+            url_list, domain_list = self.create_cybox_email_links(properties['links'])
             if url_list:
                 email_links = email_message_object.Links()
                 for url in url_list:
@@ -116,7 +111,7 @@ class TEMPLATE_Default(Base):
 class TEMPLATE_Test(Base):
     class ObjectForm(forms.Form):
         object_type = forms.CharField(initial="EmailMessage", widget=forms.HiddenInput)
-        subtype = forms.CharField(initial="Test", widget=forms.HiddenInput)
+        object_subtype = forms.CharField(initial="Test", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Email Message (blah)", widget=forms.HiddenInput)
         I_icon =  forms.CharField(initial=static('img/stix/observable.svg'), widget=forms.HiddenInput)
         from_ = forms.CharField(max_length=256, required=False)
@@ -135,9 +130,9 @@ class TEMPLATE_Test(Base):
             cybox_email.raw_body = String(properties['raw_body'])
         if properties['raw_header']:
             cybox_email.raw_header = String(properties['raw_header'])
-        cybox_email.header = self.__create_cybox_email_header_part(properties)
+        cybox_email.header = self.create_cybox_email_header_part(properties)
         if len(properties['links'])>0:
-            url_list, domain_list = self.__create_cybox_email_links(properties['links'])
+            url_list, domain_list = self.create_cybox_email_links(properties['links'])
             if url_list:
                 email_links = email_message_object.Links()
                 for url in url_list:

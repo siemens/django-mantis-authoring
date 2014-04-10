@@ -7,6 +7,7 @@ from django.templatetags.static import static
 class TEMPLATE_Default(transformer_object):
     class ObjectForm(forms.Form):
         object_type = forms.CharField(initial="Port", widget=forms.HiddenInput)
+        object_subtype = forms.CharField(initial="Default", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Port", widget=forms.HiddenInput)
         I_icon =  forms.CharField(initial=static('img/stix/observable.svg'), widget=forms.HiddenInput)
         port_value = forms.CharField(max_length=5, required=True)
