@@ -4,7 +4,7 @@ from django import forms
 
 from django.templatetags.static import static
 
-class TEMPLATE_Default(transformer_object):
+class DISABLED_TEMPLATE_Default(transformer_object):
     class ObjectForm(forms.Form):
         object_type = forms.CharField(initial="C2Object", widget=forms.HiddenInput)
         object_subtype = forms.CharField(initial="Default", widget=forms.HiddenInput)

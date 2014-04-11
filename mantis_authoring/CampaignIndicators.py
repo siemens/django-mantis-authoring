@@ -88,7 +88,7 @@ class FormView(BasicSTIXPackageTemplateView):
         title = forms.CharField(max_length=1024)
         description = forms.CharField(widget=forms.Textarea, required=False)
         confidence = forms.ChoiceField(choices=CONFIDENCE_TYPES, required=False, initial="med")
-        information_source = forms.CharField(max_length=1024)
+        #information_source = forms.CharField(max_length=1024)
 
 
     class StixCampaign(forms.Form):
@@ -107,10 +107,10 @@ class FormView(BasicSTIXPackageTemplateView):
             ('low', 'Low')
         )
         HANDLING_TYPES = (
-            ('white', 'White'),
-            ('green', 'Green'),
-            ('amber', 'Amber'),
-            ('red', 'Red')
+            ('WHITE', 'White'),
+            ('GREEN', 'Green'),
+            ('AMBER', 'Amber'),
+            ('RED', 'Red')
         )
         object_type = forms.CharField(initial="Campaign", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Campaign", widget=forms.HiddenInput)
@@ -123,7 +123,7 @@ class FormView(BasicSTIXPackageTemplateView):
         activity_timestamp_to = forms.CharField(max_length=1024)
         confidence = forms.ChoiceField(choices=CONFIDENCE_TYPES, required=False, initial="med")
         handling = forms.ChoiceField(choices=HANDLING_TYPES, required=False, initial="amber")
-        information_source = forms.CharField(max_length=1024)
+        #information_source = forms.CharField(max_length=1024)
 
 
     class StixIndicator(forms.Form):
@@ -260,8 +260,8 @@ class stixTransformer:
         camp.confidence = Confidence(campaign['confidence'])
         camp.handling = TLPMarkingStructure()
         camp.handling.color = campaign['handling']
-        camp.information_source = InformationSource()
-        camp.information_source.description = campaign['information_source']
+        #camp.information_source = InformationSource()
+        #camp.information_source.description = campaign['information_source']
         camp.status = StixVocabString(campaign['status'])
         afrom = Activity()
         afrom.date_time = DateTimeWithPrecision(value=campaign['activity_timestamp_from'], precision="minute")
@@ -281,8 +281,8 @@ class stixTransformer:
         tac.identity.related_identities = RelatedIdentities(related_identities)
         tac.title = String(threatactor['title'])
         tac.description = StixStructuredText(threatactor['description'])
-        tac.information_source = InformationSource()
-        tac.information_source.description = threatactor['information_source']
+        #tac.information_source = InformationSource()
+        #tac.information_source.description = threatactor['information_source']
         tac.confidence = Confidence(threatactor['confidence'])
         tac.associated_campaigns = camp
 

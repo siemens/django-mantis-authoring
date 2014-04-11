@@ -108,7 +108,7 @@ class TEMPLATE_Default(Base):
         return cybox_email
 
 
-class TEMPLATE_Test(Base):
+class DISABLED_TEMPLATE_Test(Base):
     class ObjectForm(forms.Form):
         object_type = forms.CharField(initial="EmailMessage", widget=forms.HiddenInput)
         object_subtype = forms.CharField(initial="Test", widget=forms.HiddenInput)

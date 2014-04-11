@@ -1960,8 +1960,12 @@ $(function() {
 	 */
 	this.init_user_namespace = function(callback){
 	    $.get('get_namespace', function(data){
-		instance.namespace_slug = data.data.default_ns_slug;
-		callback();
+		if(data.status){
+		    instance.namespace_slug = data.data.default_ns_slug;
+		    callback();
+		}else{
+		    log_message(data.msg, 'error');
+		}
 	    }, 'json');
 	};
 
