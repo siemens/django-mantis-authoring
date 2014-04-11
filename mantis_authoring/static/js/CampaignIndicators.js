@@ -1861,12 +1861,12 @@ $(function() {
 	    $.each(jsn.indicators, function(i,v){
 		instance.ind_pool_add_elem(false, v.indicator_id);
 		var el = instance.indicator_registry[v.indicator_id];
-		$.each(v, function(i,v){
-		    //try to set values
-		    $('[name="'+i+'"]', el.element).val(v);
+		$.each(v, function(i1,v1){
+		    $('[name="'+i1+'"]', el.element).val(v1);
 		});
-		// Restore included observables
+		// Restore included observables and test_mechanisms
 		el.observables = v.related_observables;
+		el.test_mechanisms = v.related_test_mechanisms;
 	    });
 
 	    // Restore observables
@@ -1890,6 +1890,21 @@ $(function() {
 		    el.relations.push({label: v, target: i});
 		});
 	    });
+
+	    // Restore the test mechanisms
+	    instance.test_mechanisms_registry = {};
+	    $.each(jsn.test_mechanisms, function(i,v){
+		var template = 'dda-test-mechanism-template_' + v.object_type + '_' + v.object_subtype;
+		//TODO: if template does not exitst. issue an error.
+		instance.tes_pool_add_elem(template, v.test_mechanism_id);
+		var el = instance.test_mechanisms_registry[v.test_mechanism_id];
+
+		//restore info
+		$.each(v, function(i1,v1){
+		    $('[name="'+i1+'"]', el.element).val(v1);
+		});
+	    });
+
 
 	    // Restore the campaign information
 	    if(jsn.campaign!=undefined){

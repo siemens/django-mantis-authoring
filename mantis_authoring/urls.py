@@ -31,7 +31,7 @@ urlpatterns = patterns('dingos_authoring.views',
                        url(r'^Templates/CampaignIndicators/upload$', dingos_authoring_views.UploadFile.as_view(), name="dingos_authoring.upload_file"),
                        url(r'^Templates/CampaignIndicators/get_namespace$', dingos_authoring_views.GetAuthoringNamespace.as_view(), name="dingos_authoring.get_namespace"),
 
-                       url(r'^ref/$', dingos_authoring_views.ref.as_view(), name="dingos_authoring.ref"),
+                       #url(r'^ref/$', dingos_authoring_views.ref.as_view(), name="dingos_authoring.ref"),
 
                        url(r'^XMLImport/$',
                            dingos_authoring_views.XMLImportView.as_view(),
