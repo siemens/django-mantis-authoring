@@ -576,7 +576,6 @@ $(function() {
 	    height = $('#relation-pane').height(),
 	    fill = d3.scale.category10();
 
-
 	    var selected_node = null,
 	    selected_link = null,
 	    mousedown_link = null,
@@ -1347,6 +1346,10 @@ $(function() {
 
 	// Object relations tab
 	this.refresh_object_relations_tab = function(){
+	    if(instance._relations_initiated==undefined){
+		instance.init_object_relations_tab();
+		instance._relations_initiated = true;
+	    }
 	    b._d3_redraw(true);
 	}
 
@@ -1991,7 +1994,7 @@ $(function() {
 	    instance.init_observable_pool_tab();
 	    instance.init_indicator_pool_tab();
 	    instance.init_test_mechanisms_tab();
-	    instance.init_object_relations_tab();
+	    //object relations are initiated on first refresh because that where we know the canvas size //instance.init_object_relations_tab();
 	    instance.refresh_stix_package_tab(); //Initial refresh for button handlers to be bound (in case this tab is the first visible tab)
 	});
 
