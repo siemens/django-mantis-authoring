@@ -246,8 +246,9 @@ $(function() {
     /*
      * The main builder object.
      */
-    var builder = function(){
+    var builder = function(done_init_callback){
 	var instance = this;
+	this.done_init_callback = done_init_callback;
 	this.namespace_slug = false;
 
 	this.observable_pool = $('#dda-observable-pool'); // Selector box on STIX tab
@@ -317,7 +318,7 @@ $(function() {
 		editor.getSession().setMode("ace/mode/javascript");
 		editor.setValue(result);
 	    });
-	    //$('#dda-stix-show').after(get_jsn_btn);
+	    $('#dda-stix-show').after(get_jsn_btn);
 
 	    var import_jsn_btn = $('<button>Import JSON</button>').button().click(function(){
 		result = JSON.stringify(instance.get_json(), null, "    ");
@@ -1350,7 +1351,7 @@ $(function() {
 		instance.init_object_relations_tab();
 		instance._relations_initiated = true;
 	    }
-	    b._d3_redraw(true);
+	    instance._d3_redraw(true);
 	}
 
 
@@ -1987,6 +1988,7 @@ $(function() {
 	    }, 'json');
 	};
 
+
 	// Init ourselfs, make sure the namespace is set first
 	this.init_user_namespace(function(){
 	    instance.init_stix_package_tab();
@@ -1996,49 +1998,53 @@ $(function() {
 	    instance.init_test_mechanisms_tab();
 	    //object relations are initiated on first refresh because that where we know the canvas size //instance.init_object_relations_tab();
 	    instance.refresh_stix_package_tab(); //Initial refresh for button handlers to be bound (in case this tab is the first visible tab)
+	    instance.done_init_callback(instance);
 	});
-
-	return instance;
     };
-    var b = builder();
 
-
-
-    $('#dda-container-tabs').tabs({
-	active: 0,
-	activate:function(event,ui){
-	    if(ui.newTab.index()==0){
-		b.refresh_stix_package_tab();
-	    }
-	    if(ui.newTab.index()==1){
-		b.refresh_campaign_tab();
-	    }
-	    if(ui.newTab.index()==2){
-		b.refresh_indicator_pool_tab();
-	    }
-	    if(ui.newTab.index()==3){
-		b.refresh_test_mechanisms_pool_tab();
-	    }
-	    if(ui.newTab.index()==4){
-		b.refresh_observable_pool_tab();
-	    }
-	    if(ui.newTab.index()==5){
-		b.refresh_object_relations_tab();
-	    }
-        }
-    });
 
     Dropzone.autoDiscover = false;
-    $('button').button();
 
-    $('#dda-relation-list > .dda-add-element').click(function(){
-	$('#dda-relation-list').find('.dda-rel-selected').removeClass('dda-rel-selected').find('input:checked').prop('checked', false);
-	$(this).addClass('dda-rel-selected').find('input:radio').prop('checked', true);
 
+    var b = builder(function(instance){
+	$('#dda-container-tabs').tabs({
+	    active: 0,
+	    activate:function(event,ui){
+		if(ui.newTab.index()==0){
+		    instance.refresh_stix_package_tab();
+		}
+		if(ui.newTab.index()==1){
+		    instance.refresh_campaign_tab();
+		}
+		if(ui.newTab.index()==2){
+		    instance.refresh_indicator_pool_tab();
+		}
+		if(ui.newTab.index()==3){
+		    instance.refresh_test_mechanisms_pool_tab();
+		}
+		if(ui.newTab.index()==4){
+		    instance.refresh_observable_pool_tab();
+		}
+		if(ui.newTab.index()==5){
+		    instance.refresh_object_relations_tab();
+		}
+            }
+	});
+
+	$('button').button();
+
+	$('#dda-relation-list > .dda-add-element').click(function(){
+	    $('#dda-relation-list').find('.dda-rel-selected').removeClass('dda-rel-selected').find('input:checked').prop('checked', false);
+	    $(this).addClass('dda-rel-selected').find('input:radio').prop('checked', true);
+	});
+
+	if(querystring('load')!=''){
+	    instance.load_remote_save(querystring('load')[0]);
+	}
+	
     });
 
-    if(querystring('load')!=''){
-	b.load_remote_save(querystring('load')[0]);
-    }
+
+
 
 });
