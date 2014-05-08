@@ -76,9 +76,11 @@ class FormView(BasicSTIXPackageTemplateView):
 
     class StixThreatActor(forms.Form):
         CONFIDENCE_TYPES = (
-            ('high', 'High'),
-            ('med', 'Medium'),
-            ('low', 'Low')
+            ('High', 'High'),
+            ('Medium', 'Medium'),
+            ('Low', 'Low'),
+            ('None', 'None'),
+            ('Unknown', 'Unknown')
         )
         object_type = forms.CharField(initial="ThreatActor", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Threat Actor", widget=forms.HiddenInput)
@@ -102,9 +104,11 @@ class FormView(BasicSTIXPackageTemplateView):
             ('Unknown', 'Unknown')
         )
         CONFIDENCE_TYPES = (
-            ('high', 'High'),
-            ('med', 'Medium'),
-            ('low', 'Low')
+            ('High', 'High'),
+            ('Medium', 'Medium'),
+            ('Low', 'Low'),
+            ('None', 'None'),
+            ('Unknown', 'Unknown')
         )
         HANDLING_TYPES = (
             ('WHITE', 'White'),
@@ -128,9 +132,11 @@ class FormView(BasicSTIXPackageTemplateView):
 
     class StixIndicator(forms.Form):
         CONFIDENCE_TYPES = (
-            ('high', 'High'),
-            ('med', 'Medium'),
-            ('low', 'Low')
+            ('High', 'High'),
+            ('Medium', 'Medium'),
+            ('Low', 'Low'),
+            ('None', 'None'),
+            ('Unknown', 'Unknown')
         )
         object_type = forms.CharField(initial="Indicator", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Indicator", widget=forms.HiddenInput)
@@ -225,6 +231,7 @@ class stixTransformer:
         self.observables = {}
         self.old_observable_mapping = {}
         self.cybox_observable_list = None
+        self.cybox_observable_references = []
 
         # Now process the parts
         self.__process_observables()
@@ -305,15 +312,15 @@ class stixTransformer:
                 tm.ioc = ioc_xml
             except Exception as e:
                 print 'XML of "%s" not valid: %s' % (test['ioc_title'], str(e))
-        
+
         elif test['object_subtype'] == 'SNORT':
             tm = SnortTestMechanism(test['test_mechanism_id'])
             tm.rules = b64decode(test['snort_rules']).splitlines()
 
         return tm
-        
 
-    
+
+
     def __process_test_mechanisms(self):
         """
         Processes the test mechanisms from the JSON.
@@ -324,7 +331,7 @@ class stixTransformer:
             print "Error. No test mechanisms passed."
             return
 
-        
+
         for test in tests:
             tm = self.__create_test_mechanism_object(test)
             if tm:
@@ -357,7 +364,13 @@ class stixTransformer:
 
             im = importlib.import_module('mantis_authoring.cybox_object_transformers.' + object_type.lower())
             template_obj = getattr(im,'TEMPLATE_%s' % object_subtype)()
-            cybox_obs = template_obj.process_form(obs['observable_properties'])
+            try:
+                cybox_obs = template_obj.process_form(obs['observable_properties'])
+                if cybox_obs==None:
+                    self.cybox_observable_references.append(obs['observable_id'])
+                    continue
+            except:
+                continue
 
             if type(cybox_obs)==list: # We have multiple objects as result. We now need to create new ids and update the relations
                 old_id = obs['observable_id']
@@ -396,7 +409,6 @@ class stixTransformer:
             else: # only one object. No need to adjust relations or ids
                 cybox_observable_dict[obs['observable_id']] = cybox_obs
 
-
         # Observables and relations are now processed. The only
         # thing left is to include the relation into the actual
         # objects.
@@ -408,14 +420,16 @@ class stixTransformer:
                     continue
                 obs.add_related(related_object, rel_type, inline=False)
             if not obs_id.startswith('__'): # If this is not a generated object we keep the observable id!
-                obs = Observable(obs, obs_id)
+		obs = Observable(obs, obs_id)
             else:
                 obs = Observable(obs)
                 self.old_observable_mapping[obs.id_] = translations[obs_id]
 
             self.cybox_observable_list.append(obs)
 
-        return self.cybox_observable_list
+	return self.cybox_observable_list
+
+
 
 
     def __create_stix_indicator(self, indicator):
@@ -426,7 +440,7 @@ class stixTransformer:
         stix_indicator.title = String(indicator['indicator_title'])
         stix_indicator.description = String(indicator['indicator_description'])
         stix_indicator.confidence = Confidence(indicator['indicator_confidence'])
-        stix_indicator.indicator_types = String(indicator['object_type'])
+        #stix_indicator.indicator_types = String(indicator['object_type'])
         return stix_indicator
 
 
@@ -451,7 +465,7 @@ class stixTransformer:
             related_observables = indicator['related_observables']
             related_test_mechanisms = indicator['related_test_mechanisms']
 
-            # add the observables to the indicator
+            # Add the observables to the indicator
             for observable in self.cybox_observable_list:
                 check_obs_id = observable.id_
                 # if we have autogenerated observables, we check against the OLD id the item had before generating new ones
@@ -460,11 +474,18 @@ class stixTransformer:
 
                 if check_obs_id in related_observables:
                     obs_rel = Observable()
-                    obs_rel.idref=observable.id_
+                    obs_rel.idref = observable.id_
                     obs_rel.id_ = None
                     stix_indicator.add_observable(obs_rel)
 
-            # add the test mechanisms to the indicator
+            # Add observable references to the indicator
+            for obs_ref in self.cybox_observable_references:
+                obs_rel = Observable()
+                obs_rel.idref = obs_ref
+                obs_rel.id_ = None
+                stix_indicator.add_observable(obs_rel)
+
+            # Add the test mechanisms to the indicator
             for tm in self.test_mechanisms:
                 check_tes_id = tm.id_
                 if check_tes_id in related_test_mechanisms:

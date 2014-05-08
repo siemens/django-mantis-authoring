@@ -21,4 +21,4 @@ class TEMPLATE_Default(transformer_object):
         cybox_dns_record.domain_name = self.create_cybox_uri_object(properties['domain_name'])
         cybox_dns_record.ip_address = address_object.Address(properties['ip_address'])
         return cybox_dns_record
-        
+

@@ -39,3 +39,4 @@ class TEMPLATE_Default(transformer_object):
         cybox_address.condition = properties['condition']
         return cybox_address
         
+

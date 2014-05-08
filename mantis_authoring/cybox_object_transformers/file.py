@@ -36,3 +36,4 @@ class TEMPLATE_Default(transformer_object):
             cybox_file.add_hash(Hash(properties['sha256'], type_="SHA256", exact=True))
         return cybox_file
         
+
