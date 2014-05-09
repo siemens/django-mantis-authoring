@@ -11,62 +11,10 @@
 
 {% block javascripts %}
 {{ block.super }}
-<script type="application/javascript">
-// Reuse admin jQuery library
-var jQuery = django.jQuery;
-var $ = django.jQuery;
-
-
-
-(function($) {
-    $.fn.detachAndReplaceWith = function _jquery_detachAndReplaceWith(value) {
-	if ( this[0] && this[0].parentNode && this[0].parentNode.nodeType != 11 ) {
-	    //
-	    // Make sure that the elements are removed from the DOM before they are inserted
-	    // this can help fix replacing a parent with child elements
-	    //
-	    if ( jQuery.isFunction( value ) ) {
-		return this.each(function(i) {
-		    var self = jQuery( this ), old = self.html();
-		    self.replaceWith( value.call( this, i, old ) );
-		});
-	    }
-
-	    if ( typeof value !== "string" ) {
-		value = jQuery( value ).detach();
-	    }
-
-	    return this.each(function() {
-		var next = this.nextSibling,
-		parent = this.parentNode;
-
-		//
-		// Call detach() instead of remove() to ensure we don't break
-		// event handlers etc.
-		//
-		jQuery( this ).detach();
-
-		if ( next ) {
-		    jQuery( next ).before( value );
-		} else {
-		    jQuery( parent ).append( value );
-		}
-	    });
-	}
-
-	return this.length ?
-	    this.pushStack( jQuery(jQuery.isFunction(value) ? value() : value), "detachAndReplaceWith", value ) :
-	this;                                                                                                                                                       };
-})(jQuery);
-</script>
-
-
-<script src="{% static 'js/CampaignIndicators.js' %}"></script>
-<script src="{% static 'js/d3.min.js' %}"></script>
-<script src="{% static 'js/jsonlint.js' %}"></script>
+<script data-main="{% static 'js/app/' %}" src="{% static 'js/require.js' %}"></script>
 <script src="{% static 'js/ace/ace.js' %}"></script>
-<script src="{% static 'js/dropzone.js' %}"></script>
-<script src="{% static 'js/jquery-ui-timepicker-addon.js' %}"></script>
+<script src="{% static 'js/jsonlint.js' %}"></script>
+<script src="{% static 'js/mantis_authoring.js' %}"></script>
 {% endblock javascripts %}
 
 {% block extrastyle %}
