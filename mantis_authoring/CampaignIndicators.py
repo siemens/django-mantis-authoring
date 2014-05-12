@@ -409,6 +409,27 @@ class stixTransformer:
             else: # only one object. No need to adjust relations or ids
                 cybox_observable_dict[obs['observable_id']] = cybox_obs
 
+
+        # Observables and relations are now processed. The only
+        # thing left is to include the relation into the actual
+        # objects.
+        self.cybox_observable_list = []
+        for rel_id, rel_type in relations[obs_id].iteritems():
+            related_object = cybox_observable_dict[rel_id]
+            if not related_object: # This might happen if a observable was not generated(because data was missing); TODO!
+                continue
+            obs.add_related(related_object, rel_type, inline=False)
+            if not obs_id.startswith('__'): # If this is not a generated object we keep the observable id!
+                obs = Observable(obs, obs_id)
+            else:
+                obs = Observable(obs)
+                self.old_observable_mapping[obs.id_] = translations[obs_id]
+
+            self.cybox_observable_list.append(obs)
+
+        return self.cybox_observable_list
+
+
         # Observables and relations are now processed. The only
         # thing left is to include the relation into the actual
         # objects.

@@ -11,7 +11,7 @@ class TEMPLATE_Default(transformer_object):
         I_object_display_name = forms.CharField(initial="HTTP Session", widget=forms.HiddenInput)
         I_icon =  forms.CharField(initial=static('img/stix/observable.svg'), widget=forms.HiddenInput)
         method = forms.CharField(max_length=1024, required=False)
-        uri = forms.CharField(max_length=1024, required=False)
+        uri = forms.CharField(max_length=1024, required=True)
         host = forms.CharField(max_length=1024, required=False)
         port = forms.CharField(max_length=5, required=False)
         user_agent = forms.CharField(max_length=1024, required=False)

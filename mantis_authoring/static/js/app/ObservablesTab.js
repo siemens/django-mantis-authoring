@@ -118,6 +118,7 @@ define(['jquery', 'dropzone'],function($, Dropzone){
                     },
                     autoFocus: true,
                     select: function(event, ui){
+			if(event.keyCode === $.ui.keyCode.TAB) return false; // Prevent tab selection
 			instance.obs_pool_add_ref(ui.item.id, obs.observable_id);
                     }
 		});
@@ -177,12 +178,12 @@ define(['jquery', 'dropzone'],function($, Dropzone){
 		}
 		guid_observable = guid_passed;
 	    }
-	    // Create new container element
-	    var div = $('<div class="dda-add-element clearfix" ></div>').data('id', guid_observable);
-
+	    
 	    // Create element from template
-	    var new_elem = template.clone().attr('id', guid_observable);
-	    var _pc_el = $('<div></div>'); //container for toggling
+	    var new_elem = template.clone().attr('id', guid_observable),
+	        div = $('<div class="dda-add-element clearfix" ></div>').data('id', guid_observable), // Create new container element
+	        _pc_el = $('<div></div>'); //container for toggling	    
+	    
 	    if(!no_meta)
 		_pc_el.append($('<input type="text" name="dda-observable-title" placeholder="Observable Title"><textarea name="dda-observable-description" placeholder="Observable Description"></textarea>'));
 	    _pc_el.append(
@@ -212,7 +213,6 @@ define(['jquery', 'dropzone'],function($, Dropzone){
 	    if(!no_dom_insert)
 		instance.obs_pool_list.prepend(div);
 
-
 	    instance.observable_registry[guid_observable] = {
 		observable_id: guid_observable,
 		relations: [],
@@ -221,7 +221,12 @@ define(['jquery', 'dropzone'],function($, Dropzone){
 		description: description,
 		type: template.find('#id_object_type').val()
 	    };
-	    //instance.obs_bind_reference_completer(guid_observable);
+
+	    instance.obs_bind_reference_completer(guid_observable);
+
+	    // Bind validator
+	    instance.obs_on_blur(div, instance.obs_elem_validate);
+
 	    return instance.observable_registry[guid_observable];
 	},
 
@@ -274,6 +279,32 @@ define(['jquery', 'dropzone'],function($, Dropzone){
 		instance.observable_registry[guid].element.remove();
 	    delete instance.observable_registry[guid];
 
+	},
+
+
+	/**
+	 * Generates the JSON template for a single observable
+	 * @param {string} id The observable id
+	 */
+	obs_get_json: function(id){
+	    var instance = this,
+	        obs = instance.observable_registry[id];
+
+	    if(obs==undefined) return {}; // Happens when loosing focus to click 'delete'. Return {} and ignore validation.
+
+	    var tmp = {
+		'observable_id': id,
+		'observable_title': $(obs.element).find('[name="dda-observable-title"]').val(),
+		'observable_description': $(obs.element).find('[name="dda-observable-description"]').val(),
+		'related_observables': {},
+		'observable_properties': $(obs.element).find('.dda-pool-element').find('input, select, textarea').not('[name^="I_"]').serializeObject()
+	    }
+
+	    $.each(obs.relations, function(i,v){
+		tmp.related_observables[v.target] = v.label;
+	    });
+
+	    return tmp;
 	},
 
 	
@@ -350,7 +381,7 @@ define(['jquery', 'dropzone'],function($, Dropzone){
 	    $('> div', instance.observable_registry[id].element).first().append(
 		$('.dda-pool-element', '#dda-relation-object-details').remove()
 	    );
-	    //instance.obs_bind_reference_completer(id);
+	    instance.obs_bind_reference_completer(id);
 	},
 
 
@@ -361,11 +392,66 @@ define(['jquery', 'dropzone'],function($, Dropzone){
 	obs_elem_set_to_preview: function(id){
 	    var instance = this;
 
-	    //instance.obs_remove_reference_completer(id);
+	    instance.obs_remove_reference_completer(id);
 
 	    $('#dda-relation-object-details').append(
 		instance.observable_registry[id].element.find('.dda-pool-element')
 	    );
+	},
+
+	/**
+	 * Function that validates an observable element. Passes the
+	 * fields to the backend for validation and in turn receives a
+	 * list of errors for the elements
+	 * @param {string} id The observable id of the object to validate
+	 */
+	obs_elem_validate: function(id){
+	    var instance = this,
+	        obs = instance.observable_registry[id],
+	        obs_jsn = instance.obs_get_json(id);
+
+	    $.post('validate_object', obs_jsn, function(data){
+		if(data.status){
+		    // Remove all previous validation results
+		    obs.element.find('.grp-errors').removeClass('grp-errors');
+		    obs.element.find('.errorlist').remove();
+
+		    if(data.data){
+			$.each(data.data, function(i,v){
+			    var el = $('[name='+i+']', obs.element);
+			    el.closest('tr').addClass('grp-errors');
+			    el.parent().append(
+				$('<ul class="errorlist"></ul>').append(
+				    $('<li></li>').text(v)
+				)
+			    );
+			});
+		    }
+		}else{
+		    //log_message(data.msg, 'error');
+		}
+	    }, 'json');
+	},
+
+	/**
+	 * Function that decides whether to fire off the callback function on 'blur' event
+	 * Trick is to identify if focus is lost on all inputs in the el element
+	 * @param {object} el jQuery object of the element
+	 * @param {function} callback
+	 */
+	obs_on_blur: function(el, callback){
+	    var instance = this,
+	        inp = el.find('*'),
+	        id = $(el).find('.dda-observable-template').attr('id');
+
+	    el.focusout(function(e){
+		setTimeout(function(){ //Wait a bit to see where the focus goes
+		    var f = $(':focus');
+		    if(!f.is(inp)){
+			instance.obs_elem_validate(id);
+		    }
+		}, 50);
+	    });
 	}
 
     }

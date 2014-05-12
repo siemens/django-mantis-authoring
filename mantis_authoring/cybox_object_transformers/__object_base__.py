@@ -30,10 +30,10 @@ class transformer_object(object):
     def object_lookup_simple(self, type_, term, limit=10):
 
         t_q = Q(iobject__iobject_type__name__icontains=type_)
-        q_q = Q(fact__fact_values__value__icontains=term)
+        q_q = Q(fact__fact_values__value__icontains=term) & Q(fact__fact_term__term__icontains="Address")
 
         return InfoObject2Fact.objects.all().\
-            exclude(iobject__latest_of=None). \
+            exclude(iobject__latest_of=None).\
             exclude(iobject__iobject_family__name__exact=DINGOS_INTERNAL_IOBJECT_FAMILY_NAME). \
             exclude(iobject__iobject_family__name__exact='ioc'). \
             prefetch_related('iobject',
@@ -41,7 +41,6 @@ class transformer_object(object):
                              'fact__fact_term',
                              'fact__fact_values') \
                 .filter(q_q)\
-                .filter(t_q)\
                 .select_related().distinct().order_by('iobject__id')[:limit]
 
 
@@ -64,3 +63,9 @@ class transformer_object(object):
         if not value:
             return None
         return uri_object.URI(AnyURI(value), type_)
+
+        
+
+        
+        
+        

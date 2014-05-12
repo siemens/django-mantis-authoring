@@ -579,18 +579,7 @@ define(['jquery'],function($){
 
 	    // Include the observables
 	    $.each(instance.observable_registry, function(i,v){
-		var tmp = {
-		    'observable_id': i,
-		    'observable_title': $(v.element).find('[name="dda-observable-title"]').val(),
-		    'observable_description': $(v.element).find('[name="dda-observable-description"]').val(),
-		    'related_observables': {},
-		    'observable_properties': $(v.element).find('.dda-pool-element').find('input, select, textarea').not('[name^="I_"]').serializeObject()
-		}
-
-		$.each(v.relations, function(i,v){
-		    tmp.related_observables[v.target] = v.label;
-		});
-		stix_base.observables.push(tmp);
+		stix_base.observables.push(instance.obs_get_json(i));
 	    });
 
 	    // Include the test mechanisms

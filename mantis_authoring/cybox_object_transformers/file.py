@@ -10,7 +10,7 @@ class TEMPLATE_Default(transformer_object):
         object_subtype = forms.CharField(initial="Default", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="File", widget=forms.HiddenInput)
         I_icon =  forms.CharField(initial=static('img/stix/observable.svg'), widget=forms.HiddenInput)
-        file_name = forms.CharField(required=False)
+        file_name = forms.CharField(required=True)
         file_path = forms.CharField(required=False)
         file_size = forms.IntegerField(required=False)
         md5 = forms.CharField(max_length=32) # required to identify observable later in list
