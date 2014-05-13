@@ -63,7 +63,7 @@ define(['jquery'],function($){
 
 	    //Now create the jquery-ui tabbing
 	    $('#dda-container-tabs').tabs({
-		active: 4,
+		active: 1,
 		activate:function(event,ui){
 		    if(ui.newTab.index()!=5){	    
 			// Do housekeeping, restore elements from the preview in the relations
@@ -590,9 +590,9 @@ define(['jquery'],function($){
 	    });
 
 	    // Include the campaing information
-	    stix_base.campaign = $('#dda-campaign-template_Campaign', '#dda-campaign-container')
+	    stix_base.campaign = $('.dda-campaign-template', '#dda-campaign-container')
 		.find('input, select, textarea').not('[name^="I_"]').serializeObject();
-	    stix_base.campaign.threatactor = $('#dda-threatactor-template_ThreatActor', '#dda-campaign-container')
+	    stix_base.campaign.threatactor = $('.dda-threatactor-template', '#dda-campaign-container')
 		.find('input, select, textarea').not('[name^="I_"]').serializeObject();
 
 	    return stix_base
@@ -670,14 +670,32 @@ define(['jquery'],function($){
 
 	    // Restore the campaign information
 	    if(jsn.campaign!=undefined){
-		$.each(jsn.campaign, function(i,v){
-		    $('#dda-campaign-template_Campaign', '#dda-campaign-container').find('[name="'+i+'"]').val(v);
-		});
+		if(jsn.campaign.object_type=='CampaignReference'){
+		    itm = {
+			id: jsn.campaign.object_id,
+			value: jsn.campaign.object_id,
+			label: jsn.campaign.label
+		    };
+		    instance.cam_replace_campaign(itm);
+		}else{
+		    $.each(jsn.campaign, function(i,v){
+			$('#dda-campaign-template_Campaign', '#dda-campaign-container').find('[name="'+i+'"]').val(v);
+		    });
+		}
 
 		// Restore the threat actor information
-		$.each(jsn.campaign.threatactor, function(i,v){
-		    $('#dda-threatactor-template_ThreatActor', '#dda-campaign-container').find('[name="'+i+'"]').val(v);
-		});
+		if(jsn.campaign.threatactor.object_type=='ThreatActorReference'){
+		    itm = {
+			id: jsn.campaign.threatactor.object_id,
+			value: jsn.campaign.threatactor.object_id,
+			label: jsn.campaign.threatactor.label
+		    };
+		    instance.cam_replace_threat_actor(itm);
+		}else{
+		    $.each(jsn.campaign.threatactor, function(i,v){
+			$('#dda-threatactor-template_ThreatActor', '#dda-campaign-container').find('[name="'+i+'"]').val(v);
+		    });
+		}
 	    }
 	},
 
