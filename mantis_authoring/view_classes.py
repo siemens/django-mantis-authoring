@@ -24,7 +24,7 @@ for importer, modname, ispkg in pkgutil.iter_modules(package.__path__, prefix):
 
     module = __import__(modname, fromlist="dummy")
     for key in dir(module):
-        if 'TEMPLATE_' in key:
+        if key.startswith('TEMPLATE_'):
             CYBOX_OBJECT_TEMPLATE_REGISTRY[(modname.split('.')[-1],key.split("TEMPLATE_")[1])] = getattr(module,key)
 
 

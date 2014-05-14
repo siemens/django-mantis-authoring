@@ -340,41 +340,41 @@ button span {
 }
 
 .dropzone,
-.dropzone *,
+.dropper*,
 .dropzone-previews,
 .dropzone-previews * {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
-.dropzone {
+.dropper{
   position: relative;
   background: rgba(0,0,0,0.02);
   padding: 1em;
 }
-.dropzone.dz-clickable {
+.dropper.dz-clickable {
   cursor: pointer;
 }
-.dropzone.dz-clickable .dz-message,
-.dropzone.dz-clickable .dz-message span {
+.dropper.dz-clickable .dz-message,
+.dropper.dz-clickable .dz-message span {
   cursor: pointer;
 }
-.dropzone.dz-clickable * {
+.dropper.dz-clickable * {
   cursor: default;
 }
-.dropzone .dz-message {
+.dropper.dz-message {
   opacity: 1;
   -ms-filter: none;
   filter: none;
 }
-.dropzone.dz-drag-hover {
+.dropper.dz-drag-hover {
   border-color: rgba(0,0,0,0.15);
   background: rgba(0,0,0,0.04);
 }
-.dropzone.dz-started .dz-message {
+.dropper.dz-started .dz-message {
   display: none;
 }
-.dropzone .dz-preview,
+.dropper.dz-preview,
 .dropzone-previews .dz-preview {
   background: rgba(255,255,255,0.8);
   position: relative;
@@ -384,11 +384,11 @@ button span {
   border: 1px solid #acacac;
   padding: 6px 6px 6px 6px;
 }
-.dropzone .dz-preview.dz-file-preview [data-dz-thumbnail],
+.dropper.dz-preview.dz-file-preview [data-dz-thumbnail],
 .dropzone-previews .dz-preview.dz-file-preview [data-dz-thumbnail] {
   display: none;
 }
-.dropzone .dz-preview .dz-details,
+.dropper.dz-preview .dz-details,
 .dropzone-previews .dz-preview .dz-details {
   width: 100px;
   height: 100px;
@@ -397,12 +397,12 @@ button span {
   padding: 5px;
   margin-bottom: 22px;
 }
-.dropzone .dz-preview .dz-details .dz-filename,
+.dropper.dz-preview .dz-details .dz-filename,
 .dropzone-previews .dz-preview .dz-details .dz-filename {
   overflow: hidden;
   height: 100%;
 }
-.dropzone .dz-preview .dz-details img,
+.dropper.dz-preview .dz-details img,
 .dropzone-previews .dz-preview .dz-details img {
   position: absolute;
   top: 0;
@@ -410,7 +410,7 @@ button span {
   width: 100px;
   height: 100px;
 }
-.dropzone .dz-preview .dz-details .dz-size,
+.dropper.dz-preview .dz-details .dz-size,
 .dropzone-previews .dz-preview .dz-details .dz-size {
   position: absolute;
   bottom: -28px;
@@ -418,21 +418,21 @@ button span {
   height: 28px;
   line-height: 28px;
 }
-.dropzone .dz-preview.dz-error .dz-error-mark,
+.dropper.dz-preview.dz-error .dz-error-mark,
 .dropzone-previews .dz-preview.dz-error .dz-error-mark {
   display: block;
 }
-.dropzone .dz-preview.dz-success .dz-success-mark,
+.dropper.dz-preview.dz-success .dz-success-mark,
 .dropzone-previews .dz-preview.dz-success .dz-success-mark {
   display: block;
 }
-.dropzone .dz-preview:hover .dz-details img,
+.dropper.dz-preview:hover .dz-details img,
 .dropzone-previews .dz-preview:hover .dz-details img {
   display: none;
 }
-.dropzone .dz-preview .dz-success-mark,
+.dropper.dz-preview .dz-success-mark,
 .dropzone-previews .dz-preview .dz-success-mark,
-.dropzone .dz-preview .dz-error-mark,
+.dropper.dz-preview .dz-error-mark,
 .dropzone-previews .dz-preview .dz-error-mark {
   display: none;
   position: absolute;
@@ -443,15 +443,15 @@ button span {
   right: -10px;
   top: -10px;
 }
-.dropzone .dz-preview .dz-success-mark,
+.dropper.dz-preview .dz-success-mark,
 .dropzone-previews .dz-preview .dz-success-mark {
   color: #8cc657;
 }
-.dropzone .dz-preview .dz-error-mark,
+.dropper.dz-preview .dz-error-mark,
 .dropzone-previews .dz-preview .dz-error-mark {
   color: #ee162d;
 }
-.dropzone .dz-preview .dz-progress,
+.dropper.dz-preview .dz-progress,
 .dropzone-previews .dz-preview .dz-progress {
   position: absolute;
   top: 100px;
@@ -461,7 +461,7 @@ button span {
   background: #d7d7d7;
   display: none;
 }
-.dropzone .dz-preview .dz-progress .dz-upload,
+.dropper.dz-preview .dz-progress .dz-upload,
 .dropzone-previews .dz-preview .dz-progress .dz-upload {
   display: block;
   position: absolute;
@@ -471,11 +471,11 @@ button span {
   width: 0%;
   background-color: #8cc657;
 }
-.dropzone .dz-preview.dz-processing .dz-progress,
+.dropper.dz-preview.dz-processing .dz-progress,
 .dropzone-previews .dz-preview.dz-processing .dz-progress {
   display: block;
 }
-.dropzone .dz-preview .dz-error-message,
+.dropper.dz-preview .dz-error-message,
 .dropzone-previews .dz-preview .dz-error-message {
   display: none;
   position: absolute;
@@ -488,7 +488,7 @@ button span {
   max-width: 500px;
   z-index: 500;
 }
-.dropzone .dz-preview:hover.dz-error .dz-error-message,
+.dropper.dz-preview:hover.dz-error .dz-error-message,
 .dropzone-previews .dz-preview:hover.dz-error .dz-error-message {
   display: block;
 }

@@ -76,9 +76,11 @@ class FormView(BasicSTIXPackageTemplateView):
 
     class StixThreatActor(forms.Form):
         CONFIDENCE_TYPES = (
-            ('high', 'High'),
-            ('med', 'Medium'),
-            ('low', 'Low')
+            ('High', 'High'),
+            ('Medium', 'Medium'),
+            ('Low', 'Low'),
+            ('None', 'None'),
+            ('Unknown', 'Unknown')
         )
         object_type = forms.CharField(initial="ThreatActor", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Threat Actor", widget=forms.HiddenInput)
@@ -89,6 +91,13 @@ class FormView(BasicSTIXPackageTemplateView):
         description = forms.CharField(widget=forms.Textarea, required=False)
         confidence = forms.ChoiceField(choices=CONFIDENCE_TYPES, required=False, initial="med")
         #information_source = forms.CharField(max_length=1024)
+
+
+    class StixThreatActorReference(forms.Form):
+        object_type = forms.CharField(initial="ThreatActorReference", widget=forms.HiddenInput)
+        I_object_display_name = forms.CharField(initial="Threat Actor Reference", widget=forms.HiddenInput)
+        I_icon =  forms.CharField(initial=static('img/stix/threat_actor.svg'), widget=forms.HiddenInput)
+        object_id =  forms.CharField(initial='', widget=forms.HiddenInput)
 
 
     class StixCampaign(forms.Form):
@@ -102,9 +111,11 @@ class FormView(BasicSTIXPackageTemplateView):
             ('Unknown', 'Unknown')
         )
         CONFIDENCE_TYPES = (
-            ('high', 'High'),
-            ('med', 'Medium'),
-            ('low', 'Low')
+            ('High', 'High'),
+            ('Medium', 'Medium'),
+            ('Low', 'Low'),
+            ('None', 'None'),
+            ('Unknown', 'Unknown')
         )
         HANDLING_TYPES = (
             ('WHITE', 'White'),
@@ -126,11 +137,20 @@ class FormView(BasicSTIXPackageTemplateView):
         #information_source = forms.CharField(max_length=1024)
 
 
+    class StixCampaignReference(forms.Form):
+        object_type = forms.CharField(initial="CampaignReference", widget=forms.HiddenInput)
+        I_object_display_name = forms.CharField(initial="Campaign Reference", widget=forms.HiddenInput)
+        I_icon =  forms.CharField(initial=static('img/stix/campaign.svg'), widget=forms.HiddenInput)
+        object_id =  forms.CharField(initial='', widget=forms.HiddenInput)
+
+
     class StixIndicator(forms.Form):
         CONFIDENCE_TYPES = (
-            ('high', 'High'),
-            ('med', 'Medium'),
-            ('low', 'Low')
+            ('High', 'High'),
+            ('Medium', 'Medium'),
+            ('Low', 'Low'),
+            ('None', 'None'),
+            ('Unknown', 'Unknown')
         )
         object_type = forms.CharField(initial="Indicator", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Indicator", widget=forms.HiddenInput)
@@ -174,8 +194,8 @@ class FormView(BasicSTIXPackageTemplateView):
         context = super(FormView, self).get_context_data(**kwargs)
 
         indicatorForms = [self.StixIndicator]
-        campaignForms = [self.StixCampaign]
-        threatActorForms = [self.StixThreatActor]
+        campaignForms = [self.StixCampaign, self.StixCampaignReference]
+        threatActorForms = [self.StixThreatActor, self.StixThreatActorReference]
         testMechanismForms = [self.TestMechanismIOC, self.TestMechanismSnort]
 
         context['indicatorForms'] = indicatorForms
@@ -225,6 +245,7 @@ class stixTransformer:
         self.observables = {}
         self.old_observable_mapping = {}
         self.cybox_observable_list = None
+        self.cybox_observable_references = []
 
         # Now process the parts
         self.__process_observables()
@@ -249,44 +270,57 @@ class stixTransformer:
         except:
             print "Error. No threat actor passed."
             return
+        
+        # The campaign
+        if campaign.get('object_type') == 'CampaignReference':
+            camp = Campaign()
+            camp.idref = campaign.get('object_id', '')
+            camp._id = None
+            self.campaign = camp
+        elif campaign.get('name','').strip() != '':
+            camp = Campaign()
+            camp.names =  Names(Name(campaign.get('name', '')))
+            camp.title = campaign.get('title','')
+            camp.description = campaign.get('description', '')
+            camp.confidence = Confidence(campaign.get('confidence', ''))
+            camp.handling = TLPMarkingStructure()
+            camp.handling.color = campaign.get('handling', '')
+            #camp.information_source = InformationSource()
+            #camp.information_source.description = campaign.get('information_source', '')
+            camp.status = StixVocabString(campaign.get('status', ''))
+            afrom = Activity()
+            afrom.date_time = DateTimeWithPrecision(value=campaign.get('activity_timestamp_from', ''), precision="minute")
+            afrom.description = StixStructuredText('Timestamp from')
+            ato = Activity()
+            ato.date_time = DateTimeWithPrecision(value=campaign.get('activity_timestamp_to', ''), precision="minute")
+            ato.description = StixStructuredText('Timestamp to')
+            camp.activity = [afrom, ato]
+            self.campaign = camp
+            
 
-        if not campaign['name'] or not threatactor['identity_name']:
-            return
+        if threatactor.get('object_type') == 'ThreatActorReference':
+            tac = ThreatActor()
+            tac.idref = threatactor.get('object_id', '')
+            tac._id = None
+            if self.campaign:
+                tac.associated_campaigns = camp
+            self.threatactor = tac
+        elif threatactor.get('identity_name', '').strip() != '' and self.campaign:
+            tac = ThreatActor()
+            related_identities = []
+            for ia in threatactor.get('identity_aliases', '').split('\n'):
+                related_identities.append(Identity(None, None, ia.strip('\n').strip('\r').strip()))
+            tac.identity = Identity(None, None, threatactor.get('identity_name', ''))
+            tac.identity.related_identities = RelatedIdentities(related_identities)
+            tac.title = String(threatactor.get('title', ''))
+            tac.description = StixStructuredText(threatactor.get('description', ''))
+            #tac.information_source = InformationSource()
+            #tac.information_source.description = threatactor.get('information_source', '')
+            tac.confidence = Confidence(threatactor.get('confidence', ''))
+            if self.campaign:
+                tac.associated_campaigns = camp
+            self.threatactor = tac
 
-        camp = Campaign()
-        camp.names =  Names(Name(campaign['name']))
-        camp.title = campaign['title']
-        camp.description = campaign['description']
-        camp.confidence = Confidence(campaign['confidence'])
-        camp.handling = TLPMarkingStructure()
-        camp.handling.color = campaign['handling']
-        #camp.information_source = InformationSource()
-        #camp.information_source.description = campaign['information_source']
-        camp.status = StixVocabString(campaign['status'])
-        afrom = Activity()
-        afrom.date_time = DateTimeWithPrecision(value=campaign['activity_timestamp_from'], precision="minute")
-        afrom.description = StixStructuredText('from timestamp')
-        ato = Activity()
-        ato.date_time = DateTimeWithPrecision(value=campaign['activity_timestamp_to'], precision="minute")
-        ato.description = StixStructuredText('to timestamp')
-        camp.activity = [afrom, ato]
-        self.campaign = camp
-
-
-        tac = ThreatActor()
-        related_identities = []
-        for ia in threatactor['identity_aliases'].split('\n'):
-            related_identities.append(Identity(None, None, ia))
-        tac.identity = Identity(None, None, threatactor['identity_name'])
-        tac.identity.related_identities = RelatedIdentities(related_identities)
-        tac.title = String(threatactor['title'])
-        tac.description = StixStructuredText(threatactor['description'])
-        #tac.information_source = InformationSource()
-        #tac.information_source.description = threatactor['information_source']
-        tac.confidence = Confidence(threatactor['confidence'])
-        tac.associated_campaigns = camp
-
-        self.threatactor = tac
 
 
     def __create_test_mechanism_object(self, test):
@@ -305,15 +339,15 @@ class stixTransformer:
                 tm.ioc = ioc_xml
             except Exception as e:
                 print 'XML of "%s" not valid: %s' % (test['ioc_title'], str(e))
-        
+
         elif test['object_subtype'] == 'SNORT':
             tm = SnortTestMechanism(test['test_mechanism_id'])
             tm.rules = b64decode(test['snort_rules']).splitlines()
 
         return tm
-        
 
-    
+
+
     def __process_test_mechanisms(self):
         """
         Processes the test mechanisms from the JSON.
@@ -324,7 +358,7 @@ class stixTransformer:
             print "Error. No test mechanisms passed."
             return
 
-        
+
         for test in tests:
             tm = self.__create_test_mechanism_object(test)
             if tm:
@@ -357,7 +391,13 @@ class stixTransformer:
 
             im = importlib.import_module('mantis_authoring.cybox_object_transformers.' + object_type.lower())
             template_obj = getattr(im,'TEMPLATE_%s' % object_subtype)()
-            cybox_obs = template_obj.process_form(obs['observable_properties'])
+            try:
+                cybox_obs = template_obj.process_form(obs['observable_properties'])
+                if cybox_obs==None:
+                    self.cybox_observable_references.append(obs['observable_id'])
+                    continue
+            except:
+                continue
 
             if type(cybox_obs)==list: # We have multiple objects as result. We now need to create new ids and update the relations
                 old_id = obs['observable_id']
@@ -404,18 +444,42 @@ class stixTransformer:
         for obs_id, obs in cybox_observable_dict.iteritems():
             for rel_id, rel_type in relations[obs_id].iteritems():
                 related_object = cybox_observable_dict[rel_id]
-                if not related_object: # This might happen if a observable was not generated(because data was missing); TODO!
+                if not related_object: # This might happen if a observable was not generated(because data was missing); TODO!                
                     continue
                 obs.add_related(related_object, rel_type, inline=False)
-            if not obs_id.startswith('__'): # If this is not a generated object we keep the observable id!
-                obs = Observable(obs, obs_id)
+            if not obs_id.startswith('__'): # If this is not a generated object we keep the observable id!                                   
+		obs = Observable(obs, obs_id)
             else:
                 obs = Observable(obs)
                 self.old_observable_mapping[obs.id_] = translations[obs_id]
 
             self.cybox_observable_list.append(obs)
 
+
         return self.cybox_observable_list
+
+
+        # Observables and relations are now processed. The only
+        # thing left is to include the relation into the actual
+        # objects.
+        self.cybox_observable_list = []
+        for obs_id, obs in cybox_observable_dict.iteritems():
+            for rel_id, rel_type in relations[obs_id].iteritems():
+                related_object = cybox_observable_dict[rel_id]
+                if not related_object: # This might happen if a observable was not generated(because data was missing); TODO!
+                    continue
+                obs.add_related(related_object, rel_type, inline=False)
+            if not obs_id.startswith('__'): # If this is not a generated object we keep the observable id!
+		obs = Observable(obs, obs_id)
+            else:
+                obs = Observable(obs)
+                self.old_observable_mapping[obs.id_] = translations[obs_id]
+
+            self.cybox_observable_list.append(obs)
+
+	return self.cybox_observable_list
+
+
 
 
     def __create_stix_indicator(self, indicator):
@@ -426,7 +490,7 @@ class stixTransformer:
         stix_indicator.title = String(indicator['indicator_title'])
         stix_indicator.description = String(indicator['indicator_description'])
         stix_indicator.confidence = Confidence(indicator['indicator_confidence'])
-        stix_indicator.indicator_types = String(indicator['object_type'])
+        #stix_indicator.indicator_types = String(indicator['object_type'])
         return stix_indicator
 
 
@@ -451,7 +515,7 @@ class stixTransformer:
             related_observables = indicator['related_observables']
             related_test_mechanisms = indicator['related_test_mechanisms']
 
-            # add the observables to the indicator
+            # Add the observables to the indicator
             for observable in self.cybox_observable_list:
                 check_obs_id = observable.id_
                 # if we have autogenerated observables, we check against the OLD id the item had before generating new ones
@@ -460,11 +524,18 @@ class stixTransformer:
 
                 if check_obs_id in related_observables:
                     obs_rel = Observable()
-                    obs_rel.idref=observable.id_
+                    obs_rel.idref = observable.id_
                     obs_rel.id_ = None
                     stix_indicator.add_observable(obs_rel)
 
-            # add the test mechanisms to the indicator
+            # Add observable references to the indicator
+            for obs_ref in self.cybox_observable_references:
+                obs_rel = Observable()
+                obs_rel.idref = obs_ref
+                obs_rel.id_ = None
+                stix_indicator.add_observable(obs_rel)
+
+            # Add the test mechanisms to the indicator
             for tm in self.test_mechanisms:
                 check_tes_id = tm.id_
                 if check_tes_id in related_test_mechanisms:

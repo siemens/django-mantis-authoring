@@ -44,6 +44,28 @@ $(function() {
 	}
     });
 
+    /**
+     * Custom autocomplete widget
+     */
+    $.widget( "custom.ddacomplete", $.ui.autocomplete, {
+        _renderMenu: function( ul, items ) {
+            var that = this,
+            currentCategory = "";
+            $.each( items, function( index, item ) {
+                if ( item.category != currentCategory ) {
+                    ul.append( "<li class='dda-autocomplete-cat'>" + item.category + "</li>" );
+                    currentCategory = item.category;
+                }
+                that._renderItemData( ul, item );
+            });
+        },
+        _renderItem: function( ul, item ) {
+            return $( "<li>" )
+                .append( "<a>" + item.id + '<br><span class="dda-autocomplete-desc">' + item.label + '</span></a>')
+                .appendTo( ul );
+        }
+    });
+
     function deepCompare () {
 	var leftChain, rightChain;
 
@@ -215,8 +237,11 @@ $(function() {
 
 
 
-    /*
+    /**
      * Logs a message, which is shown to the user and removed again after a specified timeout
+     * @param {string} message
+     * @param {string} type
+     * @param {number} timeout Time after which the message should disappear
      */
     function log_message(message, type, timeout){
 	type = type || 'info';
@@ -243,11 +268,14 @@ $(function() {
     };
 
 
-    /*
+    /**
      * The main builder object.
+     * @param {function} done_init_callback Callback function which will be called when the builder is done initializing
+     * @return {object} instance of itself
      */
-    var builder = function(){
+    var builder = function(done_init_callback){
 	var instance = this;
+	this.done_init_callback = done_init_callback;
 	this.namespace_slug = false;
 
 	this.observable_pool = $('#dda-observable-pool'); // Selector box on STIX tab
@@ -291,7 +319,9 @@ $(function() {
 	 Init each tab
 	****************************************************************/
 
-	// Stix package tab
+	/**
+	 * Initializes the STIX package tab
+	 */
 	this.init_stix_package_tab = function(){
 	    // Reset GUI because some browsers keep values in inputs on reload
 	    this.reset_gui();
@@ -317,7 +347,7 @@ $(function() {
 		editor.getSession().setMode("ace/mode/javascript");
 		editor.setValue(result);
 	    });
-	    //$('#dda-stix-show').after(get_jsn_btn);
+	    $('#dda-stix-show').after(get_jsn_btn);
 
 	    var import_jsn_btn = $('<button>Import JSON</button>').button().click(function(){
 		result = JSON.stringify(instance.get_json(), null, "    ");
@@ -357,13 +387,14 @@ $(function() {
 		);
 	    });
 	    //$('#dda-stix-show').after(import_jsn_btn);
-
 	};
 
 
 
 
-	// Campaign tab
+	/**
+	 * Initializes the campaign tab
+	 */
 	this.init_campaign_tab = function(){
 	    var template = instance.cam_pool_elements_templates.first();
 	    var ne = template.clone();
@@ -413,15 +444,18 @@ $(function() {
 	    var ta_template = instance.tha_pool_elements_templates.first();
 	    ne.after(ta_template.clone())
 		.after('<br><h3>Threat Actor Information</h3>');
-
 	};
 
 
 
-
-	// Observable pool tab
+	/**
+	 * Initializes the observable pool tab
+	 */
 	this.init_observable_pool_tab = function(){
 	    $.each(instance.obs_pool_elements_templates, function(i,v){
+		// Skip the reference object
+		if($(v).attr('id')=='dda-observable-template_ReferenceObject_Default') return true;
+
 		var div = $('<div class="dda-add-element clearfix" ></div>');
 		div.append(
 		    $('<object></object>').attr('data', $(v).find('#id_I_icon').val())
@@ -471,11 +505,12 @@ $(function() {
 		    log_message(errorMessage, 'error');
 		}
             });
-
 	};
 
 
-	// Indicator pool tab
+	/**
+	 * Initializes the indicator pool tab
+	 */
 	this.init_indicator_pool_tab = function(){
 	    $('#dda-indicator-add-btn').button({
 		icons:{
@@ -484,12 +519,13 @@ $(function() {
 	    }).click(function(){
 		instance.ind_pool_add_elem();
 	    });
-
 	};
 
 
 
-	// Test mechanisms tab
+	/**
+	 * Initializes the test mechanisms tab
+	 */
 	this.init_test_mechanisms_tab = function(){
             // Init dropzone
             var file_dropzone = $("#dda-test-mechanism-filedrop").dropzone({
@@ -504,12 +540,12 @@ $(function() {
 		    log_message(errorMessage, 'error');
 		}
             });
-
-
 	};
 
 
-	// Object relations tab
+	/**
+	 * Initializes the Object relations tab
+	 */
 	this.init_object_relations_tab = function(){
             var getData = function(){
 		var data_set = [];
@@ -572,15 +608,15 @@ $(function() {
 		return node_set;
 	    };
 
-	    var width = $('#relation-pane').width(),
-	    height = $('#relation-pane').height(),
-	    fill = d3.scale.category10();
+	    var width = $('#relation-pane').width();
+	    var height = $('#relation-pane').height();
+	    var fill = d3.scale.category10();
 
-	    var selected_node = null,
-	    selected_link = null,
-	    mousedown_link = null,
-	    mousedown_node = null,
-	    mouseup_node = null;
+	    var selected_node = null;
+	    var selected_link = null;
+	    var mousedown_link = null;
+	    var mousedown_node = null;
+	    var mouseup_node = null;
 
 	    var outer = d3.select("#relation-pane")
 		.append("svg:svg")
@@ -649,11 +685,10 @@ $(function() {
 	    var labelAnchors = force2.nodes();
 	    var labelLinks = force2.links();
 
-	    node = vis.selectAll('.node'),
-	    link = vis.selectAll('.link');
-	    labelAnchor = vis.selectAll('.labelAnchor');
-	    labelLink = vis.selectAll('.labelLink');
-
+	    var node = vis.selectAll('.node');
+	    var link = vis.selectAll('.link');
+	    var labelAnchor = vis.selectAll('.labelAnchor');
+	    var labelLink = vis.selectAll('.labelLink');
 
 	    // add keyboard callback
 	    d3.select(window)
@@ -793,10 +828,10 @@ $(function() {
 		labelLinks = force2.links();
 		labelAnchors = force2.nodes();
 
-
-
 		// Create the links between the nodes
-		link = link.data(links);
+		link = link.data(links, function(d){
+		    return links.indexOf(d);
+		});
 		link.enter().insert("path", ".node")
 		    .attr("class", "link").attr('marker-end', 'url(#end)')
 		    .on("mousedown",
@@ -814,19 +849,16 @@ $(function() {
 			    }
 			    selected_node = null;
 			    instance._d3_redraw();
-			})
+			});
 		link.exit().remove();
-
 		link.classed("link_selected", function(d) { return d === selected_link; });
 
 
 
-
-
-
-
 		// Create the node labels
-		labelAnchor = labelAnchor.data(labelAnchors);
+		labelAnchor = labelAnchor.data(labelAnchors, function(d){
+		    return labelAnchors.indexOf(d);
+		});
 		labelAnchor.enter().insert('g').attr('class', 'labelAnchor')
 		    .append('text').style("fill", "#555").style("font-family", "Arial").style("font-size", 12);
 		labelAnchor.exit().remove();
@@ -847,16 +879,14 @@ $(function() {
 		labelLink.exit().remove();
 
 
-
-
-
 		// Create the data nodes
-		node = node.data(nodes);
+		node = node.data(nodes, function(d){
+		    return nodes.indexOf(d);
+		});
 		node.enter()
 		    .insert("g").attr("class", "node").append('circle').attr('r', 10).attr('style', function(d){return 'fill:'+fill(d.type)+';opacity:1;'})
 		    .on("mousedown",
 			function(d) {
-
 			    // disable zoom
 			    vis.call(d3.behavior.zoom().on("zoom", null));
 
@@ -884,11 +914,12 @@ $(function() {
 			    if (mousedown_node) {
 				mouseup_node = d;
 				if (mouseup_node == mousedown_node) {
+				    // Restore old element in preview
 				    instance.obs_elem_restore_from_preview();
 
-				    $('#dda-relation-object-details').append(
-					mouseup_node.element.find('.dda-pool-element')
-				    );
+				    // Set new element to preview
+				    instance.obs_elem_set_to_preview(mouseup_node.observable_id);
+
 				    resetMouseVars();
 				    return;
 				}
@@ -998,11 +1029,14 @@ $(function() {
 
 
 
+
 	/****************************************************************
 	 Refresh functions for each tab
 	***************************************************************/
 
-	// Stix package tab
+	/**
+	 * Refreshes the STIX package tab
+	 */
 	this.refresh_stix_package_tab = function(){
 	    // First clear all entries
 	    instance.package_indicators.html('');
@@ -1323,35 +1357,43 @@ $(function() {
 		dlg.append(ok_btn);
 
 	    });
+	};
 
-	}
-
-	// Campaign info tab
+	/**
+	 * Refreshes the campaign info tab
+	 */
 	this.refresh_campaign_tab = function(){
-	}
+	};
 
-	// Observable pool tab
+	/**
+	 * Refreshes observable pool tab
+	 */
 	this.refresh_observable_pool_tab = function(){
-	    // Do housekeeping, restore elements from the preview in the relations
-	    instance.obs_elem_restore_from_preview();
-	}
+	};
 
-	// Indicator pool tab
+	/**
+	 * Refreshes indicator pool tab
+	 */
 	this.refresh_indicator_pool_tab = function(){
-	}
+	};
 
-	// Test mechanisms tab
+	/**
+	 * Refreshes test mechanisms tab
+	 */
 	this.refresh_test_mechanisms_pool_tab = function(){
-	}
+	};
 
-	// Object relations tab
+	/**
+	 * Refreshes the object relations tab
+	 */
 	this.refresh_object_relations_tab = function(){
 	    if(instance._relations_initiated==undefined){
 		instance.init_object_relations_tab();
 		instance._relations_initiated = true;
 	    }
-	    b._d3_redraw(true);
-	}
+	    instance._d3_redraw(true);
+	};
+
 
 
 
@@ -1360,10 +1402,79 @@ $(function() {
 	 Functionality/Helper functions
 	***************************************************************/
 
-	/*
-	 * Adds an element to the observable pool. Gets passed a template id
+	/**
+	 * Binds the autocompleter to an object.
+	 * @param {string} obs_id The observable id of the element to bind the completer to
 	 */
-	this.obs_pool_add_elem = function(template_id, guid_passed){
+	this.obs_bind_reference_completer = function(obs_id){
+	    var obs = instance.observable_registry[obs_id];
+
+	    $.each($('.dda-pool-element', obs.element).find('input:visible'), function(i,v){
+		$(this).ddacomplete({
+                    source: function( request, response ) {
+			$.ajax({
+                            url: "ref",
+			    type: "POST",
+                            dataType: "json",
+                            data: {
+				q: request.term,
+				el: obs.element.find('input, select, textarea').not('[name^="I_"]').serializeObject()
+                            },
+                            success: function( data ) {
+				response( $.map( data.data, function( item ) {
+                                    return {
+					id: item.id,
+					label: item.name,
+					value: item.id,
+					category: item.cat
+                                    }
+				}));
+                            }
+			}, 'json');
+                    },
+                    autoFocus: true,
+                    select: function(event, ui){
+			instance.obs_pool_add_ref(ui.item.id, obs.observable_id);
+                    }
+		});
+	    });
+	};
+
+
+	/**
+	 * Removes the autocompleter from an element 
+	 * @param {string} obs_id The observable id of the element to remove the completer from
+	 */
+	this.obs_remove_reference_completer = function(obs_id){
+	    var obs = instance.observable_registry[obs_id];
+	    $.each($('.dda-pool-element', obs.element).find('input'), function(i,v){
+		try{
+		    $(this).ddacomplete('destroy');
+		}catch(e){}
+	    });
+	};
+
+
+	/**
+	 * Adds a reference element to the observable pool. 
+	 * @param {string} guid_passed The guid of the reference element to be created
+	 * @param {string} replacement Optional ID (guid) of the element to be replace
+	 */
+	this.obs_pool_add_ref = function(guid_passed, replacement){
+	    var template_id = 'dda-observable-template_ReferenceObject_Default';
+	    instance.obs_pool_add_elem(template_id, guid_passed, true, true);
+	    instance.obs_pool_remove_elem(replacement, guid_passed);
+	};
+	
+
+	/**
+	 * Adds an element to the observable pool.
+	 * @param {string} template_id The template from which to craft the element
+	 * @param {string} guid_passed An optional guid which will be used instead of generating one
+	 * @param {boolean} no_dom_insert Tells the function to not insert the created element into the DOM
+	 * @param {boolean} no_meta Tells the function to not insert Title/Description Fields (for reference type)
+	 */
+	this.obs_pool_add_elem = function(template_id, guid_passed, no_dom_insert, no_meta){
 	    var template = $('#' + template_id);
 
 	    // Get a new id
@@ -1382,8 +1493,10 @@ $(function() {
 
 	    // Create element from template
 	    var new_elem = template.clone().attr('id', guid_observable);
-	    var _pc_el = $('<div></div>').append( //container for toggling
-		$('<input type="text" name="dda-observable-title" placeholder="Observable Title"><textarea name="dda-observable-description" placeholder="Observable Description"></textarea>'),
+	    var _pc_el = $('<div></div>'); //container for toggling
+	    if(!no_meta)
+		_pc_el.append($('<input type="text" name="dda-observable-title" placeholder="Observable Title"><textarea name="dda-observable-description" placeholder="Observable Description"></textarea>'));
+	    _pc_el.append(
 		$('<div class="dda-pool-element">').append(new_elem)
 	    );
 
@@ -1406,7 +1519,9 @@ $(function() {
 	    div.append('<p>'+title+'</p>');
 	    div.append( _pc_el );
 	    div.find('button').button();
-	    instance.obs_pool_list.prepend(div);
+	    
+	    if(!no_dom_insert)
+		instance.obs_pool_list.prepend(div);
 
 
 	    instance.observable_registry[guid_observable] = {
@@ -1417,44 +1532,66 @@ $(function() {
 		description: description,
 		type: template.find('#id_object_type').val()
 	    };
+	    //instance.obs_bind_reference_completer(guid_observable);
 	    return instance.observable_registry[guid_observable];
 	};
 
-	/*
-	 * Removes an element from the observable pool.
-	 */
-	this.obs_pool_remove_elem = function(guid){
 
-	    //remove from indicators
+	/** 
+	 * Removes an element from the observable pool.
+	 * @param {string} guid The ID (guid) of the element to be removed
+	 * @param {id} replacement The optional ID (guid) of the element which should replace the element to be removed
+	 */
+	this.obs_pool_remove_elem = function(guid, replacement){
+	    // Remove/replace in indicators
 	    $.each(instance.indicator_registry, function(i,v){
 		var ni = [];
 		$.each(v.observables, function(i1,v1){
-		    if(v1!=guid)
-			ni.push(v1);
+		    if(v1!=guid){
+			    ni.push(v1);
+		    }else{
+			if(replacement)
+			    ni.push(replacement);
+		    }
 		});
 		instance.indicator_registry[i].observables = ni;
 	    });
 
-	    //remove relation information
+	    // Remove/replace relation information
 	    $.each(instance.observable_registry, function(i,v){
 		var ni = [];
 		$.each(v.relations, function(i1,v1){
-		    if(v1.target!=guid)
+		    if(v1.target!=guid){
 			ni.push(v1);
+		    }else{
+			if(replacement){
+			    v1.target = replacement;
+			    ni.push(v1);
+			}
+		    }
 		});
 		instance.observable_registry[i].relations = ni;
-
 	    });
 
-	    //remove element itself
-	    instance.observable_registry[guid].element.remove();
+	    // Remove element itself
+	    if(replacement){
+		instance.observable_registry[guid].element.replaceWith(
+		    instance.observable_registry[replacement].element
+		);
+		instance.observable_registry[replacement].relations = instance.observable_registry[guid].relations
+	    }else
+		instance.observable_registry[guid].element.remove();
 	    delete instance.observable_registry[guid];
+
 	};
 
 
 
-	/*
+	/**
 	 * Helper function which returns a display name for a specific observable
+	 * @param {object} v The observable object from the observable registry
+	 * @param {string} def The default string to fall back to
+	 * @param {number} trim The amount of characters to trim the resulting name to
 	 */
 	this.get_obs_elem_desc_name = function(v, def, trim){
 	    trim=trim||60;
@@ -1502,8 +1639,12 @@ $(function() {
 
 	    return desc
 	};
-	/*
+
+
+	/**
 	 * Helper function which returns a display name for a specific test mechanism
+	 * @param {object} v The test mechanism object from the test mechanism registry
+	 * @param {number} trim The amount of characters to trim the resulting name to
 	 */
 	this.get_tes_elem_desc_name = function(v, trim){
 	    trim=trim||60;
@@ -1526,24 +1667,37 @@ $(function() {
 	};
 
 
-
-
-	/*
+	/**
 	 * Function that restores an element to the observable pool if
 	 * there is one in the preview on the relation tab (element
 	 * gets moved)
 	 */
 	this.obs_elem_restore_from_preview = function(){
 	    var id = $('.dda-observable-template', '#dda-relation-object-details').first().attr('id');
-	    if(id){
-		$('> div', instance.observable_registry[id].element).first().append(
-		    $('.dda-pool-element', '#dda-relation-object-details').remove()
-		);
+	    if(!id) return;
+
+	    if(instance.observable_registry[id] == undefined){
+		$('.dda-pool-element', '#dda-relation-object-details').remove();
+		return;
 	    }
+	    
+	    $('> div', instance.observable_registry[id].element).first().append(
+		$('.dda-pool-element', '#dda-relation-object-details').remove()
+	    );
+	    //instance.obs_bind_reference_completer(id);
 	};
 
+	/**
+	 * Function that sets the properties of an observables to the preview section on the relations tab
+	 * @param {string} id The observable id of the object to preview
+	 */
+	this.obs_elem_set_to_preview = function(id){
+	    //instance.obs_remove_reference_completer(id);
 
-
+	    $('#dda-relation-object-details').append(
+		instance.observable_registry[id].element.find('.dda-pool-element')
+	    );
+	};
 
 
 	/*
@@ -1551,6 +1705,8 @@ $(function() {
 	 * template id If template id is not passed (which happens
 	 * when user drops on specific placeholder, the first template
 	 * in the template pool will be used)
+	 * @param {string} template_id 
+	 * @param {string} guid_passed Optional guid which will be used instead of generating one
 	 */
 	this.ind_pool_add_elem = function(template_id, guid_passed){
 	    var auto_gen = false;
@@ -1628,16 +1784,21 @@ $(function() {
 		return guid_indicator;
 	    }
 	};
-	/*
+
+	/**
 	 * Removes and indicator from the pool
+	 * @param {string} guid The indicator id of the element to be removed
 	 */
 	this.ind_pool_remove_elem = function(guid){
 	    instance.indicator_registry[guid].element.remove();
 	    delete instance.indicator_registry[guid];
 	    instance.refresh_stix_package_tab();
 	};
-	/* 
+
+	/**
 	 * Removes an observable from an indicator
+	 * @param {string} ind_guid The indicator id
+	 * @param {string} obs_guid The observable id
 	 */
 	this.ind_remove_obs = function(ind_guid, obs_guid){
 	    var obs = this.indicator_registry[ind_guid].observables;
@@ -1647,8 +1808,11 @@ $(function() {
 	    });
 	    this.indicator_registry[ind_guid].observables = obs_new;
 	};
-	/* 
+
+	/**
 	 * Removes a test-mechanism from an indicator
+	 * @param {string} ind_guid The indicator id
+	 * @param {string} tes_guid The test mechanism id
 	 */
 	this.ind_remove_tes = function(ind_guid, tes_guid){
 	    var tes = this.indicator_registry[ind_guid].test_mechanisms;
@@ -1660,11 +1824,12 @@ $(function() {
 	};
 
 
-
-	/*
+	/**
 	 * Adds a test mechanism element to the pool. Gets passed a
 	 * template id If template id is not passed the first template
 	 * in the template pool will be used
+	 * @param {string} template_id
+	 * @param {string} guid_passed Optional guid which will be used instead of generating one
 	 */
 	this.tes_pool_add_elem = function(template_id, guid_passed){
 	    var auto_gen = false;
@@ -1735,6 +1900,11 @@ $(function() {
 	    };
 	    return instance.test_mechanisms_registry[guid_test]
 	};
+
+	/**
+	 * Removes a test mechanism from the pool
+	 * @param {string} guid The id of the test mechanism to be removed
+	 */
 	this.tes_pool_remove_elem = function(guid){
 
 	    //remove from indicators
@@ -1759,8 +1929,9 @@ $(function() {
 
 
 
-	/*
+	/**
 	 * Returns the JSON representation of the current configuration
+	 * @returns {object} the JSON
 	 */
 	this.get_json = function(){
 	    // Generate package id if not already existing
@@ -1818,8 +1989,8 @@ $(function() {
 	};
 
 
-	/*
-	 * Resets the GUI to a consistent state based on the JSON generated
+	/**
+	 * Resets the GUI by removing all items manually
 	 */
 	this.reset_gui = function(){
 	    $('#dda-stix-meta').find('input, select, textarea').val('');
@@ -1840,12 +2011,18 @@ $(function() {
 		instance.ind_pool_remove_elem(v.object_id);
 	    });
 
-
+	    // Reset test mechanisms
+	    $.each(instance.test_mechanisms_registry, function(i,v){
+		instance.tes_pool_remove_elem(v.object_id);
+	    });
 	};
 
 
-	/*
+	/**
 	 * Tries to initialize the GUI from a provided JSON
+	 * @param {object} jsn The JSON structure to read from
+	 * @param {string} load_name The title to be set for the configuration (usually the saved name)
+	 * @param {string} load_uuid The uuid to be set for the configuration (usually from a saved state)
 	 */
 	this.load_from_json = function(jsn, load_name, load_uuid){
 	    instance.load_name = load_name || false;
@@ -1907,7 +2084,6 @@ $(function() {
 		    $('[name="'+i1+'"]', el.element).val(v1);
 		});
 	    });
-
 
 	    // Restore the campaign information
 	    if(jsn.campaign!=undefined){
@@ -1987,6 +2163,7 @@ $(function() {
 	    }, 'json');
 	};
 
+
 	// Init ourselfs, make sure the namespace is set first
 	this.init_user_namespace(function(){
 	    instance.init_stix_package_tab();
@@ -1994,51 +2171,59 @@ $(function() {
 	    instance.init_observable_pool_tab();
 	    instance.init_indicator_pool_tab();
 	    instance.init_test_mechanisms_tab();
-	    //object relations are initiated on first refresh because that where we know the canvas size //instance.init_object_relations_tab();
+	    //object relations are initiated on first refresh because that is where we know the canvas size //instance.init_object_relations_tab();
 	    instance.refresh_stix_package_tab(); //Initial refresh for button handlers to be bound (in case this tab is the first visible tab)
+	    instance.done_init_callback(instance);
 	});
-
-	return instance;
     };
-    var b = builder();
 
-
-
-    $('#dda-container-tabs').tabs({
-	active: 0,
-	activate:function(event,ui){
-	    if(ui.newTab.index()==0){
-		b.refresh_stix_package_tab();
-	    }
-	    if(ui.newTab.index()==1){
-		b.refresh_campaign_tab();
-	    }
-	    if(ui.newTab.index()==2){
-		b.refresh_indicator_pool_tab();
-	    }
-	    if(ui.newTab.index()==3){
-		b.refresh_test_mechanisms_pool_tab();
-	    }
-	    if(ui.newTab.index()==4){
-		b.refresh_observable_pool_tab();
-	    }
-	    if(ui.newTab.index()==5){
-		b.refresh_object_relations_tab();
-	    }
-        }
-    });
 
     Dropzone.autoDiscover = false;
-    $('button').button();
 
-    $('#dda-relation-list > .dda-add-element').click(function(){
-	$('#dda-relation-list').find('.dda-rel-selected').removeClass('dda-rel-selected').find('input:checked').prop('checked', false);
-	$(this).addClass('dda-rel-selected').find('input:radio').prop('checked', true);
+    var b = builder(function(instance){
+	$('#dda-container-tabs').tabs({
+	    active: 4,
+	    activate:function(event,ui){
+		if(ui.newTab.index()!=5){	    
+		    // Do housekeeping, restore elements from the preview in the relations
+		    instance.obs_elem_restore_from_preview();
+		}
 
+		if(ui.newTab.index()==0){
+		    instance.refresh_stix_package_tab();
+		}
+		if(ui.newTab.index()==1){
+		    instance.refresh_campaign_tab();
+		}
+		if(ui.newTab.index()==2){
+		    instance.refresh_indicator_pool_tab();
+		}
+		if(ui.newTab.index()==3){
+		    instance.refresh_test_mechanisms_pool_tab();
+		}
+		if(ui.newTab.index()==4){
+		    instance.refresh_observable_pool_tab();
+		}
+		if(ui.newTab.index()==5){
+		    instance.refresh_object_relations_tab();
+		}
+            }
+	});
+
+	$('button').button();
+
+	$('#dda-relation-list > .dda-add-element').click(function(){
+	    $('#dda-relation-list').find('.dda-rel-selected').removeClass('dda-rel-selected').find('input:checked').prop('checked', false);
+	    $(this).addClass('dda-rel-selected').find('input:radio').prop('checked', true);
+	});
+
+	if(querystring('load')!=''){
+	    instance.load_remote_save(querystring('load')[0]);
+	}
+	
     });
 
-    if(querystring('load')!=''){
-	b.load_remote_save(querystring('load')[0]);
-    }
+
+
 
 });
