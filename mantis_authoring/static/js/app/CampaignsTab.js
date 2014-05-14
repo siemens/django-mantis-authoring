@@ -66,7 +66,7 @@ define(['jquery', 'datetimepicker'],function($){
 		.after('<br><h3>Threat Actor Information</h3>');
 
 	    // Bind ref completer
-	    //instance.cam_bind_reference_completer();
+	    instance.cam_bind_reference_completer();
 	},
 
 	/**
@@ -86,6 +86,7 @@ define(['jquery', 'datetimepicker'],function($){
 	        ref = template.clone();
 
 	    ref.find('#id_object_id').val(item.value);
+	    ref.find('#id_label').val(item.label);
 	    ref.prepend(
 		$('<span></span>').text(item.label + ' ('+ item.value +')')
 	    );
@@ -104,6 +105,7 @@ define(['jquery', 'datetimepicker'],function($){
 	        ref = template.clone();
 
 	    ref.find('#id_object_id').val(item.value);
+	    ref.find('#id_label').val(item.label);
 	    ref.prepend(
 		$('<span></span>').text(item.label + ' ('+ item.value +')')
 	    );
