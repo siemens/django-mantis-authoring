@@ -26,7 +26,6 @@ class transformer_object(object):
         return self.object_lookup_simple(type_, queryterm)
 
 
-    # Does a simple DB lookup according to type_, searching for queryterm
     def object_lookup_simple(self, type_, term, limit=10):
 
         t_q = Q(iobject__iobject_type__name__icontains=type_)

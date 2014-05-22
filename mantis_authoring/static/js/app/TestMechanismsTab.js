@@ -52,7 +52,14 @@ define(['jquery', 'dropzone'],function($, Dropzone){
 	tes_pool_add_elem: function(template_id, guid_passed){
 	    var instance = this,
 	        auto_gen = false,
-	        template = false;
+	        template = false,
+	        test_mechanism_container_tmpl = dust.compile('<div class="dda-add-element"> \
+		    <div class="clearfix" style="margin-bottom:5px;"> \
+		    <button class="dda-tes-remove pull-right"></button> \
+		    <h3>{title}</h3> \
+		    </div> \
+		    {body|s} \
+		    </div>', 'test_mechanism_container');
 
 	    if(!template_id){
 		template = instance.tes_pool_elements_templates.first();
@@ -66,6 +73,7 @@ define(['jquery', 'dropzone'],function($, Dropzone){
 		    }
 		});
 	    }
+
 	    if(template===false){
 		//TODO: template not found;
 		template = $();
@@ -83,41 +91,46 @@ define(['jquery', 'dropzone'],function($, Dropzone){
 		guid_test = guid_passed;
 	    }
 
-
-	    // Create element from template
-	    var _pc_el = template.clone().attr('id', guid_test);
-
-
-	    // Create container element
-	    var div = $('<div class="dda-add-element"></div>');
-	    div.append(
-		$('<div class="clearfix" style="margin-bottom:5px;"></div>').append(
-		    $('<button class="dda-tes-remove pull-right"></button>').button({
-			icons:{
-			    primary: 'ui-icon-trash'
-			},
-			text: false
-		    }).click(function(){
-			instance.tes_pool_remove_elem(guid_test);
-		    }),
-		    $('<h3>' + guid_test + '</h3>').click(function(){
-			_pc_el.toggle();
-		    })
-		)
-	    );
-
-	    // Insert the element in the DOM
-	    div.append(_pc_el);
-	    instance.tes_pool_list.prepend(div);
-
-	    // Register the object internally
-	    instance.test_mechanisms_registry[guid_test] = {
-		template: template_id,
-		object_id: guid_test,
-		element: div,
-		description: template.data('description')
+	    var tpl = {
+		title: guid_test,
+		body: template.clone().attr('id', guid_test).outerHtml()
 	    };
-	    return instance.test_mechanisms_registry[guid_test]
+	    dust.loadSource(test_mechanism_container_tmpl);
+	    var ret = false
+	    dust.render('test_mechanism_container', tpl, function(err, out){
+		out = $(out);
+
+		// Bind the toggle
+		out.find('h3').first().click(function(){
+		    out.find('.dda-test-mechanism-template').first().toggle();
+		});
+
+		// Buttonize
+		out.find('.dda-tes-remove').button({
+		    icons:{
+			primary: 'ui-icon-trash'
+		    },
+		    text: false
+		}).click(function(){
+		    instance.tes_pool_remove_elem(guid_test);
+		});
+
+		// Insert in DOM
+		instance.tes_pool_list.prepend(out);
+
+		// Register the object internally
+		instance.test_mechanisms_registry[guid_test] = {
+		    template: template_id,
+		    object_id: guid_test,
+		    element: out,
+		    description: template.data('description')
+		};
+
+		ret = instance.test_mechanisms_registry[guid_test];
+		
+	    });
+	    return ret;
+
 	},
 
 

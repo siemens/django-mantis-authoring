@@ -51,6 +51,7 @@ define(['jquery'],function($){
 			log_message('Created '+ v.object_type +' ('+ v.object_subtype +') object: ' + el.observable_id, 'success', 5000);
                     }else if(v.object_class=='testmechanism'){
 			var el = instance.tes_pool_add_elem('dda-test-mechanism-template_' + v.object_type + '_' + v.object_subtype, v.object_id);
+
 			if(!el) return true;
 			$.each(v.properties, function(i1,v1){
                             $('[name="'+i1+'"]', el.element).val(v1);
@@ -63,7 +64,7 @@ define(['jquery'],function($){
 
 	    //Now create the jquery-ui tabbing
 	    $('#dda-container-tabs').tabs({
-		active: 1,
+		active: 4,
 		activate:function(event,ui){
 		    if(ui.newTab.index()!=5){	    
 			// Do housekeeping, restore elements from the preview in the relations
@@ -156,7 +157,7 @@ define(['jquery'],function($){
 	    // Reset GUI because some browsers keep values in inputs on reload
 	    instance.reset_gui();
 
-	    // Add various buttons to the tab's content; TODO: move to template?
+	    // Add various buttons to the tab's content
 	    var get_jsn_btn = $('<button>Show JSON</button>').button().click(function(){
 		result = JSON.stringify(instance.get_json(), null, "    ");
 		var dlg = $('<div id="dda-show-json-dlg" title="JSON"><div id="dda-show-json-edit"></div></div>');

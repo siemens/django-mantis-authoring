@@ -34,7 +34,7 @@ define(['jquery'],function($){
 
 	/*
 	 * Adds an indicator to the indicator pool. Gets passed a
-	 * template id If template id is not passed (which happens
+	 * template id. If template id is not passed (which happens
 	 * when user drops on specific placeholder, the first template
 	 * in the template pool will be used)
 	 * @param {string} template_id 
@@ -43,7 +43,14 @@ define(['jquery'],function($){
 	ind_pool_add_elem: function(template_id, guid_passed){
 	    var instance = this,
 	        auto_gen = false,
-	        template = false;
+	        template = false,
+	        indicator_container_tmpl = dust.compile('<div class="dda-add-element"> \
+		    <div class="clearfix" style="margin-bottom:5px;"> \
+		    <button class="dda-ind-remove pull-right"></button> \
+		    <h3>{title}</h3> \
+		    </div> \
+		    {body|s} \
+		    </div>', 'indicator_container');
 
 	    if(!template_id){ // When user clicked the button
 		template = instance.ind_pool_elements_templates.first();
@@ -74,48 +81,51 @@ define(['jquery'],function($){
 		guid_indicator = guid_passed;
 	    }
 
-
-	    // Create element from template
-	    var _pc_el = template.clone().attr('id', guid_indicator);
-
-
-	    // Create container element
-	    var div = $('<div class="dda-add-element"></div>');
-	    div.append(
-		$('<div class="clearfix" style="margin-bottom:5px;"></div>').append(
-		    $('<button class="dda-ind-remove pull-right"></button>').button({
-			icons:{
-			    primary: 'ui-icon-trash'
-			},
-			text: false
-		    }).click(function(){
-			instance.ind_pool_remove_elem(guid_indicator);
-		    }),
-		    $('<h3>' + guid_indicator + '</h3>').click(function(){
-			_pc_el.toggle();
-		    })
-		)
-	    );
-
-	    // Insert the element in the DOM
-	    div.append(_pc_el);
-	    instance.ind_pool_list.prepend(div);
-
-	    // Register the object internally
-	    instance.indicator_registry[guid_indicator] = {
-		template: template_id,
-		object_id: guid_indicator,
-		element: div,
-		description: template.data('description'),
-		observables: [],
-		test_mechanisms: []
+	    var tpl = {
+		title: guid_indicator,
+		body: template.clone().attr('id', guid_indicator).outerHtml()
 	    };
+	    dust.loadSource(indicator_container_tmpl);
+	    var ret = false;
+	    dust.render('indicator_container', tpl, function(err, out){
+		out = $(out);
 
-	    if(!auto_gen){
-		//instance.refresh_stix_package_tab();
-	    }else{
-		return guid_indicator;
-	    }
+		// Bind the toggle
+		out.find('h3').first().click(function(){
+		    out.find('.dda-indicator-template').first().toggle();
+		});
+
+		// Buttonize
+		out.find('.dda-ind-remove').button({
+		    icons:{
+			primary: 'ui-icon-trash'
+		    },
+		    text: false
+		}).click(function(){
+		    instance.ind_pool_remove_elem(guid_indicator);
+		});
+
+		// Insert in DOM
+		instance.ind_pool_list.prepend(out);
+
+		// Register the object internally
+		instance.indicator_registry[guid_indicator] = {
+		    template: template_id,
+		    object_id: guid_indicator,
+		    element: out,
+		    description: template.data('description'),
+		    observables: [],
+		    test_mechanisms: []
+		};
+
+		if(!auto_gen){
+		    //instance.refresh_stix_package_tab();
+		}else{
+		    ret = guid_indicator;
+		}
+	    });
+	    return ret;
+
 	},
 
 

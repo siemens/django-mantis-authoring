@@ -1,4 +1,4 @@
-define(['jquery', 'dropzone'],function($, Dropzone){
+define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 
     // Disable dropzone.js autodiscovery (however we're too late here, since the DOM is already loaded)
     Dropzone.autoDiscover = false;
@@ -20,37 +20,38 @@ define(['jquery', 'dropzone'],function($, Dropzone){
 	 * Initializes the observable pool tab
 	 */
 	init_observable_pool_tab: function(){
-	    var instance = this;
+	    var instance = this,
+	    observable_template_tmpl = dust.compile('<div class="dda-add-element clearfix" > \
+		    <img class="pull-left" src="{icon}" style="width:30px; margin-right:5px;"></img> \
+		    <button class="dda-obs-add pull-right"></button> \
+		    <h3>{title}</h3> \
+		    <p>{description}</p> \
+		    </div>', 'observable_template_add');
+	    dust.loadSource(observable_template_tmpl);
 
 	    $.each(instance.obs_pool_elements_templates, function(i,v){
 		// Skip the reference object
 		if($(v).attr('id')=='dda-observable-template_ReferenceObject_Default') return true;
 
-		var div = $('<div class="dda-add-element clearfix" ></div>');
-		div.append(
-		    $('<img></img>').attr('src', $(v).find('#id_I_icon').val())
-			.attr('type', 'image/svg+xml')
-			.addClass('pull-left')
-			.css({'width': '30px', 'margin-right': '5px'})
-		);
-		div.append(
-		    $('<button class="dda-obs-add pull-right"></button>').button({
+		var tpl = {
+		    icon: $(v).find('#id_I_icon').val(),
+		    title: $('#id_I_object_display_name',v).val(),
+		    description: ''
+		};
+		dust.render('observable_template_add', tpl, function(err, out){
+		    out = $(out);
+		    //Buttonize
+		    out.find('.dda-obs-add').button({
 			icons: {
 			    primary: 'ui-icon-circle-plus'
 			},
 			text: false
 		    }).click(function(){
 			instance.obs_pool_add_elem($(v).attr('id'));
-		    })
-		);
+		    });
+		    instance.obs_pool_elements.append(out);
+		});
 
-		var title = $('#id_I_object_display_name',v).val();
-		var description = '';
-
-		div.append('<h3>'+title+'</h3>');
-		div.append('<p>'+description+'</p>');
-
-		instance.obs_pool_elements.append(div);
 	    });
 
 	    instance._pc_el_shown=true;
@@ -165,7 +166,21 @@ define(['jquery', 'dropzone'],function($, Dropzone){
 	 */
 	obs_pool_add_elem: function(template_id, guid_passed, no_dom_insert, no_meta){
 	    var instance = this,
-	        template = $('#' + template_id);
+	        template = $('#' + template_id),
+	        observable_container_tmpl = dust.compile('<div class="dda-add-element clearfix" data-id="{id}"> \
+		    <button class="dda-obs-remove pull-right"></button> \
+		    <h3>{title}</h3> \
+		    <p>{type}</p> \
+		    <div> \
+		    {?meta} \
+		    <input type="text" name="dda-observable-title" placeholder="Observable Title"> \
+		    <textarea name="dda-observable-description" placeholder="Observable Description"></textarea> \
+		    {/meta} \
+		    <div class="dda-pool-element"> \
+		    {body|s} \
+		    </div> \
+		    </div> \
+		    </div>', 'observable_container');
 
 	    // Get a new id
 	    guid = guid_gen();
@@ -178,56 +193,56 @@ define(['jquery', 'dropzone'],function($, Dropzone){
 		}
 		guid_observable = guid_passed;
 	    }
-	    
-	    // Create element from template
-	    var new_elem = template.clone().attr('id', guid_observable),
-	        div = $('<div class="dda-add-element clearfix" ></div>').data('id', guid_observable), // Create new container element
-	        _pc_el = $('<div></div>'); //container for toggling	    
-	    
-	    if(!no_meta)
-		_pc_el.append($('<input type="text" name="dda-observable-title" placeholder="Observable Title"><textarea name="dda-observable-description" placeholder="Observable Description"></textarea>'));
-	    _pc_el.append(
-		$('<div class="dda-pool-element">').append(new_elem)
-	    );
 
-	    div.append(
-		$('<button class="dda-obs-remove pull-right"></button>').button({
+
+	    var tpl = {
+		id: guid_observable,
+		title: $('#id_I_object_display_name', template).val(),
+		type: template.find('#id_object_type').val(),
+		meta: !no_meta,
+		body: template.clone().attr('id', guid_observable).html()
+	    };
+	    dust.loadSource(observable_container_tmpl);
+	    var ret = false;
+	    dust.render('observable_container', tpl, function(err, out){
+		out = $(out);
+
+		// Bind the toggle
+		out.find('h3').first().click(function(){
+		    out.find('div').first().toggle();
+		});
+
+		// Buttonize
+		out.find('.dda-obs-remove').button({
 		    icons:{
 			primary: 'ui-icon-trash'
 		    },
 		    text: false
 		}).click(function(){
-		    instance.obs_pool_remove_elem(div.data('id'));
-		})
-	    ).append($('<h3>'+guid_observable +'</h3>').click(function(){
-		_pc_el.toggle();
-	    }));
+		    instance.obs_pool_remove_elem(guid_observable);
+		});
+		
+		// Insert in DOM
+		if(!no_dom_insert)
+		    instance.obs_pool_list.prepend(out);
 
-	    var title = $('#id_I_object_display_name', template).val();
-	    var description = '';
+		// Register the element
+		instance.observable_registry[guid_observable] = {
+		    observable_id: guid_observable,
+		    relations: [],
+	    	    template: template_id,
+		    element: out,
+		    type: template.find('#id_object_type').val()
+		};
 
-	    div.append('<p>'+title+'</p>');
-	    div.append( _pc_el );
-	    div.find('button').button();
-	    
-	    if(!no_dom_insert)
-		instance.obs_pool_list.prepend(div);
+		instance.obs_bind_reference_completer(guid_observable);
 
-	    instance.observable_registry[guid_observable] = {
-		observable_id: guid_observable,
-		relations: [],
-	    	template: template_id,
-		element: div,
-		description: description,
-		type: template.find('#id_object_type').val()
-	    };
+		// Bind validator
+		instance.obs_on_blur(out, instance.obs_elem_validate);
 
-	    instance.obs_bind_reference_completer(guid_observable);
-
-	    // Bind validator
-	    instance.obs_on_blur(div, instance.obs_elem_validate);
-
-	    return instance.observable_registry[guid_observable];
+		ret = instance.observable_registry[guid_observable];
+	    });
+	    return ret;
 	},
 
 
@@ -442,7 +457,7 @@ define(['jquery', 'dropzone'],function($, Dropzone){
 	obs_on_blur: function(el, callback){
 	    var instance = this,
 	        inp = el.find('*'),
-	        id = $(el).find('.dda-observable-template').attr('id');
+	        id = $(el).data('id');
 
 	    el.focusout(function(e){
 		setTimeout(function(){ //Wait a bit to see where the focus goes

@@ -154,7 +154,8 @@ define(['jquery', 'datetimepicker'],function($){
 
 			if( $(this).is(cam_input) ){
 			    instance.cam_replace_campaign(ui.item);
-			    instance.cam_replace_threat_actor(ui.item.threatactor);
+			    if(ui.item.threatactor!=undefined && !$.isEmptyObject(ui.item.threatactor))
+				instance.cam_replace_threat_actor(ui.item.threatactor);
 			}else{
 			    instance.cam_replace_threat_actor(ui.item);
 			}
