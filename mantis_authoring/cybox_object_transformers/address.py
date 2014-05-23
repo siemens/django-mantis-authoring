@@ -5,6 +5,9 @@ from django import forms
 from django.templatetags.static import static
 
 class TEMPLATE_Default(transformer_object):
+
+    relevant_fact_term_list = ['Properties/Address_Value']
+
     class ObjectForm(forms.Form):
         CATEGORY_TYPES = (
             ('ipv4-addr', 'IPv4 Address'),
@@ -29,9 +32,9 @@ class TEMPLATE_Default(transformer_object):
 
     def process_form(self, properties):
         cybox_address = address_object.Address()
-        cybox_address.address_value = String(properties['ip_addr'])
-        cybox_address.category = properties['category']
-        cybox_address.condition = properties['condition']
+        cybox_address.address_value = String(str(properties.get('ip_addr','')))
+        cybox_address.category = properties.get('category', None)
+        cybox_address.condition = properties.get('condition', None)
         return cybox_address
         
 

@@ -168,6 +168,7 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 	    var instance = this,
 	        template = $('#' + template_id),
 	        observable_container_tmpl = dust.compile('<div class="dda-add-element clearfix" data-id="{id}"> \
+                    <button class="dda-obs-find_similar pull-right"></button> \
 		    <button class="dda-obs-remove pull-right"></button> \
 		    <h3>{title}</h3> \
 		    <p>{type}</p> \
@@ -183,8 +184,8 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 		    </div>', 'observable_container');
 
 	    // Get a new id
-	    guid = guid_gen();
-	    guid_observable = instance.namespace_slug + ':Observable-' + guid;
+	    var guid = guid_gen(),
+	        guid_observable = instance.namespace_slug + ':Observable-' + guid;
 
 	    if(guid_passed){
 		if(instance.observable_registry[guid_passed] != undefined){
@@ -221,6 +222,14 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 		}).click(function(){
 		    instance.obs_pool_remove_elem(guid_observable);
 		});
+		out.find('.dda-obs-find_similar').button({
+		    icons:{
+			primary: 'ui-icon-search'
+		    },
+		    text: false
+		}).click(function(){
+		    instance.obs_find_similar(guid_observable);
+		});
 		
 		// Insert in DOM
 		if(!no_dom_insert)
@@ -235,7 +244,7 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 		    type: template.find('#id_object_type').val()
 		};
 
-		instance.obs_bind_reference_completer(guid_observable);
+		//instance.obs_bind_reference_completer(guid_observable);
 
 		// Bind validator
 		instance.obs_on_blur(out, instance.obs_elem_validate);
@@ -294,6 +303,52 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 		instance.observable_registry[guid].element.remove();
 	    delete instance.observable_registry[guid];
 
+	},
+
+
+	/**
+	 * Pops up a dialog and requests similar objects like the passed one from the backend.
+	 * @param {string} id The observable id
+	 */
+	obs_find_similar: function(id){
+	    var instance = this,
+	    obs = instance.observable_registry[id],
+	    obs_jsn = instance.obs_get_json(id);
+
+
+	    var dlg = $('<div id="dda-obs-find_similar-dlg" title="Similar Objects">Please wait...</div>'),
+	        dlg_content_tmpl = dust.compile('<ol style="max-height: 500px;"> \
+		     {#items} \
+		     <li class="ui-widget-content"> \
+		     <div class="dda-add-element"> \
+		     <h3>{title}</h3> \
+		     <p>{details}</p> \
+		     </div> \
+		     </li> \
+		     {/items} \
+		    </ol>', 'find_similar_content');
+	    
+	    dlg.dialog({
+		width: 600, modal: true,
+		position: ['center', 'center']
+	    });
+
+	    $.post('similar_object', obs_jsn, function(data){
+		if(data.status){
+
+		    if(data.data){
+			dust.loadSource(dlg_content_tmpl);
+			dust.render('find_similar_content', data.data, function(err, out){
+			    out = $(out);
+			    out.selectable();
+			    dlg.html(out);
+			    dlg.dialog("option", "position", ['center', 'center'] );
+			});
+		    }
+		}else{
+		    dlg.html( log_message(data.msg, 'error', 0, true) );
+		}
+	    }, 'json');
 	},
 
 
@@ -396,7 +451,7 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 	    $('> div', instance.observable_registry[id].element).first().append(
 		$('.dda-pool-element', '#dda-relation-object-details').remove()
 	    );
-	    instance.obs_bind_reference_completer(id);
+	    //instance.obs_bind_reference_completer(id);
 	},
 
 
@@ -407,7 +462,7 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 	obs_elem_set_to_preview: function(id){
 	    var instance = this;
 
-	    instance.obs_remove_reference_completer(id);
+	    //instance.obs_remove_reference_completer(id);
 
 	    $('#dda-relation-object-details').append(
 		instance.observable_registry[id].element.find('.dda-pool-element')
