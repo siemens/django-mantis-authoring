@@ -64,7 +64,7 @@ define(['jquery'],function($){
 
 	    //Now create the jquery-ui tabbing
 	    $('#dda-container-tabs').tabs({
-		active: 4,
+		active: 0,
 		activate:function(event,ui){
 		    if(ui.newTab.index()!=5){	    
 			// Do housekeeping, restore elements from the preview in the relations
@@ -157,6 +157,45 @@ define(['jquery'],function($){
 	    // Reset GUI because some browsers keep values in inputs on reload
 	    instance.reset_gui();
 
+	    // Add the show-stix button
+	    var show_stix_btn = $('<button>Show STIX</button>').button().click(function(){
+		stix_base = instance.get_json();
+		$.post('transform', {'jsn':JSON.stringify(stix_base), 'submit_name' : guid_gen(), 'action' : 'generate'}, function(data){
+		    if(data.status){
+			var dlg = $('<div id="dda-show-stix-dlg" title="STIX Package Output"><div id="dda-show-stix-edit"></div></div>');
+			dlg.dialog({
+			    width       : $(window).width()-30,
+			    height      : $(window).height()-30,
+			    modal: true,
+			    draggable   : false,
+			    resizable   : false,
+			    create: function(event, ui){
+				$('body').css('overflow', 'hidden');
+			    },
+			    beforeClose: function( event, ui ) {
+				var editor = ace.edit('dda-show-stix-edit');
+				editor.destroy();
+				$('body').css('overflow', 'auto');
+				$('#dda-show-stix-edit').remove();
+			    },
+			    resizeStop: function( event, ui ) {
+				var editor = ace.edit('dda-show-stix-edit');
+				editor.resize();
+			    }
+			});
+			var editor = ace.edit('dda-show-stix-edit');
+			editor.setReadOnly(true);
+			editor.getSession().setMode("ace/mode/xml");
+			editor.setValue(data.xml);
+		    }else{
+			log_message(data.msg, 'error');
+		    }
+		}, 'json');
+
+		return false;
+	    });
+	    //$('#dda-stix-meta').after(show_stix_btn);
+
 	    // Add various buttons to the tab's content
 	    var get_jsn_btn = $('<button>Show JSON</button>').button().click(function(){
 		result = JSON.stringify(instance.get_json(), null, "    ");
@@ -178,7 +217,7 @@ define(['jquery'],function($){
 		editor.getSession().setMode("ace/mode/javascript");
 		editor.setValue(result);
 	    });
-	    $('#dda-stix-show').after(get_jsn_btn);
+	    //$('#dda-stix-meta').after(get_jsn_btn);
 
 	    var import_jsn_btn = $('<button>Import JSON</button>').button().click(function(){
 		result = JSON.stringify(instance.get_json(), null, "    ");
@@ -217,7 +256,7 @@ define(['jquery'],function($){
 		    btn
 		);
 	    });
-	    //$('#dda-stix-show').after(import_jsn_btn);
+	    //$('#dda-stix-meta').after(import_jsn_btn);
 	},
 
 
@@ -387,38 +426,13 @@ define(['jquery'],function($){
 	    });
 
 
-	    /*
-	     * Register the show-stix button handler
-	     */
-	    $('#dda-stix-show').off('click').on('click', function(){
+
+	    // Register the import-to-mantis button handler
+	    $('#dda-stix-import').off('click').on('click', function(){
 		stix_base = instance.get_json();
-		$.post('transform', {'jsn':JSON.stringify(stix_base), 'submit_name' : guid_gen(), 'action' : 'generate'}, function(data){
+		$.post('transform', {'jsn':JSON.stringify(stix_base), 'submit_name' : guid_gen(), 'action' : 'import'}, function(data){
 		    if(data.status){
-			var dlg = $('<div id="dda-show-stix-dlg" title="STIX Package Output"><div id="dda-show-stix-edit"></div></div>');
-			dlg.dialog({
-			    width       : $(window).width()-30,
-			    height      : $(window).height()-30,
-			    modal: true,
-			    draggable   : false,
-			    resizable   : false,
-			    create: function(event, ui){
-				$('body').css('overflow', 'hidden');
-			    },
-			    beforeClose: function( event, ui ) {
-				var editor = ace.edit('dda-show-stix-edit');
-				editor.destroy();
-				$('body').css('overflow', 'auto');
-				$('#dda-show-stix-edit').remove();
-			    },
-			    resizeStop: function( event, ui ) {
-				var editor = ace.edit('dda-show-stix-edit');
-				editor.resize();
-			    }
-			});
-			var editor = ace.edit('dda-show-stix-edit');
-			editor.setReadOnly(true);
-			editor.getSession().setMode("ace/mode/xml");
-			editor.setValue(data.xml);
+			log_message(data.msg, 'success');
 		    }else{
 			log_message(data.msg, 'error');
 		    }
@@ -427,13 +441,10 @@ define(['jquery'],function($){
 		return false;
 	    });
 
-
-	    /*
-	     * Register the import-to-mantis button handler
-	     */
-	    $('#dda-stix-import').off('click').on('click', function(){
+	    // Register the import-and-release button handler
+	    $('#dda-stix-import-and-release').off('click').on('click', function(){
 		stix_base = instance.get_json();
-		$.post('transform', {'jsn':JSON.stringify(stix_base), 'submit_name' : guid_gen(), 'action' : 'import'}, function(data){
+		$.post('transform', {'jsn':JSON.stringify(stix_base), 'submit_name' : guid_gen(), 'action' : 'import-release'}, function(data){
 		    if(data.status){
 			log_message(data.msg, 'success');
 		    }else{
