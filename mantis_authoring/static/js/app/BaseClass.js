@@ -444,7 +444,7 @@ define(['jquery'],function($){
 	    // Register the import-and-release button handler
 	    $('#dda-stix-import-and-release').off('click').on('click', function(){
 		stix_base = instance.get_json();
-		$.post('transform', {'jsn':JSON.stringify(stix_base), 'submit_name' : guid_gen(), 'action' : 'import-release'}, function(data){
+		$.post('transform', {'jsn':JSON.stringify(stix_base), 'submit_name' : guid_gen(), 'action' : 'release'}, function(data){
 		    if(data.status){
 			log_message(data.msg, 'success');
 		    }else{
@@ -455,7 +455,56 @@ define(['jquery'],function($){
 		return false;
 	    });
 
-	    // Save draft button
+        // Save and release draft button
+        $('#dda-stix-save-and-release').off('click').on('click', function(){
+            stix_base = instance.get_json();
+
+            var _save_fcn = function(){
+                $.post('transform',
+                    {'jsn':JSON.stringify(stix_base), 'submit_name' : instance.load_name, 'id': instance.load_uuid, 'action': 'release'},
+                    function(data){
+                        if(data.status){
+                            // Set last-saved json so we have a copy of what's been saved to check against (to detect changes)
+                            instance._last_save = stix_base;
+                            log_message(data.msg, 'success', 5000);
+                        }else{
+                            log_message(data.msg, 'error');
+                        }
+                    }, 'json');
+            };
+
+
+            if(!instance.load_name || !instance.load_uuid){
+                //Ask user for meaningful name and generate uuid
+                var dlg = $('<div id="dda-save-json-dlg" title="Save JSON"><p>Please provide a meaningful name for your package:</p></div>');
+                var inp = $('<input id="dda-save-json-input" type="text"/>').val($('#dda-stix-meta > input[name="stix_header_title"]').first().val());
+                dlg.append(inp);
+
+                dlg.dialog({
+                    modal: true
+                });
+                var ok_btn = $('<button>Ok</button>').button().addClass('pull-right').click(function(){
+                    pkg_name = $.trim(dlg.find('input').first().val());
+                    if(pkg_name != ''){
+                        instance.load_name = pkg_name;
+                        instance.load_uuid = guid_gen();
+                        _save_fcn();
+                        dlg.dialog('close');
+                    }else{
+                        inp.focus();
+                    }
+
+                });
+                dlg.append(ok_btn);
+
+            }else
+                _save_fcn();
+
+            return false;
+        });
+
+
+        // Save draft button
             $('#dda-stix-save').off('click').on('click', function(){
 		stix_base = instance.get_json();
 
