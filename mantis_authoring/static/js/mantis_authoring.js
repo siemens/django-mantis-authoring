@@ -237,7 +237,7 @@ Main startup functionality below
     'use strict';
 
 
-    /* jQuery configuration and some small plugins */
+    /* jQuery configuration and helper plugins */
     $.ajaxSetup({
 	beforeSend: function(xhr, settings) {
             if (!csrfSafeMethod(settings.type) && sameOrigin(settings.url)) {
@@ -285,6 +285,9 @@ Main startup functionality below
 	});
 	return o;
     };
+    $.fn.outerHtml = function() {
+	return $($('<div></div>').html(this.clone())).html();
+    }
 
 
 
@@ -302,6 +305,7 @@ Main startup functionality below
 	    "dropzone": "../dropzone",
 	    "d3": "../d3.min",
 	    //"ace": "../ace" // ACE included via <script> tag, since ACE via require.js has a bug
+	    "dust": "../dust-full.min",
 	}
     });
     define('jquery', [], function() { return $; });

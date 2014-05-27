@@ -98,7 +98,7 @@ class FormView(BasicSTIXPackageTemplateView):
         I_object_display_name = forms.CharField(initial="Threat Actor Reference", widget=forms.HiddenInput)
         I_icon =  forms.CharField(initial=static('img/stix/threat_actor.svg'), widget=forms.HiddenInput)
         object_id =  forms.CharField(initial='', widget=forms.HiddenInput)
-
+        label =  forms.CharField(initial='', widget=forms.HiddenInput)
 
     class StixCampaign(forms.Form):
         STATUS_TYPES = (
@@ -142,7 +142,7 @@ class FormView(BasicSTIXPackageTemplateView):
         I_object_display_name = forms.CharField(initial="Campaign Reference", widget=forms.HiddenInput)
         I_icon =  forms.CharField(initial=static('img/stix/campaign.svg'), widget=forms.HiddenInput)
         object_id =  forms.CharField(initial='', widget=forms.HiddenInput)
-
+        label =  forms.CharField(initial='', widget=forms.HiddenInput)
 
     class StixIndicator(forms.Form):
         CONFIDENCE_TYPES = (
@@ -275,7 +275,7 @@ class stixTransformer:
         if campaign.get('object_type') == 'CampaignReference':
             camp = Campaign()
             camp.idref = campaign.get('object_id', '')
-            camp._id = None
+            camp.id_ = None
             self.campaign = camp
         elif campaign.get('name','').strip() != '':
             camp = Campaign()
@@ -301,7 +301,7 @@ class stixTransformer:
         if threatactor.get('object_type') == 'ThreatActorReference':
             tac = ThreatActor()
             tac.idref = threatactor.get('object_id', '')
-            tac._id = None
+            tac.id_ = None
             if self.campaign:
                 tac.associated_campaigns = camp
             self.threatactor = tac

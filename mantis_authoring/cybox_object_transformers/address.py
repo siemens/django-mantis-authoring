@@ -23,13 +23,8 @@ class TEMPLATE_Default(transformer_object):
         I_object_display_name = forms.CharField(initial="Address", widget=forms.HiddenInput)
         I_icon =  forms.CharField(initial=static('img/stix/observable.svg'), widget=forms.HiddenInput)
         observable_id = forms.CharField(initial="", widget=forms.HiddenInput)
-        ip_addr = forms.CharField(label="IP Address",
-                                  help_text="Enter an IP Address",
-                                  max_length=45,
-                                  )
+        ip_addr = forms.CharField(label="IP Address", help_text="Enter an IP Address", max_length=45 )
         category = forms.ChoiceField(choices=CATEGORY_TYPES, required=False, initial="ipv4-addr")
-        #is_source = forms.BooleanField(initial=False)
-        #is_destination = forms.BooleanField(initial=False)
         condition = forms.ChoiceField(choices=CONDITIONS_TYPES, required=False, initial="Equals")
 
     def process_form(self, properties):

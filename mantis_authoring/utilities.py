@@ -7,6 +7,25 @@ from mantis_stix_importer.importer import STIX_Import
 importer = STIX_Import()
 
 
+def autocomplete_facts(fact_term_list):
+    split_fact_term_list = []
+    for fact_term in fact_term_list:
+        if '@' in fact_term:
+            split_fact_term_list.append(fact_term.split('@'))
+        else:
+            split_fact_term_list.append((fact_term,''))
+
+
+
+    for (term,attribute) in split_fact_term_list:
+        pass
+
+    # query bauen
+
+    facts = Fact.objects.filter(query)
+    return facts
+
+
 def name_cybox_obj(cybox_obj):
     """
     Derive name for CybOx object from XML

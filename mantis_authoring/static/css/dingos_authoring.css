@@ -68,11 +68,18 @@ button span {
     border: 1px solid #CCCCCC;
     padding: 5px 10px;
     text-shadow: 0 1px 0 #F5F5F5;
+    margin-bottom: 2px;
 }
 .dda-add-element h3 {
     padding: 0;
     border: 0 none;
 }
+
+#dda-observable-pool-list > .dda-add-element {
+    margin-bottom: 15px;
+}
+
+
 .ui-draggable-dragging {
     z-index: 9999;
 }
