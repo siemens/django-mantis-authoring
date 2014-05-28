@@ -183,8 +183,8 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 		    </div>', 'observable_container');
 
 	    // Get a new id
-	    guid = guid_gen();
-	    guid_observable = instance.namespace_slug + ':Observable-' + guid;
+	    var guid = guid_gen(),
+	        guid_observable = instance.namespace_slug + ':Observable-' + guid;
 
 	    if(guid_passed){
 		if(instance.observable_registry[guid_passed] != undefined){

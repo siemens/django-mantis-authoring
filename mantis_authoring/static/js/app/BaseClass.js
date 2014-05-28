@@ -194,7 +194,7 @@ define(['jquery'],function($){
 
 		return false;
 	    });
-	    //$('#dda-stix-meta').after(show_stix_btn);
+	    $('#dda-stix-meta').after(show_stix_btn);
 
 	    // Add various buttons to the tab's content
 	    var get_jsn_btn = $('<button>Show JSON</button>').button().click(function(){
