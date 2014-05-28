@@ -1,5 +1,5 @@
 /****************************************************************
-Polyfills and global helper funtions
+Helper functions
 ****************************************************************/
 (function ($) {
     window.getCookie = function(name){
@@ -181,8 +181,9 @@ Polyfills and global helper funtions
      * @param {string} message
      * @param {string} type
      * @param {number} timeout Time after which the message should disappear
+     * @param {boolean} ret If true, return the HTML of the message instead of attaching it to the DOM
      */
-    window.log_message = function(message, type, timeout){
+    window.log_message = function(message, type, timeout, ret){
 	type = type || 'info';
 	var message_row = $('<li class="dda-grp-message grp-'+type+'"></li>').text(message);
 	message_row.append(
@@ -198,6 +199,9 @@ Polyfills and global helper funtions
 	    message_row.prepend('<span class="ui-icon ui-icon-check"></span>');
 	else if(type=="error")
 	    message_row.prepend('<span class="ui-icon ui-icon-alert"></span>');
+
+	if(ret)
+	    return message_row.wrap('<ul class="grp-messagelist"></ul>').parent();
 
 	var msg = message_row.appendTo(message_container);
 	if(timeout!=undefined && timeout!=NaN && timeout > 0)
@@ -231,116 +235,116 @@ if (typeof Object.create !== 'function') {
 
 
 /****************************************************************
-Main startup functionality below
+Main
 ****************************************************************/
 (function ($) {
     'use strict';
+    $(function() {
 
-
-    /* jQuery configuration and helper plugins */
-    $.ajaxSetup({
-	beforeSend: function(xhr, settings) {
-            if (!csrfSafeMethod(settings.type) && sameOrigin(settings.url)) {
-		// Send the token to same-origin, relative URLs only.
-		// Send the token only if the method warrants CSRF protection
-		// Using the CSRFToken value acquired earlier
-		xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
-            }
-	}
-    });
-
-    // Custom autocomplete widget 
-    $.widget( "custom.ddacomplete", $.ui.autocomplete, {
-        _renderMenu: function( ul, items ) {
-            var that = this,
-            currentCategory = "";
-            $.each( items, function( index, item ) {
-                if ( item.category != currentCategory ) {
-                    ul.append( "<li class='dda-autocomplete-cat'>" + item.category + "</li>" );
-                    currentCategory = item.category;
-                }
-                that._renderItemData( ul, item );
-            });
-        },
-        _renderItem: function( ul, item ) {
-            return $( "<li>" )
-                .append( "<a>" + item.id + '<br><span class="dda-autocomplete-desc">' + item.label + '</span></a>')
-                .appendTo( ul );
-        }
-    });
-
-    // jQuery object serialization plugin
-    $.fn.serializeObject = function(){
-	var o = {};
-	var a = this.serializeArray();
-	$.each(a, function() {
-	    if (o[this.name]) {
-		if (!o[this.name].push) {
-		    o[this.name] = [o[this.name]];
+	/* jQuery configuration and helper plugins */
+	$.ajaxSetup({
+	    beforeSend: function(xhr, settings) {
+		if (!csrfSafeMethod(settings.type) && sameOrigin(settings.url)) {
+		    // Send the token to same-origin, relative URLs only.
+		    // Send the token only if the method warrants CSRF protection
+		    // Using the CSRFToken value acquired earlier
+		    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
 		}
-		o[this.name].push(this.value || '');
-	    } else {
-		o[this.name] = this.value || '';
 	    }
 	});
-	return o;
-    };
-    $.fn.outerHtml = function() {
-	return $($('<div></div>').html(this.clone())).html();
-    }
 
-
-
-    /* 
-     * Now require our main app components and build the thing! 
-     */
-    require.config({
-	shim: {
-            d3: {
-		exports: 'd3'
+	// Custom autocomplete widget 
+	$.widget( "custom.ddacomplete", $.ui.autocomplete, {
+            _renderMenu: function( ul, items ) {
+		var that = this,
+		currentCategory = "";
+		$.each( items, function( index, item ) {
+                    if ( item.category != currentCategory ) {
+			ul.append( "<li class='dda-autocomplete-cat'>" + item.category + "</li>" );
+			currentCategory = item.category;
+                    }
+                    that._renderItemData( ul, item );
+		});
+            },
+            _renderItem: function( ul, item ) {
+		return $( "<li>" )
+                    .append( "<a>" + item.id + '<br><span class="dda-autocomplete-desc">' + item.label + '</span></a>')
+                    .appendTo( ul );
             }
-	},
-	paths: {
-            "datetimepicker": "../jquery-ui.timepicker",
-	    "dropzone": "../dropzone",
-	    "d3": "../d3.min",
-	    //"ace": "../ace" // ACE included via <script> tag, since ACE via require.js has a bug
-	    "dust": "../dust-full.min",
-	}
-    });
-    define('jquery', [], function() { return $; });
-    require(['BaseClass', 
-	     'ObservablesTab', 
-	     'TestMechanismsTab', 
-	     'IndicatorsTab', 
-	     'CampaignsTab', 
-	     'ThreatActorsTab',
-	     'ObjectRelationsTab'], 
-	    function(BaseClass, ObservablesTab, TestMechanismsTab, IndicatorsTab, CampaignsTab, ThreatActorsTab, ObjectRelationsTab){
+	});
 
-		// Extend our builder prototype base class with the loaded parts
-		var builderPrototype = $.extend(BaseClass, 
-						ObservablesTab,
-						TestMechanismsTab,
-						IndicatorsTab,
-						CampaignsTab,
-						ThreatActorsTab,
-						ObjectRelationsTab
-					       );
-
-		
-
-		
-		// Factory function to create a new builder object
-		function createBuilder(overrides) {
-		    overrides = overrides || {};
-		    var instance = Object.create(builderPrototype);
-		    return $.extend(instance, overrides);
+	// jQuery object serialization plugin
+	$.fn.serializeObject = function(){
+	    var o = {};
+	    var a = this.serializeArray();
+	    $.each(a, function() {
+		if (o[this.name]) {
+		    if (!o[this.name].push) {
+			o[this.name] = [o[this.name]];
+		    }
+		    o[this.name].push(this.value || '');
+		} else {
+		    o[this.name] = this.value || '';
 		}
-
-		// Our builder instance
-		var builder = createBuilder();
-		builder.init();
 	    });
+	    return o;
+	};
+	$.fn.outerHtml = function() {
+	    return $($('<div></div>').html(this.clone())).html();
+	}
 
+
+
+	/* 
+	 * Now require our main app components and build the thing! 
+	 */
+	require.config({
+	    shim: {
+		d3: {
+		    exports: 'd3'
+		}
+	    },
+	    paths: {
+		"datetimepicker": "../jquery-ui.timepicker",
+		"dropzone": "../dropzone",
+		"d3": "../d3.min",
+		//"ace": "../ace" // ACE included via <script> tag, since ACE via require.js has a bug
+		"dust": "../dust-full.min",
+	    }
+	});
+	define('jquery', [], function() { return $; });
+	require(['BaseClass', 
+		 'ObservablesTab', 
+		 'TestMechanismsTab', 
+		 'IndicatorsTab', 
+		 'CampaignsTab', 
+		 'ThreatActorsTab',
+		 'ObjectRelationsTab'], 
+		function(BaseClass, ObservablesTab, TestMechanismsTab, IndicatorsTab, CampaignsTab, ThreatActorsTab, ObjectRelationsTab){
+
+		    // Extend our builder prototype base class with the loaded parts
+		    var builderPrototype = $.extend(BaseClass, 
+						    ObservablesTab,
+						    TestMechanismsTab,
+						    IndicatorsTab,
+						    CampaignsTab,
+						    ThreatActorsTab,
+						    ObjectRelationsTab
+						   );
+
+		    
+
+		    
+		    // Factory function to create a new builder object
+		    function createBuilder(overrides) {
+			overrides = overrides || {};
+			var instance = Object.create(builderPrototype);
+			return $.extend(instance, overrides);
+		    }
+
+		    // Our builder instance
+		    var builder = createBuilder();
+		    builder.init();
+		});
+    });
 }(django.jQuery)); // Reuse django injected jQuery library

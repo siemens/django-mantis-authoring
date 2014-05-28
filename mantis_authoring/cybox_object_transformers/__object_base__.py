@@ -17,6 +17,10 @@ class transformer_object(object):
     def __init__(self):
         pass
 
+    relevant_fact_term_list = []
+    def get_relevant_fact_term_list(self):
+        return self.relevant_fact_term_list or None
+
     def autocomplete(self, queryterm, values):
         if values is None:
             return []

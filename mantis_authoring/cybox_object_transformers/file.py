@@ -5,6 +5,11 @@ from django import forms
 from django.templatetags.static import static
 
 class TEMPLATE_Default(transformer_object):
+
+    relevant_fact_term_list = ['Properties/Hashes/Hash/Simple_Hash_Value',
+                               'Properties/File_Name',
+                               'Properties/File_Path']
+
     class ObjectForm(forms.Form):
         object_type = forms.CharField(initial="File", widget=forms.HiddenInput)
         object_subtype = forms.CharField(initial="Default", widget=forms.HiddenInput)
