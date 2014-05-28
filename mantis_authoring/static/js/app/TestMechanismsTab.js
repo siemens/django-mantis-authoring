@@ -80,8 +80,8 @@ define(['jquery', 'dropzone'],function($, Dropzone){
 	    }
 
 	    // Get a new ID or use supplied one
-	    var guid = guid_gen();
-	    var guid_test = instance.namespace_slug + ':' + template.find('#id_object_type').val() + '-' + guid;
+	    var guid = guid_gen(),
+	        guid_test = instance.namespace_slug + ':' + template.find('#id_object_type').val() + '-' + guid;
 
 	    if(guid_passed){
 		if(instance.test_mechanisms_registry[guid_passed] != undefined){

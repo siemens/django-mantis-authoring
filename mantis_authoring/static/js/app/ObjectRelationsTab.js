@@ -108,8 +108,8 @@ define(['jquery', 'd3'],function($, d3){
 
 	    // build the arrow.
 	    vis.append("svg:defs").selectAll("marker")
-		.data(["end"])      // Different link/path types can be defined here
-		.enter().append("svg:marker")    // This section adds in the arrows
+		.data(["end"])
+		.enter().append("svg:marker")
 		.attr("id", String)
 		.attr("viewBox", "0 -5 10 10")
 		.attr("refX", 16)
