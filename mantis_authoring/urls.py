@@ -25,6 +25,11 @@ import CampaignIndicators
 
 urlpatterns = patterns('dingos_authoring.views',
                        url(r'^$', dingos_authoring_views.index.as_view(), name = "dingos_authoring.index"),
+                       url(r'^Action/_take_reports$', dingos_authoring_views.TakeReportView.as_view(), name = "url.dingos_authoring.index.action.take"),
+                       url(r'^Imports$', dingos_authoring_views.ImportsView.as_view(), name = "dingos_authoring.imports"),
+                       url(r'^History/(?P<id>[^/]*)/$',
+                           dingos_authoring_views.AuthoredDataHistoryView.as_view(),
+                           name = "dingos_authoring.view.authored_object.history"),
                        url(r'^Templates/CampaignIndicators/$', CampaignIndicators.FormView.as_view(), name=CampaignIndicators.FORM_VIEW_NAME),
                        url(r'^Templates/CampaignIndicators/transform$', CampaignIndicators.ProcessingView.as_view()),
                        url(r'^Templates/CampaignIndicators/load$', dingos_authoring_views.GetDraftJSON.as_view(), name="dingos_authoring.load_json"),
