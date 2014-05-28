@@ -270,8 +270,8 @@ define(['jquery', 'd3'],function($, d3){
 
 	    // rescale g
 	    function rescale() {
-		trans=d3.event.translate;
-		scale=d3.event.scale;
+		var trans=d3.event.translate,
+		    scale=d3.event.scale;
 
 		vis.attr("transform", "translate(" + trans + ") scale(" + scale + ")");
 	    }

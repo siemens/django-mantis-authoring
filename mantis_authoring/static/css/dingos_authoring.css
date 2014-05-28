@@ -226,7 +226,7 @@ button span {
 
 
 
-#dda-relation-list .dda-rel-selected, #dda-relation-list .dda-rel-selected h3 {
+#dda-relation-list .dda-rel-selected, #dda-relation-list .dda-rel-selected h3, .ui-selected > div {
     background: #CEE9F2;
 }
 
@@ -269,6 +269,10 @@ button span {
 
 .link_selected {
   stroke: #ff7f0e !important;
+}
+
+li.ui-selectee {
+    border: 0 none;
 }
 
 .ui-dialog {
