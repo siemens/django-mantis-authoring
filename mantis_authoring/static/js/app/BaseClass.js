@@ -17,7 +17,7 @@ define(['jquery'],function($){
 	 * instanciated. Makes sure that namespace is set before
 	 * continuing to load the application entirely.
 	 */
-	init: function(){
+	init: function(callback){
 	    var instance = this;
 	    this.init_user_namespace(function(){
 		// Now init each tab 
@@ -29,6 +29,7 @@ define(['jquery'],function($){
 		//object relations are initiated on first refresh of the tab because that is where we know the canvas size 
 		//instance.init_object_relations_tab(); // not required
 		instance.refresh_stix_package_tab(); //Initial refresh for button handlers to be bound (in case this tab is the first visible tab)
+		callback(instance);
 	    });
 
 	    /*

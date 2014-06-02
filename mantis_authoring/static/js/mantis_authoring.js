@@ -298,6 +298,10 @@ Main
 	/* 
 	 * Now require our main app components and build the thing! 
 	 */
+
+	// Show overlay while loading
+	var overlay = $('<div id="dda-main-loading">Please wait...</div>').appendTo('#grp-content-container');
+
 	require.config({
 	    shim: {
 		d3: {
@@ -343,8 +347,12 @@ Main
 		    }
 
 		    // Our builder instance
+		    
 		    var builder = createBuilder();
-		    builder.init();
+		    builder.init(function(){
+			overlay.remove();
+			$('#dda-main-container').show();
+		    });
 		});
     });
 }(django.jQuery)); // Reuse django injected jQuery library
