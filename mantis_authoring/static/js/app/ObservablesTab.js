@@ -385,8 +385,8 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 	 * @param {number} trim The amount of characters to trim the resulting name to
 	 */
 	get_obs_elem_desc_name: function(v, def, trim){
+	    var desc = '';
 	    trim=trim||60;
-	    desc = '';
 
 	    // Try the observable title
 	    desc = $.trim($('[name="dda-observable-title"]', v.element).val());
