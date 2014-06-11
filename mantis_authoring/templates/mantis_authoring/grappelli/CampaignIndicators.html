@@ -1,5 +1,23 @@
 {% extends "mantis_authoring/grappelli/base.html" %}
 
+{% comment %}
+Copyright (c) Siemens AG, 2013
+
+This file is part of MANTIS.  MANTIS is free software: you can
+redistribute it and/or modify it under the terms of the GNU General Public
+License as published by the Free Software Foundation; either version 2
+of the License, or(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc., 51
+Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+{% endcomment %}
+
 
 {% block content %}
 <div id="dda-main-container" style="display:none;">
@@ -98,7 +116,7 @@
     <div class="c-1">
       <div class="grp-module">
         <h2>File Dropzone</h2>
-        <form class="grp-row dropper" id="dda-test-mechanism-filedrop" action="{% url 'dingos_authoring.upload_file' %}"method="post" enctype='multipart/form-data' target="dda-test-mechanism_upload-target">
+        <form class="grp-row dropper" id="dda-test-mechanism-filedrop" action="{% url 'url.dingos_authoring.upload_file' %}"method="post" enctype='multipart/form-data' target="dda-test-mechanism_upload-target">
 	  <input type="hidden" name="dda_dropzone_type_allow" value="ioc,yara,snort"/>
 	  {% csrf_token %}
           <iframe name="dda-test-mechanism_upload-target" src="" onLoad="" style='width:0;height:0;border:0px solid #fff'></iframe>
@@ -120,7 +138,7 @@
     <div class="c-1">
       <div class="grp-module">
         <h2>File Dropzone</h2>
-        <form class="grp-row dropper" id="dda-observable-filedrop" action="{% url 'dingos_authoring.upload_file' %}"method="post" enctype='multipart/form-data' target="dda-observable_upload-target">
+        <form class="grp-row dropper" id="dda-observable-filedrop" action="{% url 'url.dingos_authoring.upload_file' %}"method="post" enctype='multipart/form-data' target="dda-observable_upload-target">
 	  <input type="hidden" name="dda_dropzone_type_allow" value=""/>
 	  {% csrf_token %}
           <iframe name="dda-observable_upload-target" src="" onLoad="" style='width:0;height:0;border:0px solid #fff'></iframe>

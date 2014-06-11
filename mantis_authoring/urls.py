@@ -15,31 +15,12 @@
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
-
-
-from django.conf.urls import patterns, url
-
-from dingos_authoring import views as dingos_authoring_views
+from django.conf.urls import url
 
 import CampaignIndicators
 
-urlpatterns = patterns('dingos_authoring.views',
-                       url(r'^$', dingos_authoring_views.index.as_view(), name = "dingos_authoring.index"),
-                       url(r'^Action/_take_reports$', dingos_authoring_views.TakeReportView.as_view(), name = "url.dingos_authoring.index.action.take"),
-                       url(r'^Imports$', dingos_authoring_views.ImportsView.as_view(), name = "dingos_authoring.imports"),
-                       url(r'^History/(?P<id>[^/]*)/$',
-                           dingos_authoring_views.AuthoredDataHistoryView.as_view(),
-                           name = "dingos_authoring.view.authored_object.history"),
-                       url(r'^Templates/CampaignIndicators/$', CampaignIndicators.FormView.as_view(), name=CampaignIndicators.FORM_VIEW_NAME),
-                       url(r'^Templates/CampaignIndicators/transform$', CampaignIndicators.ProcessingView.as_view()),
-                       url(r'^Templates/CampaignIndicators/load$', dingos_authoring_views.GetDraftJSON.as_view(), name="dingos_authoring.load_json"),
-                       url(r'^Templates/CampaignIndicators/ref$', dingos_authoring_views.GetAuthoringObjectReference.as_view(), name="dingos_authoring.ref"),
-                       url(r'^Templates/CampaignIndicators/upload$', dingos_authoring_views.UploadFile.as_view(), name="dingos_authoring.upload_file"),
-                       url(r'^Templates/CampaignIndicators/get_namespace$', dingos_authoring_views.GetAuthoringNamespace.as_view(), name="dingos_authoring.get_namespace"),
-                       url(r'^Templates/CampaignIndicators/validate_object$', dingos_authoring_views.ValidateObject.as_view(), name="dingos_authoring.validate_object"),
-                       url(r'^Templates/CampaignIndicators/similar_object$', dingos_authoring_views.GetAuthoringSimilarObjects.as_view(), name="dingos_authoring.similar_object"),
+urlpatterns = [
+    url(r'^Templates/CampaignIndicators/$', CampaignIndicators.FormView.as_view(), name=CampaignIndicators.FORM_VIEW_NAME),
+    url(r'^Templates/CampaignIndicators/transform$', CampaignIndicators.ProcessingView.as_view())
+]
 
-                       url(r'^XMLImport/$',
-                           dingos_authoring_views.XMLImportView.as_view(),
-                           name= "url.dingos_authoring.action.xml_import"),
-                       )

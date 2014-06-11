@@ -47,6 +47,7 @@ from stix.bindings.extensions.marking.tlp import TLPMarkingStructureType
 import stix.utils
 
 from django import forms
+from django.templatetags.static import static
 
 from dingos import DINGOS_DEFAULT_ID_NAMESPACE_URI, DINGOS_TEMPLATE_FAMILY
 
@@ -56,7 +57,6 @@ from mantis_stix_importer.importer import STIX_Import
 
 from dingos_authoring.view_classes import BasicProcessingView
 
-from django.templatetags.static import static
 
 
 FORM_VIEW_NAME = 'url.mantis_authoring.transformers.stix.campaing_indicators'
