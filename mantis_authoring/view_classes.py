@@ -1,4 +1,3 @@
-
 import sys
 
 import pkgutil
@@ -40,6 +39,7 @@ class BasicSTIXPackageTemplateView(BasicTemplateView):
         existing_templates= sorted(self.cybox_object_template_registry.items(),key=itemgetter(1))
         return map(lambda x: x[1].ObjectForm, existing_templates)
 
+        # See https://github.com/CybOXProject/schemas/wiki/Proposal:-Expand-CybOX-Object-Relationship-Vocabulary
     cybox_relations = [
         {'label': 'Created', 'value': 'Created', 'description': 'Specifies that this object created the related object.'},
         {'label': 'Deleted', 'value': 'Deleted', 'description': 'Specifies that this object deleted the related object.'},
@@ -47,6 +47,7 @@ class BasicSTIXPackageTemplateView(BasicTemplateView):
         {'label': 'Wrote_To', 'value': 'Wrote_To', 'description': 'Specifies that this object wrote to the related object.'},
         {'label': 'Downloaded_From', 'value': 'Downloaded_From', 'description': 'Specifies that this object was downloaded from the related object.'},
         {'label': 'Downloaded', 'value': 'Downloaded', 'description': 'Specifies that this object downloaded the related object.'},
+        {'label': 'Installed', 'value': 'Installed', 'description': 'Specifies that this object installed the related object.'},
         {'label': 'Uploaded', 'value': 'Uploaded', 'description': 'Specifies that this object uploaded the related object.'},
         {'label': 'Received_Via_Upload', 'value': 'Received_Via_Upload', 'description': 'Specifies that this object received the related object via upload.'},
         {'label': 'Opened', 'value': 'Opened', 'description': 'Specifies that this object opened the related object.'},

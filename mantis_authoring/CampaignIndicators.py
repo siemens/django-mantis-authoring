@@ -85,7 +85,7 @@ class FormView(BasicSTIXPackageTemplateView):
         object_type = forms.CharField(initial="ThreatActor", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Threat Actor", widget=forms.HiddenInput)
         I_icon =  forms.CharField(initial=static('img/stix/threat_actor.svg'), widget=forms.HiddenInput)
-        identity_name = forms.CharField(max_length=1024, help_text="Required if Campaign/ThreatActor should be generated")
+        identity_name = forms.CharField(max_length=1024, help_text="*required", required=True)
         identity_aliases = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'Line by line aliases of this threat actor'}), required=False, )
         title = forms.CharField(max_length=1024)
         description = forms.CharField(widget=forms.Textarea, required=False)
@@ -117,25 +117,16 @@ class FormView(BasicSTIXPackageTemplateView):
             ('None', 'None'),
             ('Unknown', 'Unknown')
         )
-        HANDLING_TYPES = (
-            ('WHITE', 'White'),
-            ('GREEN', 'Green'),
-            ('AMBER', 'Amber'),
-            ('RED', 'Red')
-        )
         object_type = forms.CharField(initial="Campaign", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Campaign", widget=forms.HiddenInput)
         I_icon =  forms.CharField(initial=static('img/stix/campaign.svg'), widget=forms.HiddenInput)
-        name = forms.CharField(max_length=1024, help_text="Required if Campaign/ThreatActor should be generated")
+        name = forms.CharField(max_length=1024, help_text="*required", required=True)
         title = forms.CharField(max_length=1024)
         description = forms.CharField(widget=forms.Textarea, required=False)
         status = forms.ChoiceField(choices=STATUS_TYPES, required=False, initial="Unknown")
         activity_timestamp_from = forms.CharField(max_length=1024)
         activity_timestamp_to = forms.CharField(max_length=1024)
         confidence = forms.ChoiceField(choices=CONFIDENCE_TYPES, required=False, initial="med")
-        handling = forms.ChoiceField(choices=HANDLING_TYPES, required=False, initial="amber")
-        #information_source = forms.CharField(max_length=1024)
-
 
     class StixCampaignReference(forms.Form):
         object_type = forms.CharField(initial="CampaignReference", widget=forms.HiddenInput)
@@ -386,7 +377,6 @@ class stixTransformer:
 
         for obs in observables:
             object_type = obs['observable_properties']['object_type']
-            #object_subtype = obs['observable_properties']['object_subtype']
             object_subtype = obs.get('object_subtype', 'Default')
 
             im = importlib.import_module('mantis_authoring.cybox_object_transformers.' + object_type.lower())
@@ -404,6 +394,13 @@ class stixTransformer:
                 new_ids = []
                 translations = {} # used to keep track of which new __ id was translated
                 for no in cybox_obs:
+                    # Title and description don't have an effect on the
+                    # cybox object, but we use it to transport the
+                    # information to the observable we are going to create
+                    # later on
+                    no.title = obs.get('observable_title', '')
+                    no.description = obs.get('observable_description', '')
+                    # New temporary ID
                     _tmp_id = '__' + str(uuid.uuid4())
                     cybox_observable_dict[_tmp_id] = no
                     new_ids.append(_tmp_id)
@@ -434,17 +431,28 @@ class stixTransformer:
                 relations = new_relations
 
             else: # only one object. No need to adjust relations or ids
+                # Title and description don't have an effect on the
+                # cybox object, but we use it to transport the
+                # information to the observable we are going to create
+                # later on
+                cybox_obs.title = obs.get('observable_title', '')
+                cybox_obs.description = obs.get('observable_description', '')
                 cybox_observable_dict[obs['observable_id']] = cybox_obs
 
 
-        # Observables and relations are now processed. The only
-        # thing left is to include the relation into the actual
-        # objects.
+        # Observables and relations are now processed. The only thing
+        # left is to include the relation into the actual objects. The
+        # cybox objects are packed into Observables. Title and
+        # description of observables are read from the cybox object
+        # where we put it before
         self.cybox_observable_list = []
         for obs_id, obs in cybox_observable_dict.iteritems():
+            # Observable title and description were transported in our cybox object
+            title = obs.title
+            description = obs.description
             for rel_id, rel_type in relations[obs_id].iteritems():
                 related_object = cybox_observable_dict[rel_id]
-                if not related_object: # This might happen if a observable was not generated(because data was missing); TODO!                
+                if not related_object: # This might happen if an observable was not generated (because data was missing); TODO!                
                     continue
                 obs.add_related(related_object, rel_type, inline=False)
             if not obs_id.startswith('__'): # If this is not a generated object we keep the observable id!                                   
@@ -453,8 +461,9 @@ class stixTransformer:
                 obs = Observable(obs)
                 self.old_observable_mapping[obs.id_] = translations[obs_id]
 
+            obs.title = title
+            obs.description = description
             self.cybox_observable_list.append(obs)
-
 
         return self.cybox_observable_list
 

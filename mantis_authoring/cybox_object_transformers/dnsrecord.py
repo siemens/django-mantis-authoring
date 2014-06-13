@@ -14,11 +14,6 @@ class TEMPLATE_Default(transformer_object):
         ip_address = forms.CharField(max_length=15)
         description = forms.CharField(widget=forms.Textarea, required=False)
 
-        autocompletion = {
-            'ip_address': ['fact1', 'fact2']
-        }
-
-
     def process_form(self, properties):
         cybox_dns_record = dns_record_object.DNSRecord()
         cybox_dns_record.description = StructuredText(properties.get('description',''))

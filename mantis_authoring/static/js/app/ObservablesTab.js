@@ -22,8 +22,8 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 	init_observable_pool_tab: function(){
 	    var instance = this,
 	    observable_template_tmpl = dust.compile('<div class="dda-add-element clearfix" > \
-		    <img class="pull-left" src="{icon}" style="width:30px; margin-right:5px;"></img> \
-		    <button class="dda-obs-add pull-right"></button> \
+		    <button class="dda-obs-add pull-left" style="margin-right:5px;"></button> \
+		    <img class="pull-right" src="{icon}" style="width:30px"></img> \
 		    <h3>{title}</h3> \
 		    <p>{description}</p> \
 		    </div>', 'observable_template_add');
@@ -83,6 +83,15 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 	 * Refreshes observable pool tab
 	 */
 	refresh_observable_pool_tab: function(){
+	    var instance = this;
+
+	    // Minimize all items that are already placed in an indicator
+	    $.each($('#dda-observable-pool-list > .dda-add-element'),  function(i,v){
+		var obs_id = $(this).data('id');
+		if(instance.is_observable_in_indicator(obs_id)){
+		    $('div:first', v).hide();
+		}
+	    });
 	},
 
 
@@ -162,7 +171,7 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 	 * @param {string} template_id The template from which to craft the element
 	 * @param {string} guid_passed An optional guid which will be used instead of generating one
 	 * @param {boolean} no_dom_insert Tells the function to not insert the created element into the DOM
-	 * @param {boolean} no_meta Tells the function to not insert Title/Description Fields (for reference type)
+	 * @param {boolean} no_meta Tells the function to not insert Title/Description Fields (used for reference type)
 	 */
 	obs_pool_add_elem: function(template_id, guid_passed, no_dom_insert, no_meta){
 	    var instance = this,
@@ -171,7 +180,7 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
                     <button class="dda-obs-find_similar pull-right"></button> \
 		    <button class="dda-obs-remove pull-right"></button> \
 		    <h3>{title}</h3> \
-		    <p>{type}</p> \
+		    <p class="obs_object_name">{obs_name}</p> \
 		    <div> \
 		    {?meta} \
 		    <input type="text" name="dda-observable-title" placeholder="Observable Title"> \
@@ -199,7 +208,7 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 	    var tpl = {
 		id: guid_observable,
 		title: $('#id_I_object_display_name', template).val(),
-		type: template.find('#id_object_type').val(),
+		obs_name: template.find('#id_object_type').val(),
 		meta: !no_meta,
 		body: template.clone().attr('id', guid_observable).html()
 	    };
@@ -305,6 +314,19 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 
 	},
 
+	/**
+	 * Updates the name of an observable
+	 * @param {string} id The observable id
+	 */
+	obs_update_name: function(id){
+	    var instance = this,
+	        obs = instance.observable_registry[id];
+	    
+	    obs.element.find('.obs_object_name').first().text(
+		instance.get_obs_elem_desc_name(obs, id, 60, true)
+	    );
+	},
+
 
 	/**
 	 * Pops up a dialog and requests similar objects like the passed one from the backend.
@@ -312,8 +334,8 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 	 */
 	obs_find_similar: function(id){
 	    var instance = this,
-	    obs = instance.observable_registry[id],
-	    obs_jsn = instance.obs_get_json(id);
+	        obs = instance.observable_registry[id],
+	        obs_jsn = instance.obs_get_json(id);
 
 
 	    var dlg = $('<div id="dda-obs-find_similar-dlg" title="Similar Objects">Please wait...</div>'),
@@ -384,9 +406,32 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 	 * @param {string} def The default string to fall back to
 	 * @param {number} trim The amount of characters to trim the resulting name to
 	 */
-	get_obs_elem_desc_name: function(v, def, trim){
-	    var desc = '';
-	    trim=trim||60;
+	get_obs_elem_desc_name: function(v, def, trim, force_update){
+	    var instance = this,
+                desc = '';
+	        trim=trim||60;
+
+
+	    // Fetch name from backend.
+	    if(v._object_name == undefined || force_update){
+		var jqxhr = $.ajax({
+		    url: 'get_object_name', 
+		    data: instance.obs_get_json(v.observable_id), 
+		    dataType: 'json',
+		    timeout: 500,
+		    type: 'POST',
+		    async: false
+		});
+
+		var data = $.parseJSON(jqxhr.responseText);
+		if(data.status){
+		    v._object_name = data.data;
+		    return data.data;
+		}
+	    }else
+		return v._object_name;
+
+	    //On timeout we try to just guess a descriptive name, or return default.
 
 	    // Try the observable title
 	    desc = $.trim($('[name="dda-observable-title"]', v.element).val());
@@ -422,9 +467,7 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 		}
 	    }
 
-	    if(desc=='')
-		desc = def;
-
+	    if(desc=='') desc = def;
 	    if(desc.length>trim)
 		desc = desc.substring(0,trim-3) + '...';
 
@@ -497,6 +540,9 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 			    );
 			});
 		    }
+
+		    // Update the observable name
+		    instance.obs_update_name(obs.observable_id);
 		}else{
 		    //log_message(data.msg, 'error');
 		}
