@@ -32,6 +32,7 @@ define(['jquery'],function($){
 		callback(instance);
 	    });
 
+
 	    /*
 	     * Response callback handler of file uploads (dropzones)
 	     */
@@ -41,27 +42,78 @@ define(['jquery'],function($){
                     return;
 		}
 
-		// Create objects
-		$.each(response.data, function(i,v){
-                    if(v.object_class=='observable'){
-			var el = instance.obs_pool_add_elem('dda-observable-template_' + v.object_type + '_' + v.object_subtype, v.object_id);
-			if(!el) return true;
-			$.each(v.properties, function(i1,v1){
-                            $('[name="'+i1+'"]', el.element).val(v1);
+		if(response.action=='ask'){
+		    // Query user for action
+		    var dlg = $('<div class="dda-obs-find_similar-dlg" title="Choose the file parsing mechanism">Please wait...</div>'),
+	            ask_content_tmpl = dust.compile('<ol style="max-height: 500px;"> \
+                                        <p>{action_msg}</p> \
+					{#data} \
+					<li class="ui-widget-content" data-id="{$idx}"> \
+					<div class="dda-add-element"> \
+					<h3>{title}</h3> \
+					<p>{details}</p> \
+					</div> \
+					</li> \
+					{/data} \
+					</ol> \
+					<div class="pull-right"> \
+					<button class="ok">Ok</button> \
+					<button class="cancel">Cancel</button> \
+					</div> \
+                                       ', 'ask_file_type_content');
+		    
+		    dlg.dialog({
+			width: 600, modal: true,
+			position: ['center', 'center']
+		    });
+		    dust.loadSource(ask_content_tmpl);
+		    dust.render('ask_file_type_content', response, function(err, out){
+			out = $(out);
+			out.selectable();
+			dlg.html(out);
+			$('button', dlg).button();
+			$('button.ok', dlg).click(function(){
+			    var sel = $('.ui-selected', dlg);
+			    if(sel.length){
+				var rd = response.data[sel.data('id')]
+				$.post(response.action_url, rd, function(response1){
+				    window._handle_file_upload_response(response1);
+				    dlg.dialog('destroy');
+				});
+				
+			    }
 			});
-			log_message('Created '+ v.object_type +' ('+ v.object_subtype +') object: ' + el.observable_id, 'success', 5000);
-                    }else if(v.object_class=='testmechanism'){
-			var el = instance.tes_pool_add_elem('dda-test-mechanism-template_' + v.object_type + '_' + v.object_subtype, v.object_id);
+			$('button.cancel', dlg).click(function(){
+			    dlg.dialog('destroy');
+			});
+			dlg.dialog("option", "position", ['center', 'center'] );
+		    });
 
-			if(!el) return true;
-			$.each(v.properties, function(i1,v1){
-                            $('[name="'+i1+'"]', el.element).val(v1);
-			});
-			log_message('Created '+ v.object_subtype +' ('+ v.object_type +') object: ' + el.object_id, 'success', 5000);
-		    }
-		    //TODO: treat other types
-		});
+		}else if(response.action=='create'){
+		    // Create objects
+		    $.each(response.data, function(i,v){
+			if(v.object_class=='observable'){
+			    var el = instance.obs_pool_add_elem('dda-observable-template_' + v.object_type + '_' + v.object_subtype, v.object_id);
+			    if(!el) return true;
+			    $.each(v.properties, function(i1,v1){
+				$('[name="'+i1+'"]', el.element).val(v1);
+			    });
+			    log_message('Created '+ v.object_type +' ('+ v.object_subtype +') object: ' + el.observable_id, 'success', 5000);
+			}else if(v.object_class=='testmechanism'){
+			    var el = instance.tes_pool_add_elem('dda-test-mechanism-template_' + v.object_type + '_' + v.object_subtype, v.object_id);
+
+			    if(!el) return true;
+			    $.each(v.properties, function(i1,v1){
+				$('[name="'+i1+'"]', el.element).val(v1);
+			    });
+			    log_message('Created '+ v.object_subtype +' ('+ v.object_type +') object: ' + el.object_id, 'success', 5000);
+			}
+			//TODO: treat other types
+		    });
+
+		}
             };
+
 
 	    //Now create the jquery-ui tabbing
 	    $('#dda-container-tabs').tabs({

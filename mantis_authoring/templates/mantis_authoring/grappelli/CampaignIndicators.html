@@ -116,7 +116,7 @@ Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
     <div class="c-1">
       <div class="grp-module">
         <h2>File Dropzone</h2>
-        <form class="grp-row dropper" id="dda-test-mechanism-filedrop" action="{% url 'url.dingos_authoring.upload_file' %}"method="post" enctype='multipart/form-data' target="dda-test-mechanism_upload-target">
+        <form class="grp-row dropper" id="dda-test-mechanism-filedrop" action="{% url 'url.mantis_authoring.upload_file' %}"method="post" enctype='multipart/form-data' target="dda-test-mechanism_upload-target">
 	  <input type="hidden" name="dda_dropzone_type_allow" value="ioc,yara,snort"/>
 	  {% csrf_token %}
           <iframe name="dda-test-mechanism_upload-target" src="" onLoad="" style='width:0;height:0;border:0px solid #fff'></iframe>
@@ -138,7 +138,7 @@ Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
     <div class="c-1">
       <div class="grp-module">
         <h2>File Dropzone</h2>
-        <form class="grp-row dropper" id="dda-observable-filedrop" action="{% url 'url.dingos_authoring.upload_file' %}"method="post" enctype='multipart/form-data' target="dda-observable_upload-target">
+        <form class="grp-row dropper" id="dda-observable-filedrop" action="{% url 'url.mantis_authoring.upload_file' %}"method="post" enctype='multipart/form-data' target="dda-observable_upload-target">
 	  <input type="hidden" name="dda_dropzone_type_allow" value=""/>
 	  {% csrf_token %}
           <iframe name="dda-observable_upload-target" src="" onLoad="" style='width:0;height:0;border:0px solid #fff'></iframe>

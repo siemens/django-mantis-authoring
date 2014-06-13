@@ -17,45 +17,49 @@
 #
 
 
-
-
-import re
-import sys, datetime
-import json, pytz
-import importlib, uuid
+import os, datetime, tempfile, importlib, json, pytz
 
 from lxml import etree
 from StringIO import StringIO
 from base64 import b64decode
+from uuid import uuid4
+from querystring_parser import parser
 
-from cybox.core import Observable, Observables
-from cybox.common import Hash, String, Time, ToolInformation, ToolInformationList, ObjectProperties, DateTime
+from django import forms
+from django.conf import settings
+from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.core.urlresolvers import reverse
+from django.db.models import Q
+from django.templatetags.static import static
+from django.views.generic import View
+from django.views.generic.edit import FormView
+from django.http import HttpResponse
+
 import cybox.utils
+from cybox.core import Observable, Observables
+from cybox.common import String, Time, ToolInformation, ToolInformationList
 
-from stix.indicator import Indicator
-from stix.extensions.test_mechanism.open_ioc_2010_test_mechanism import OpenIOCTestMechanism
-from stix.extensions.test_mechanism.snort_test_mechanism import SnortTestMechanism
-from stix.campaign import Campaign, AssociatedCampaigns, Names, Name
-from stix.threat_actor import ThreatActor
+import stix.utils
 from stix.core import STIXPackage, STIXHeader
 from stix.common import InformationSource, Confidence, Identity, Activity, DateTimeWithPrecision, StructuredText as StixStructuredText, VocabString as StixVocabString
 from stix.common.identity import RelatedIdentities
-from stix.common.related import RelatedCampaign
+from stix.indicator import Indicator
+from stix.extensions.test_mechanism.open_ioc_2010_test_mechanism import OpenIOCTestMechanism
+from stix.extensions.test_mechanism.snort_test_mechanism import SnortTestMechanism
 from stix.extensions.marking.tlp import TLPMarkingStructure
-from stix.data_marking import Marking, MarkingSpecification
 from stix.bindings.extensions.marking.tlp import TLPMarkingStructureType
-import stix.utils
-
-from django import forms
-from django.templatetags.static import static
-
-from dingos import DINGOS_DEFAULT_ID_NAMESPACE_URI, DINGOS_TEMPLATE_FAMILY
-
-from .view_classes import BasicSTIXPackageTemplateView
+from stix.campaign import Campaign, Names, Name
+from stix.threat_actor import ThreatActor
+from stix.data_marking import Marking, MarkingSpecification
 
 from mantis_stix_importer.importer import STIX_Import
+from dingos import DINGOS_DEFAULT_ID_NAMESPACE_URI, DINGOS_TEMPLATE_FAMILY
+from dingos.view_classes import BasicJSONView
+from dingos_authoring.view_classes import BasicProcessingView, AuthoringMethodMixin
+from dingos_authoring.models import AuthoredData
+from .view_classes import BasicSTIXPackageTemplateView
 
-from dingos_authoring.view_classes import BasicProcessingView
 
 
 
@@ -401,7 +405,7 @@ class stixTransformer:
                     no.title = obs.get('observable_title', '')
                     no.description = obs.get('observable_description', '')
                     # New temporary ID
-                    _tmp_id = '__' + str(uuid.uuid4())
+                    _tmp_id = '__' + str(uuid4())
                     cybox_observable_dict[_tmp_id] = no
                     new_ids.append(_tmp_id)
                     translations[_tmp_id] = old_id
@@ -624,3 +628,146 @@ if __name__ == '__main__':
     if jsn:
         t = Transformer.stixTransformer(jsn=jsn)
         print t.run()
+
+
+
+
+
+
+
+
+class UploadFile(View):
+    """
+    Handles an uploaded file. Tries to detect the type according to the content and returns the appropriate object (e.g. file-observable)
+    """
+
+    def post(self, request, *args, **kwargs):
+        res = {
+            'status': False,
+            'msg': 'An error occured.',
+            'data': {}
+        }
+
+        POST = self.request.POST
+        post_dict = parser.parse(POST.urlencode())
+
+
+
+        # If our request contains a type and a filekey, the UI wants us to import a specific file with a specific module
+        if post_dict.has_key('fid') and post_dict.has_key('type'):
+            fid = post_dict.get('fid', '')
+            ftype = post_dict.get('type', '')
+            
+            # Get file properties from cache
+            te = cache.get('MANTIS_AUTHORING__file__' + fid)
+            
+            if (fid!='' and ftype!='') and (te) and (os.path.isfile(te['cache_file'])):
+
+                # Iterate over available file processors and filter those with the correct type the GUI wants us to use.
+                mods_dir = os.path.dirname(os.path.realpath(__file__))
+                mods = [x[:-3] for x in os.listdir(os.path.join(mods_dir, 'file_analysis')) if x.endswith(".py") and not x.startswith('__')]
+                proc_modules = []
+                for mod in mods:
+                    im = importlib.import_module('mantis_authoring.file_analysis.' + mod)
+                    ao = getattr(im,'file_analyzer')(te)
+                    if ao.is_class_type(ftype):
+                        proc_modules.append(ao)
+                        
+                if not proc_modules:
+                    res['msg'] = 'Could not find suitable modules for the requested processing type.'
+                else:
+                    mod = proc_modules[0]
+                    proc_res = mod.process()
+                    if not proc_res:
+                        pass
+                    elif not proc_res['status']:
+                        res['msg'] = proc_res['data']
+                    else:
+                        res['status'] = True
+                        res['data'] = proc_res['data']
+                        res['action'] = 'create'
+
+
+        else:
+            FILES = request.FILES
+            f = False
+            if FILES.has_key(u'file'):
+                f = FILES['file']
+                # GUI passed allowed file types
+                req_type = request.POST.get('dda_dropzone_type_allow', None)
+                proc_modules = []
+
+                # Iterate over available file processors and filter those with the correct type the GUI wants us to use.
+                mods_dir = os.path.dirname(os.path.realpath(__file__))
+                mods = [x[:-3] for x in os.listdir(os.path.join(mods_dir, 'file_analysis')) if x.endswith(".py") and not x.startswith('__')]
+                for mod in mods:
+                    im = importlib.import_module('mantis_authoring.file_analysis.' + mod)
+                    ao = getattr(im,'file_analyzer')(f)
+                    if ao.is_class_type(req_type):
+                        proc_modules.append(ao)
+
+                if not proc_modules:
+                    res['msg'] = 'Could not find suitable modules for the requested processing type.'
+
+                else:
+                    # Now iterate over the modules in question and check if they can successfully handle our file
+                    mod_choices = []
+                    for mod in proc_modules:
+                        if mod.test_object() is not False:
+                            mod_choices.append(mod)
+
+                    if not mod_choices:
+                        res['msg'] = 'Could not find a module that successfully parses the file.'
+                    else:
+                        # We have at least one module that qualifies for the processing
+                        if len(mod_choices) > 1:
+                            # There are more than one modules. Let the user choose
+                            res['status'] = True
+                            res['action'] = 'ask'
+                            res['action_url'] = reverse('url.mantis_authoring.upload_file')
+                            res['action_msg'] = 'File %s qualifies for more than one observable types. Please choose:' % f.name
+                            res['data'] = []
+                            file_id = str(uuid4())
+                            for mod in mod_choices:
+                                res['data'].append({
+                                    'fid': file_id, 
+                                    'type': mod.test_object(),
+                                    'title': mod.test_object(),
+                                    'details': mod.get_description()
+                                })
+                            # Cache file for later use on disk. Cache file descriptor in django cache (local cache if nothing else is configured)
+                            dest_path = settings.DINGOS_AUTHORING.get('FILE_CACHE_PATH')
+                            if not os.path.isdir(dest_path):
+                                os.mkdir(dest_path)
+                            dest_file = tempfile.NamedTemporaryFile(dir=dest_path, delete=False)
+                            for chunk in f:
+                                dest_file.write(chunk)
+                            dest_file.close()
+
+                            cache.set('MANTIS_AUTHORING__file__' + file_id, {
+                                'cache_file': dest_file.name,
+                                'filename': f.name
+                            })                            
+
+                        else:
+                            # There is only one module. Use that and process the file
+                            mod = mod_choices[0]
+                            proc_res = mod.process()
+                            if not proc_res:
+                                pass
+                            elif not proc_res['status']:
+                                res['msg'] = proc_res['data']
+                            else:
+                                res['status'] = True
+                                res['data'] = proc_res['data']
+                                res['action'] = 'create'
+            
+            
+        if not request.is_ajax(): # Indicates fallback (form based upload)
+            ret  = '<script>'
+            ret += '  var r = ' + json.dumps(res) + ';';
+            ret += '  window.top._handle_file_upload_response(r);'
+            ret += '</script>'
+            return HttpResponse(ret)
+        else: # Fancy upload with drag and drop can handle json response
+            return HttpResponse(json.dumps(res), content_type="application/json")

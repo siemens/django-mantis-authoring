@@ -21,6 +21,7 @@ import CampaignIndicators
 
 urlpatterns = [
     url(r'^Templates/CampaignIndicators/$', CampaignIndicators.FormView.as_view(), name=CampaignIndicators.FORM_VIEW_NAME),
-    url(r'^Templates/CampaignIndicators/transform$', CampaignIndicators.ProcessingView.as_view())
+    url(r'^Templates/CampaignIndicators/transform$', CampaignIndicators.ProcessingView.as_view()),
+    url(r'^Templates/CampaignIndicators/upload$', CampaignIndicators.UploadFile.as_view(), name="url.mantis_authoring.upload_file")
 ]
 
