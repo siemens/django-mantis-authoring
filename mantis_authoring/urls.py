@@ -17,11 +17,24 @@
 
 from django.conf.urls import url
 
+from . import views
+
 import CampaignIndicators
 
 urlpatterns = [
     url(r'^Templates/CampaignIndicators/$', CampaignIndicators.FormView.as_view(), name=CampaignIndicators.FORM_VIEW_NAME),
     url(r'^Templates/CampaignIndicators/transform$', CampaignIndicators.ProcessingView.as_view()),
-    url(r'^Templates/CampaignIndicators/upload$', CampaignIndicators.UploadFile.as_view(), name="url.mantis_authoring.upload_file")
+    url(r'^Templates/CampaignIndicators/upload$', CampaignIndicators.UploadFile.as_view(), name="url.mantis_authoring.upload_file"),
+
+    url(r'^ref$', views.GetAuthoringObjectReference.as_view(), name="url.mantis_authoring.ref"),
+    url(r'/ref$', views.GetAuthoringObjectReference.as_view(), name="url.mantis_authoring.ref"),
+
+    url(r'^validate_object$', views.ValidateObject.as_view(), name="url.mantis_authoring.validate_object"),
+    url(r'/validate_object$', views.ValidateObject.as_view(), name="url.mantis_authoring.validate_object"),
+    url(r'^get_object_name$', views.GetObjectName.as_view(), name="url.mantis_authoring.get_object_name"),
+    url(r'/get_object_name$', views.GetObjectName.as_view(), name="url.mantis_authoring.get_object_name"),
+    url(r'^similar_object$', views.GetAuthoringSimilarObjects.as_view(), name="url.mantis_authoring.similar_object"),
+    url(r'/similar_object$', views.GetAuthoringSimilarObjects.as_view(), name="url.mantis_authoring.similar_object")
+
 ]
 

@@ -667,6 +667,7 @@ class UploadFile(View):
                 mods_dir = os.path.dirname(os.path.realpath(__file__))
                 mods = [x[:-3] for x in os.listdir(os.path.join(mods_dir, 'file_analysis')) if x.endswith(".py") and not x.startswith('__')]
                 proc_modules = []
+                print mods
                 for mod in mods:
                     im = importlib.import_module('mantis_authoring.file_analysis.' + mod)
                     ao = getattr(im,'file_analyzer')(te)
@@ -736,7 +737,7 @@ class UploadFile(View):
                                     'details': mod.get_description()
                                 })
                             # Cache file for later use on disk. Cache file descriptor in django cache (local cache if nothing else is configured)
-                            dest_path = settings.DINGOS_AUTHORING.get('FILE_CACHE_PATH')
+                            dest_path = settings.MANTIS_AUTHORING.get('FILE_CACHE_PATH')
                             if not os.path.isdir(dest_path):
                                 os.mkdir(dest_path)
                             dest_file = tempfile.NamedTemporaryFile(dir=dest_path, delete=False)
