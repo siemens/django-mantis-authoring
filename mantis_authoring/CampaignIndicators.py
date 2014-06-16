@@ -717,7 +717,7 @@ class UploadFile(View):
                             mod_choices.append(mod)
 
                     if not mod_choices:
-                        res['msg'] = 'Could not find a module that successfully parses the file.'
+                        res['msg'] = 'Could not find a module that successfully parses file "%s"' % f.name
                     else:
                         # We have at least one module that qualifies for the processing
                         if len(mod_choices) > 1:
@@ -725,7 +725,7 @@ class UploadFile(View):
                             res['status'] = True
                             res['action'] = 'ask'
                             res['action_url'] = reverse('url.mantis_authoring.upload_file')
-                            res['action_msg'] = 'File %s qualifies for more than one observable types. Please choose:' % f.name
+                            res['action_msg'] = 'File "%s" qualifies for more than one observable types. Please choose:' % f.name
                             res['data'] = []
                             file_id = str(uuid4())
                             for mod in mod_choices:

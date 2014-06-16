@@ -347,11 +347,13 @@ Main
 		    }
 
 		    // Our builder instance
-		    
 		    var builder = createBuilder();
-		    builder.init(function(){
+		    builder.init(function(instance){
+			if(instance){ //success
+			    $('#dda-main-container').show();
+			}
 			overlay.remove();
-			$('#dda-main-container').show();
+
 		    });
 		});
     });

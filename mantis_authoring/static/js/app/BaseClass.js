@@ -19,7 +19,7 @@ define(['jquery'],function($){
 	 */
 	init: function(callback){
 	    var instance = this;
-	    this.init_user_namespace(function(){
+	    this.init_user_namespace(function(success){
 		// Now init each tab 
 		instance.init_stix_package_tab();
 		instance.init_campaign_tab();
@@ -29,7 +29,10 @@ define(['jquery'],function($){
 		//object relations are initiated on first refresh of the tab because that is where we know the canvas size 
 		//instance.init_object_relations_tab(); // not required
 		instance.refresh_stix_package_tab(); //Initial refresh for button handlers to be bound (in case this tab is the first visible tab)
-		callback(instance);
+		if(success)
+		    callback(instance);
+		else
+		    callback(false);
 	    });
 
 
@@ -164,9 +167,10 @@ define(['jquery'],function($){
 	    $.get('get_namespace', function(data){
 		if(data.status){
 		    instance.namespace_slug = data.data.default_ns_slug;
-		    callback();
+		    callback(true);
 		}else{
 		    log_message(data.msg, 'error');
+		    callback(false);
 		}
 	    }, 'json');
 	},
