@@ -49,7 +49,14 @@ from stix.extensions.test_mechanism.open_ioc_2010_test_mechanism import OpenIOCT
 from stix.extensions.test_mechanism.snort_test_mechanism import SnortTestMechanism
 from stix.extensions.marking.tlp import TLPMarkingStructure
 from stix.bindings.extensions.marking.tlp import TLPMarkingStructureType
-from stix.campaign import Campaign, Names, Name
+from stix.campaign import Campaign, Names, AssociatedCampaigns
+
+# 'Name' has been removed in STIX 1.1.1
+try:
+    from stix.campaign import VocabString as Name
+except:
+    from stix.campaign import Name
+
 from stix.threat_actor import ThreatActor
 from stix.data_marking import Marking, MarkingSpecification
 
@@ -245,8 +252,13 @@ class stixTransformer:
         # Now process the parts
         self.__process_observables()
         self.__process_test_mechanisms()
-        self.__process_indicators()
+
+
         self.__process_campaigns()
+        self.__process_indicators()
+
+
+
         self.__create_stix_package()
 
     def __process_campaigns(self):
@@ -274,6 +286,7 @@ class stixTransformer:
             self.campaign = camp
         elif campaign.get('name','').strip() != '':
             camp = Campaign()
+            camp.timestamp = None
             camp.names =  Names(Name(campaign.get('name', '')))
             camp.title = campaign.get('title','')
             camp.description = campaign.get('description', '')
@@ -302,6 +315,7 @@ class stixTransformer:
             self.threatactor = tac
         elif threatactor.get('identity_name', '').strip() != '' and self.campaign:
             tac = ThreatActor()
+            tac.timestamp = None
             related_identities = []
             for ia in threatactor.get('identity_aliases', '').split('\n'):
                 related_identities.append(Identity(None, None, ia.strip('\n').strip('\r').strip()))
@@ -312,8 +326,34 @@ class stixTransformer:
             #tac.information_source = InformationSource()
             #tac.information_source.description = threatactor.get('information_source', '')
             tac.confidence = Confidence(threatactor.get('confidence', ''))
-            if self.campaign:
-                tac.associated_campaigns = camp
+
+            # Because we need to reference from Campaign to ThreatActor rather than
+            # the other way around, we create a generic Campaign for this threat actor,
+            # which we then reference from new campaigns as 'Associated Campaign'.
+
+            ta_camp = Campaign()
+            ta_camp.timestamp=None
+            ta_camp.id_ = tac.id_.replace('threatactor','campaign')
+            ta_camp.title = "Campaign Collector of %s" % tac.title
+            ta_camp.description = "We need to reference from Campaign to Threat Actor rather than the" \
+                                  " other way around; we do this by referencing new Campaigns to this " \
+                                  "campaign using the 'Associated Campaign' construct."
+
+            #tac.associated_campaigns = camp
+            tac_assoc_campaigns = AssociatedCampaigns()
+            tac_assoc_campaigns.append(ta_camp)
+            tac.associated_campaigns = tac_assoc_campaigns
+
+
+            if self.campaign and self.campaign.id_:
+                ref_camp = Campaign()
+                ref_camp.id_ = None
+                ref_camp.timestamp=None
+                ref_camp.idref = tac.id_.replace('threatactor','campaign')
+                campaign_assoc_campaigns = AssociatedCampaigns()
+                campaign_assoc_campaigns.append(ref_camp)
+                self.campaign.associated_campaigns = campaign_assoc_campaigns
+
             self.threatactor = tac
 
 
@@ -504,6 +544,7 @@ class stixTransformer:
         stix_indicator.description = String(indicator['indicator_description'])
         stix_indicator.confidence = Confidence(indicator['indicator_confidence'])
         #stix_indicator.indicator_types = String(indicator['object_type'])
+
         return stix_indicator
 
 
@@ -562,6 +603,27 @@ class stixTransformer:
                         stix_indicator.add_test_mechanism(tm)
                         already_included_tests.append(check_tes_id)
 
+            # Add reference to campaign
+            if self.campaign:
+
+                ref_camp = Campaign()
+                ref_camp.id_ = None
+                ref_camp.timestamp=None
+                if self.campaign.id_:
+                    ref_camp.idref = self.campaign.id_
+                else:
+                    ref_camp.idref = self.campaign.idref
+                indicator_assoc_campaigns = AssociatedCampaigns()
+
+                indicator_assoc_campaigns.append(ref_camp)
+
+                # TODO: This below does not work, because the
+                # python-stix api does not support the Associated Campaigns for
+                # indicators.
+                
+                stix_indicator.associated_campaigns = indicator_assoc_campaigns
+
+
             self.stix_indicators.append(stix_indicator)
 
 
@@ -602,6 +664,8 @@ class stixTransformer:
         stix_information_source.tools = ToolInformationList([ToolInformation(tool_name="Mantis Authoring GUI", tool_vendor="Siemens CERT")])
         stix_header.information_source = stix_information_source
         stix_package.stix_header = stix_header
+        if self.campaign:
+            stix_package.campaigns.append(self.campaign)
         self.stix_package = stix_package.to_xml(ns_dict={'http://data-marking.mitre.org/Marking-1': 'stixMarking'})
         return self.stix_package
 
