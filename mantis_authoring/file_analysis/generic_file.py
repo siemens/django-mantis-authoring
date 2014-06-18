@@ -17,7 +17,7 @@ class file_analyzer(file_object):
         return False
 
     
-    def process(self):
+    def process(self,**kwargs):
         res = {'status': False,
                'data': 'An error occured.'}
 

@@ -17,7 +17,7 @@ class file_analyzer(file_object):
         # Try IOC
         try:
             xroot = etree.fromstring(file_content)
-            print xroot.tag.lower()
+
             # If the root looks like this, we are quite confident that this is a IOC file
             if xroot.tag.lower() == '{http://schemas.mandiant.com/2010/ioc}ioc':
                 return 'ioc'
@@ -38,7 +38,7 @@ class file_analyzer(file_object):
         return False
 
     
-    def process(self):
+    def process(self,**kwargs):
         res = {'status': False,
                'data': 'An error occured.'}
 
@@ -47,13 +47,13 @@ class file_analyzer(file_object):
         file_content = self.get_file_content()
 
         if ftype=='ioc':
-            try:
+            if True: #try:
                 xroot = etree.fromstring(file_content)
                 #xroot_string = etree.tostring(xroot, encoding='UTF-8', xml_declaration=False)
 
                 predef_id = xroot.get('id', None)
                 if predef_id:
-                    predef_id = 'siemens_cert:Test_Mechanism-' + predef_id
+                    predef_id = '%s:Test_Mechanism-%s' % (kwargs['default_ns_slug'],predef_id)
 
                 res['status'] = True
                 res['object_class'] = ftype
@@ -66,9 +66,9 @@ class file_analyzer(file_object):
                                                  'ioc_description': ''
                                              }
                              }]
-            except Exception as e:
-                res['msg'] =  str(e)
-                pass
+            #except Exception as e:
+            #    res['msg'] =  str(e)
+            #    pass
 
         elif ftype=='snort':
             res['status'] = True

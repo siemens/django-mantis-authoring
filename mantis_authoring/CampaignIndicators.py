@@ -620,7 +620,7 @@ class stixTransformer:
                 # TODO: This below does not work, because the
                 # python-stix api does not support the Associated Campaigns for
                 # indicators.
-                
+
                 stix_indicator.associated_campaigns = indicator_assoc_campaigns
 
 
@@ -700,7 +700,7 @@ if __name__ == '__main__':
 
 
 
-class UploadFile(View):
+class UploadFile(AuthoringMethodMixin,View):
     """
     Handles an uploaded file. Tries to detect the type according to the content and returns the appropriate object (e.g. file-observable)
     """
@@ -714,14 +714,16 @@ class UploadFile(View):
 
         POST = self.request.POST
         post_dict = parser.parse(POST.urlencode())
-
+        ns_info = self.get_authoring_namespaces(self.request.user,fail_silently=False)
 
 
         # If our request contains a type and a filekey, the UI wants us to import a specific file with a specific module
         if post_dict.has_key('fid') and post_dict.has_key('type'):
             fid = post_dict.get('fid', '')
             ftype = post_dict.get('type', '')
-            
+
+
+
             # Get file properties from cache
             te = cache.get('MANTIS_AUTHORING__file__' + fid)
             
@@ -731,7 +733,6 @@ class UploadFile(View):
                 mods_dir = os.path.dirname(os.path.realpath(__file__))
                 mods = [x[:-3] for x in os.listdir(os.path.join(mods_dir, 'file_analysis')) if x.endswith(".py") and not x.startswith('__')]
                 proc_modules = []
-                print mods
                 for mod in mods:
                     im = importlib.import_module('mantis_authoring.file_analysis.' + mod)
                     ao = getattr(im,'file_analyzer')(te)
@@ -742,7 +743,7 @@ class UploadFile(View):
                     res['msg'] = 'Could not find suitable modules for the requested processing type.'
                 else:
                     mod = proc_modules[0]
-                    proc_res = mod.process()
+                    proc_res = mod.process(default_ns_slug=ns_info['default_ns_slug'])
                     if not proc_res:
                         pass
                     elif not proc_res['status']:
@@ -817,7 +818,7 @@ class UploadFile(View):
                         else:
                             # There is only one module. Use that and process the file
                             mod = mod_choices[0]
-                            proc_res = mod.process()
+                            proc_res = mod.process(default_ns_slug=ns_info['default_ns_slug'])
                             if not proc_res:
                                 pass
                             elif not proc_res['status']:
