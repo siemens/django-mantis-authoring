@@ -47,7 +47,7 @@ class file_analyzer(file_object):
         file_content = self.get_file_content()
 
         if ftype=='ioc':
-            if True: #try:
+            try:
                 xroot = etree.fromstring(file_content)
                 #xroot_string = etree.tostring(xroot, encoding='UTF-8', xml_declaration=False)
 
@@ -66,9 +66,9 @@ class file_analyzer(file_object):
                                                  'ioc_description': ''
                                              }
                              }]
-            #except Exception as e:
-            #    res['msg'] =  str(e)
-            #    pass
+            except Exception as e:
+                res['msg'] =  str(e)
+                pass
 
         elif ftype=='snort':
             res['status'] = True
