@@ -157,7 +157,6 @@ class FormView(BasicSTIXPackageTemplateView):
         object_type = forms.CharField(initial="Indicator", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Indicator", widget=forms.HiddenInput)
         I_icon =  forms.CharField(initial=static('img/stix/indicator.svg'), widget=forms.HiddenInput)
-        indicator_producer = forms.CharField(max_length=1024)
         indicator_title = forms.CharField(max_length=1024)
         indicator_description = forms.CharField(widget=forms.Textarea, required=False)
         indicator_confidence = forms.ChoiceField(choices=CONFIDENCE_TYPES, required=False, initial="med")
@@ -315,11 +314,15 @@ class stixTransformer:
             self.threatactor = tac
         elif threatactor.get('identity_name', '').strip() != '' and self.campaign:
             tac = ThreatActor()
+            tac_id = tac.id_
+            identity_id_format_string = tac_id.replace('threatactor','threatactor-id-%d')
             tac.timestamp = None
             related_identities = []
+            tac.identity = Identity(id_=identity_id_format_string % 0, idref=None, name=threatactor.get('identity_name', ''))
+            counter = 1
             for ia in threatactor.get('identity_aliases', '').split('\n'):
-                related_identities.append(Identity(None, None, ia.strip('\n').strip('\r').strip()))
-            tac.identity = Identity(None, None, threatactor.get('identity_name', ''))
+                related_identities.append(Identity(id_=identity_id_format_string % counter, idref=None, name=ia.strip('\n').strip('\r').strip()))
+                counter += 1
             tac.identity.related_identities = RelatedIdentities(related_identities)
             tac.title = String(threatactor.get('title', ''))
             tac.description = StixStructuredText(threatactor.get('description', ''))
