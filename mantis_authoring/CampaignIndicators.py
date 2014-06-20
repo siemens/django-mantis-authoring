@@ -541,12 +541,6 @@ class stixTransformer:
             obs.title = title
             obs.description = description
 
-
-
-
-
-            #print obs.object_.properties.__class__.__name__
-
             self.cybox_observable_list.append(obs)
 
         return self.cybox_observable_list
