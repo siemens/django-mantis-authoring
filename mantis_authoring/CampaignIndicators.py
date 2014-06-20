@@ -37,7 +37,7 @@ from django.views.generic.edit import FormView
 from django.http import HttpResponse
 
 import cybox.utils
-from cybox.core import Observable, Observables
+from cybox.core import Observable, Observables, Object
 from cybox.common import String, Time, ToolInformation, ToolInformationList
 
 import stix.utils
@@ -423,6 +423,7 @@ class stixTransformer:
             relations[obs['observable_id']] = obs['related_observables']
 
         for obs in observables:
+            print obs
             object_type = obs['observable_properties']['object_type']
             object_subtype = obs.get('object_subtype', 'Default')
 
@@ -486,30 +487,66 @@ class stixTransformer:
                 cybox_obs.description = obs.get('observable_description', '')
                 cybox_observable_dict[obs['observable_id']] = cybox_obs
 
+        # Actually, what we have called 'obs' ('Observable') above is not
+        # really an observable, but an ObjectProperties instance.
+        # We now go one step further and turn the ObjectProperties instance
+        # into an Object instance. We need to do this, because as Object,
+        # it also carries an identifier, and we need to set the
+        # identifier according to the identifier of what will become
+        # the surrounding observable. Otherwise, we have random auto-generated
+        # identifiers, and that is something we cannot have, because then
+        # repeated imports will lead to InfoObjects with always new identifiers
+        # rather than the overwriting of existing InfoObjects.
+
+
+        # Note that the processing of relations has to be carried out *after*
+        # the identifiers have been set correctly!!!
+
+        for obs_id, obs in cybox_observable_dict.iteritems():
+
+            obs = Object(obs)
+
+            obj_name = obs_id.replace("Observable",obs.properties.__class__.__name__)
+
+            obs.id_ = obj_name
+
 
         # Observables and relations are now processed. The only thing
         # left is to include the relation into the actual objects. The
         # cybox objects are packed into Observables. Title and
         # description of observables are read from the cybox object
         # where we put it before
+
+
         self.cybox_observable_list = []
         for obs_id, obs in cybox_observable_dict.iteritems():
+
             # Observable title and description were transported in our cybox object
             title = obs.title
             description = obs.description
+
+
             for rel_id, rel_type in relations[obs_id].iteritems():
                 related_object = cybox_observable_dict[rel_id]
                 if not related_object: # This might happen if an observable was not generated (because data was missing); TODO!                
                     continue
                 obs.add_related(related_object, rel_type, inline=False)
             if not obs_id.startswith('__'): # If this is not a generated object we keep the observable id!                                   
-		obs = Observable(obs, obs_id)
+                obs = Observable(obs, obs_id)
             else:
                 obs = Observable(obs)
+
                 self.old_observable_mapping[obs.id_] = translations[obs_id]
 
             obs.title = title
             obs.description = description
+
+
+
+
+
+            #print obs.object_.properties.__class__.__name__
+
             self.cybox_observable_list.append(obs)
 
         return self.cybox_observable_list
