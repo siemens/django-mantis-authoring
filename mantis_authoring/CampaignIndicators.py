@@ -19,6 +19,8 @@
 
 import os, datetime, tempfile, importlib, json, pytz
 
+from copy import deepcopy
+
 from lxml import etree
 from StringIO import StringIO
 from base64 import b64decode
@@ -226,7 +228,7 @@ class stixTransformer:
         # See if we have a passed JSON
         jsn = kwargs['jsn']
         if type(jsn) == dict:
-            self.jsn = jsn
+            self.jsn = deepcopy(jsn)
         else:
             try:
                 self.jsn = json.loads(jsn)
@@ -538,8 +540,10 @@ class stixTransformer:
 
                 self.old_observable_mapping[obs.id_] = translations[obs_id]
 
-            obs.title = title
-            obs.description = description
+            if title.strip():
+                obs.title = title
+            if description.strip():
+                obs.description = description
 
             self.cybox_observable_list.append(obs)
 
