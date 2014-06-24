@@ -17,10 +17,7 @@
 #
 
 
-import os, datetime, tempfile, importlib, json, pytz
-
-from copy import deepcopy
-
+import os, datetime, tempfile, importlib, json, pytz, copy
 from lxml import etree
 from StringIO import StringIO
 from base64 import b64decode
@@ -228,7 +225,7 @@ class stixTransformer:
         # See if we have a passed JSON
         jsn = kwargs['jsn']
         if type(jsn) == dict:
-            self.jsn = deepcopy(jsn)
+            self.jsn = copy.deepcopy(jsn)
         else:
             try:
                 self.jsn = json.loads(jsn)
@@ -292,10 +289,6 @@ class stixTransformer:
             camp.title = campaign.get('title','')
             camp.description = campaign.get('description', '')
             camp.confidence = Confidence(campaign.get('confidence', ''))
-            camp.handling = TLPMarkingStructure()
-            camp.handling.color = campaign.get('handling', '')
-            #camp.information_source = InformationSource()
-            #camp.information_source.description = campaign.get('information_source', '')
             camp.status = StixVocabString(campaign.get('status', ''))
             afrom = Activity()
             afrom.date_time = DateTimeWithPrecision(value=campaign.get('activity_timestamp_from', ''), precision="minute")

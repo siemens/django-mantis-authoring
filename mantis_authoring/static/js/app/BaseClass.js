@@ -1,4 +1,4 @@
-define(['jquery'],function($){
+define(['jquery', 'form2js'],function($, form2js){
 
     /* 
      * Return a javascript object literal with our base config of the
@@ -313,7 +313,7 @@ define(['jquery'],function($){
 		    btn
 		);
 	    });
-	    //$('#dda-stix-meta').after(import_jsn_btn);
+	    $('#dda-stix-meta').after(import_jsn_btn);
 	},
 
 	/**
@@ -740,12 +740,11 @@ define(['jquery'],function($){
 	 */
 	get_json: function(){
 	    var instance = this;
-
 	    // Generate package id if not already existing
 	    if($('#dda-stix-meta').find('input[name="stix_package_id"]').val()=='')
 		$('#dda-stix-meta').find('input[name="stix_package_id"]').val(instance.namespace_slug + ':package-' + guid_gen());
 	    var stix_base = {
-		'stix_header': $('#dda-stix-meta').find('input, select, textarea').serializeObject(),
+		'stix_header': form2js($('#dda-stix-meta').find('input, select, textarea').get(), undefined, false),
 		'campaign': {},
 		'incidents': [],
 		'indicators': [],
@@ -755,7 +754,7 @@ define(['jquery'],function($){
 
 	    // Include the indicators
 	    $.each(instance.indicator_registry, function(i,v){
-		var tmp = $('.dda-indicator-template', v.element).find('input, select, textarea').not('[name^="I_"]').serializeObject();
+		var tmp = form2js($('.dda-indicator-template', v.element).find('input, select, textarea').not('[name^="I_"]').get(), undefined, false);
 		tmp.related_observables = v.observables;
 		tmp.related_observables_condition = 'AND';
 		tmp.indicator_id = v.object_id;
@@ -770,16 +769,18 @@ define(['jquery'],function($){
 
 	    // Include the test mechanisms
 	    $.each(instance.test_mechanisms_registry, function(i,v){
-		var tmp = $('.dda-test-mechanism-template', v.element).find('input, select, textarea').not('[name^="I_"]').serializeObject();
+		var tmp = form2js($('.dda-test-mechanism-template', v.element).find('input, select, textarea').not('[name^="I_"]').get(), undefined, false);
 		tmp.test_mechanism_id = v.object_id;
 		stix_base.test_mechanisms.push(tmp);
 	    });
 
 	    // Include the campaing information
-	    stix_base.campaign = $('.dda-campaign-template', '#dda-campaign-container')
-		.find('input, select, textarea').not('[name^="I_"]').serializeObject();
-	    stix_base.campaign.threatactor = $('.dda-threatactor-template', '#dda-campaign-container')
-		.find('input, select, textarea').not('[name^="I_"]').serializeObject();
+	    stix_base.campaign = form2js(
+		$('.dda-campaign-template', '#dda-campaign-container').find('input, select, textarea').not('[name^="I_"]').get(), 
+		undefined, false);
+	    stix_base.campaign.threatactor = form2js(
+		$('.dda-threatactor-template', '#dda-campaign-container').find('input, select, textarea').not('[name^="I_"]').get(),
+		undefined, false);
 
 	    return stix_base
 	},
@@ -892,9 +893,13 @@ define(['jquery'],function($){
 	 */
 	load_remote_save: function(save_uuid){ 
 	    var instance = this;
-
 	    $.get('load', {name : save_uuid}, function(data){
 		if(data.status){
+// try {		    
+//     jsonlint.parse(data.data.jsn);
+// }catch (err){
+//     alert(err);
+// }
 		    var jsn_template = $.parseJSON(data.data.jsn);
 		    instance._last_save = jsn_template;
 		    instance.load_from_json(jsn_template, data.data.name, data.data.id);
