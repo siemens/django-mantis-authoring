@@ -17,7 +17,7 @@
 #
 
 
-import os, datetime, tempfile, importlib, json, pytz
+import os, datetime, tempfile, importlib, json, pytz, copy
 
 from lxml import etree
 from StringIO import StringIO
@@ -220,7 +220,7 @@ class stixTransformer:
         # See if we have a passed JSON
         jsn = kwargs['jsn']
         if type(jsn) == dict:
-            self.jsn = jsn
+            self.jsn = copy.deepcopy(jsn)
         else:
             try:
                 self.jsn = json.loads(jsn)
