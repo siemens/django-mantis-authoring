@@ -429,7 +429,8 @@ class stixTransformer:
                 if cybox_obs==None:
                     self.cybox_observable_references.append(obs['observable_id'])
                     continue
-            except:
+            except Exception as e:
+
                 continue
 
             if type(cybox_obs)==list: # We have multiple objects as result. We now need to create new ids and update the relations
@@ -714,15 +715,6 @@ class ProcessingView(BasicProcessingView):
     author_view = FORM_VIEW_NAME
     transformer = stixTransformer
     importer_class = STIX_Import
-
-if __name__ == '__main__':
-    fn = sys.argv[1]
-    with open(fn) as fp:
-        jsn = json.load(fp)
-
-    if jsn:
-        t = Transformer.stixTransformer(jsn=jsn)
-        print t.run()
 
 
 
