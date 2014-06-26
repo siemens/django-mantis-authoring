@@ -289,10 +289,11 @@ Main
 	    });
 	    return o;
 	};
+
+	// jQuery outer html
 	$.fn.outerHtml = function() {
 	    return $($('<div></div>').html(this.clone())).html();
 	}
-
 
 
 	/* 
@@ -314,6 +315,7 @@ Main
 		"d3": "../d3.min",
 		//"ace": "../ace" // ACE included via <script> tag, since ACE via require.js has a bug
 		"dust": "../dust-full.min",
+		"form2js": "../form2js"
 	    }
 	});
 	define('jquery', [], function() { return $; });
@@ -358,3 +360,6 @@ Main
 		});
     });
 }(django.jQuery)); // Reuse django injected jQuery library
+
+
+

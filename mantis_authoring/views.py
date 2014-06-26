@@ -222,8 +222,7 @@ class GetObjectName(BasicJSONView):
             res['data'] = name_cybox_obj(cybox_xml)
             res['status'] = True
         except Exception as e:
-            raise e
             res['msg'] = str(e)
-        
+
         return res
 

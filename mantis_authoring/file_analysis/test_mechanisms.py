@@ -17,7 +17,6 @@ class file_analyzer(file_object):
         # Try IOC
         try:
             xroot = etree.fromstring(file_content)
-            print xroot.tag.lower()
             # If the root looks like this, we are quite confident that this is a IOC file
             if xroot.tag.lower() == '{http://schemas.mandiant.com/2010/ioc}ioc':
                 return 'ioc'
