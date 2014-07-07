@@ -16,7 +16,8 @@ class TEMPLATE_Default(transformer_object):
         object_type = forms.CharField(initial="File", widget=forms.HiddenInput)
         object_subtype = forms.CharField(initial="Default", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="File", widget=forms.HiddenInput)
-        I_icon =  forms.CharField(initial=static('img/stix/observable.svg'), widget=forms.HiddenInput)
+        I_icon =  forms.CharField(initial=static('img/stix/observable.svg'), widget=forms.HiddenInput,
+                                  )
         file_name = forms.CharField(required=False,
                                     help_text= """Base name of the file (including an extension, if present).""")
         file_path = forms.CharField(required=False,
@@ -24,7 +25,7 @@ class TEMPLATE_Default(transformer_object):
                                                    not conflict with File_Name field!!!)""")
         file_size = forms.IntegerField(required=False)
 
-        md5 = forms.CharField(max_length=32) # required to identify observable later in list
+        md5 = forms.CharField(max_length=32, required=False)
         sha1 = forms.CharField(max_length=40, required=False)
         sha256 = forms.CharField(max_length=64, required=False)
 
@@ -42,7 +43,9 @@ class TEMPLATE_Default(transformer_object):
                         raise forms.ValidationError("File name in File_Path and File_Name must be equal!")
                 else:
                     # This does not have any effect, since the javascript app does not use
-                    # the cleaned data.
+                    # the cleaned data. In order for this to have effect, the JS app would
+                    # have to repopulate the fields from the cleaned data: either after each validation
+                    # or in bulk before submitting the JSON for save/import.
                     self.cleaned_data['file_name'] = name_from_path
 
             return self.cleaned_data
