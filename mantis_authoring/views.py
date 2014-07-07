@@ -143,14 +143,16 @@ class ValidateObject(FormView):
                 for (k,v) in errors.iteritems()
             )
 
-    def get_form_kwargs(self, data=None):
+    def get_form_kwargs(self, data=None,object_type=None,object_subtype=None):
         kwargs = super(ValidateObject, self).get_form_kwargs()
         if data:
             kwargs.update({'initial': data, 'data': data})
+        kwargs.update({'object_type':object_type,
+                      'object_subtype':object_subtype})
         return kwargs
 
     def post(self, request, *args, **kwargs):
-
+        print "Validation queried"
         POST = self.request.POST
         post_dict = parser.parse(POST.urlencode())
         observable_properties = post_dict.get('observable_properties', {})
@@ -160,19 +162,20 @@ class ValidateObject(FormView):
         object_type = observable_properties.get('object_type', None)
         object_subtype = observable_properties.get('object_subtype', 'Default')
 
-        try:
+        if True: #try:
             im = importlib.import_module('mantis_authoring.cybox_object_transformers.' + object_type.lower())
             template_obj = getattr(im,'TEMPLATE_%s' % object_subtype)()
 
             form_class = template_obj.ObjectForm
-            form = form_class(**self.get_form_kwargs(observable_properties))
-        except:
-            res = {
-                'status': False,
-                'msg': 'An error occured validating the object.',
-                'data': None
-            }
-            return HttpResponse(json.dumps(res), content_type='application/json', )
+            form = form_class(**self.get_form_kwargs(observable_properties,object_type=object_type,
+                                                     object_subtype=object_subtype))
+        #except:
+        #    res = {
+        #        'status': False,
+        #        'msg': 'An error occured validating the object.',
+        #        'data': None
+        #    }
+        #    return HttpResponse(json.dumps(res), content_type='application/json', )
 
         if form.is_valid():
             return self.form_valid(form)

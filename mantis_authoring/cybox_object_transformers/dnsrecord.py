@@ -1,23 +1,46 @@
-from .__object_base__ import *
+from .__object_base__ import transformer_object, ObjectFormTemplate
+
+from cybox.common import StructuredText, String
+from cybox.objects import dns_record_object, address_object
 
 from django import forms
 
 from django.templatetags.static import static
 
 class TEMPLATE_Default(transformer_object):
-    class ObjectForm(forms.Form):
-        object_type = forms.CharField(initial="DNSRecord", widget=forms.HiddenInput)
-        object_subtype = forms.CharField(initial="Default", widget=forms.HiddenInput)
-        I_object_display_name = forms.CharField(initial="DNS Record", widget=forms.HiddenInput)
-        I_icon =  forms.CharField(initial=static('img/stix/observable.svg'), widget=forms.HiddenInput)
-        domain_name = forms.CharField(max_length=1024) # required to identify observable later in list
-        ip_address = forms.CharField(max_length=15)
-        description = forms.CharField(widget=forms.Textarea, required=False)
+
+    display_name = "DNS Record"
+
+
+    # The fact_terms provided in  ``relevant_fact_term_list`` are
+    # used for searching for similar objects that are presented to the
+    # user upon request.
+
+    relevant_fact_term_list = ['Properties/IP_Address/Address_Value',
+                               'Properties/Domain_Name/Value',
+                               ]
+
+
+    class ObjectForm(ObjectFormTemplate):
+
+
+        domain_name = forms.CharField(max_length=1024,
+                                      help_text = "REQUIRED. The name of the domain to which the DNS cache entry points.",
+                                      required=True)
+        ip_address = forms.CharField(max_length=15,
+                                     help_text = "REQUIRED. The IP address to which the domain name in the DNS cache entry resolves to.",
+                                     required=True)
+
+        queried_date = forms.DateTimeField(help_text = "Enter date and time (UTC) in format YYYY-MM-DD HH:MM:SS",
+                                           required=False)
 
     def process_form(self, properties):
         cybox_dns_record = dns_record_object.DNSRecord()
-        cybox_dns_record.description = StructuredText(properties.get('description',''))
         cybox_dns_record.domain_name = self.create_cybox_uri_object(properties.get('domain_name', ''))
         cybox_dns_record.ip_address = address_object.Address(String(str(properties.get('ip_address',''))))
+        cybox_dns_record.ip_address.condition = 'Equals'
+        if properties.get('queried_date',None):
+            cybox_dns_record.queried_date = properties.get('queried_date',None)
+
         return cybox_dns_record
 

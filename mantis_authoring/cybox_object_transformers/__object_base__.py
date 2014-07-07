@@ -11,9 +11,32 @@ from django.db.models import Q
 from dingos.models import InfoObject2Fact, InfoObject, UserData, get_or_create_fact
 from dingos import DINGOS_INTERNAL_IOBJECT_FAMILY_NAME, DINGOS_TEMPLATE_FAMILY
 
+from django import forms
+
+from django.templatetags.static import static
+
+class ObjectFormTemplate(forms.Form):
+
+    def __init__(self,*args,**kwargs):
+        object_type = kwargs.pop('object_type')
+        object_subtype = kwargs.pop('object_subtype','Default')
+        display_name = kwargs.pop('display_name',None)
+        super(ObjectFormTemplate, self).__init__(*args, **kwargs)
+        self.fields['object_type'] = forms.CharField(initial=object_type, widget=forms.HiddenInput)
+        self.fields['object_subtype'] = forms.CharField(initial=object_subtype, widget=forms.HiddenInput)
+        if display_name:
+            self.fields['I_object_display_name'] = forms.CharField(initial=display_name, widget=forms.HiddenInput)
+        else:
+            self.fields['I_object_display_name'] = forms.CharField(initial="%s (%s)" % (object_type,object_subtype),
+                                                                   widget=forms.HiddenInput)
+
+    I_icon =  forms.CharField(initial=static('img/stix/observable.svg'), widget=forms.HiddenInput)
+    observable_id = forms.CharField(initial="", widget=forms.HiddenInput)
 
 
 class transformer_object(object):
+
+    display_name = "[MISSING DISPLAYNAME]"
     def __init__(self):
         pass
 

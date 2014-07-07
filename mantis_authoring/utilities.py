@@ -105,8 +105,8 @@ def find_similar_cybox_obj(cybox_obj,relevant_fact_term_list=None,limit=40):
 
     then the function will return the first 40 objects that contain the following facts::
 
-         Properties/Address_Value = 127.0.0.1
-         Properties/Address_Value@condition = Equals
+         Properties/Address_Value contains 127.0.0.1
+         Properties/Address_Value@condition contains Equals
 
     """
     if not relevant_fact_term_list:

@@ -1,11 +1,15 @@
 from .__object_base__ import *
 
+from .__object_base__ import transformer_object, ObjectFormTemplate
+
 from django import forms
 
 from django.templatetags.static import static
 
 class TEMPLATE_Default(transformer_object):
-    class ObjectForm(forms.Form):
+
+    display_name = "Port"
+    class ObjectForm(ObjectFormTemplate):
         object_type = forms.CharField(initial="Port", widget=forms.HiddenInput)
         object_subtype = forms.CharField(initial="Default", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Port", widget=forms.HiddenInput)

@@ -1,4 +1,6 @@
 from .__object_base__ import *
+
+from .__object_base__ import transformer_object, ObjectFormTemplate
 from django import forms
 from django.templatetags.static import static
 
@@ -75,11 +77,11 @@ class Base(transformer_object):
 
 
 class TEMPLATE_Default(Base):
-    class ObjectForm(forms.Form):
-        object_type = forms.CharField(initial="EmailMessage", widget=forms.HiddenInput)
-        object_subtype = forms.CharField(initial="Default", widget=forms.HiddenInput)
-        I_object_display_name = forms.CharField(initial="Email Message (Default)", widget=forms.HiddenInput)
-        I_icon =  forms.CharField(initial=static('img/stix/observable.svg'), widget=forms.HiddenInput)
+
+    display_name = "Email"
+
+    class ObjectForm(ObjectFormTemplate):
+
         from_ = forms.CharField(max_length=256, required=False)
         to = forms.CharField(widget=forms.Textarea(attrs={'placeholder':"Recipients line by line"}), required=False)
         subject = forms.CharField(max_length=1024) # required to identify observable later in list
@@ -109,11 +111,8 @@ class TEMPLATE_Default(Base):
 
 
 class DISABLED_TEMPLATE_Test(Base):
-    class ObjectForm(forms.Form):
-        object_type = forms.CharField(initial="EmailMessage", widget=forms.HiddenInput)
-        object_subtype = forms.CharField(initial="Test", widget=forms.HiddenInput)
-        I_object_display_name = forms.CharField(initial="Email Message (blah)", widget=forms.HiddenInput)
-        I_icon =  forms.CharField(initial=static('img/stix/observable.svg'), widget=forms.HiddenInput)
+    class ObjectForm(ObjectFormTemplate):
+
         from_ = forms.CharField(max_length=256, required=False)
         to = forms.CharField(widget=forms.Textarea(attrs={'placeholder':"Recipients line by line"}), required=False)
         subject = forms.CharField(max_length=1024) # required to identify observable later in list

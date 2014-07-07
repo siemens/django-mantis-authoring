@@ -33,11 +33,22 @@ class BasicSTIXPackageTemplateView(BasicTemplateView):
     title = 'Mantis Authoring'
 
     cybox_object_template_registry = CYBOX_OBJECT_TEMPLATE_REGISTRY
+    print cybox_object_template_registry
 
     @property
     def cybox_object_template_forms(self):
-        existing_templates= sorted(self.cybox_object_template_registry.items(),key=itemgetter(1))
-        return map(lambda x: x[1].ObjectForm, existing_templates)
+
+        existing_templates= sorted(self.cybox_object_template_registry.items(),key= lambda x: x[1].display_name)
+
+        forms = []
+
+        for template in existing_templates:
+            display_name = template[1].display_name
+            forms.append(template[1].ObjectForm(object_type=template[0][0],
+                                                object_subtype=template[0][1],
+                                                display_name=display_name))
+        return forms
+
 
         # See https://github.com/CybOXProject/schemas/wiki/Proposal:-Expand-CybOX-Object-Relationship-Vocabulary
     cybox_relations = [

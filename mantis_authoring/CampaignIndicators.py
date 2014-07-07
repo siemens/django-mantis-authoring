@@ -424,14 +424,15 @@ class stixTransformer:
 
             im = importlib.import_module('mantis_authoring.cybox_object_transformers.' + object_type.lower())
             template_obj = getattr(im,'TEMPLATE_%s' % object_subtype)()
-            try:
+            if True: #try:
                 cybox_obs = template_obj.process_form(obs['observable_properties'])
                 if cybox_obs==None:
                     self.cybox_observable_references.append(obs['observable_id'])
                     continue
-            except Exception as e:
-
-                continue
+            #except Exception as e:
+            #    raise e
+            #
+            #    continue
 
             if type(cybox_obs)==list: # We have multiple objects as result. We now need to create new ids and update the relations
                 old_id = obs['observable_id']
@@ -442,8 +443,8 @@ class stixTransformer:
                     # cybox object, but we use it to transport the
                     # information to the observable we are going to create
                     # later on
-                    no.title = obs.get('observable_title', '')
-                    no.description = obs.get('observable_description', '')
+                    no.mantis_title = obs.get('observable_title', '')
+                    no.mantis_description = obs.get('observable_description', '')
                     # New temporary ID
                     _tmp_id = '__' + str(uuid4())
                     cybox_observable_dict[_tmp_id] = no
@@ -479,8 +480,8 @@ class stixTransformer:
                 # cybox object, but we use it to transport the
                 # information to the observable we are going to create
                 # later on
-                cybox_obs.title = obs.get('observable_title', '')
-                cybox_obs.description = obs.get('observable_description', '')
+                cybox_obs.mantis_title = obs.get('observable_title', '')
+                cybox_obs.mantis_description = obs.get('observable_description', '')
                 cybox_observable_dict[obs['observable_id']] = cybox_obs
 
         # Actually, what we have called 'obs' ('Observable') above is not
@@ -518,8 +519,8 @@ class stixTransformer:
         for obs_id, obs in cybox_observable_dict.iteritems():
 
             # Observable title and description were transported in our cybox object
-            title = obs.title
-            description = obs.description
+            title = obs.mantis_title
+            description = obs.mantis_description
 
 
             for rel_id, rel_type in relations[obs_id].iteritems():

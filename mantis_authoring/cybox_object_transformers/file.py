@@ -1,5 +1,9 @@
 from .__object_base__ import *
 
+from .__object_base__ import transformer_object, ObjectFormTemplate
+
+
+
 import ntpath
 
 from django import forms
@@ -8,16 +12,14 @@ from django.templatetags.static import static
 
 class TEMPLATE_Default(transformer_object):
 
+    display_name = "File"
+
     relevant_fact_term_list = ['Properties/Hashes/Hash/Simple_Hash_Value',
                                'Properties/File_Name',
                                'Properties/File_Path']
 
-    class ObjectForm(forms.Form):
-        object_type = forms.CharField(initial="File", widget=forms.HiddenInput)
-        object_subtype = forms.CharField(initial="Default", widget=forms.HiddenInput)
-        I_object_display_name = forms.CharField(initial="File", widget=forms.HiddenInput)
-        I_icon =  forms.CharField(initial=static('img/stix/observable.svg'), widget=forms.HiddenInput,
-                                  )
+    class ObjectForm(ObjectFormTemplate):
+
         file_name = forms.CharField(required=False,
                                     help_text= """Base name of the file (including an extension, if present).""")
         file_path = forms.CharField(required=False,
