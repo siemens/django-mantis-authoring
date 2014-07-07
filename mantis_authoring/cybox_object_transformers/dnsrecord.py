@@ -7,7 +7,9 @@ from django import forms
 
 from django.templatetags.static import static
 
-class TEMPLATE_Default(transformer_object):
+class DISABLEDTEMPLATE_Default(transformer_object):
+
+    # Disabled -- need to clarify use cases for DNS Record first
 
     display_name = "DNS Record"
 
@@ -16,9 +18,8 @@ class TEMPLATE_Default(transformer_object):
     # used for searching for similar objects that are presented to the
     # user upon request.
 
-    relevant_fact_term_list = ['Properties/IP_Address/Address_Value',
-                               'Properties/Domain_Name/Value',
-                               ]
+    relevant_fact_term_list = []
+
 
 
     class ObjectForm(ObjectFormTemplate):

@@ -1,4 +1,8 @@
+import whois
+
 from .__object_base__ import *
+
+from cybox.objects import email_message_object
 
 from .__object_base__ import transformer_object, ObjectFormTemplate
 from django import forms
@@ -7,72 +11,27 @@ from django.templatetags.static import static
 
 
 class Base(transformer_object):
-    def create_cybox_domain_object(self, domain, ip=None):
-        new_domain_obj = {'URI': None, 'Whois': None, 'DNSQueryV4': None, 'DNSResultV4': None, 'ipv4': None, 'DNSQueryV6': None, 'DNSResultV6': None, 'ipv6': None}
-        domain_name_obj = self.__create_domain_name_object(domain)
-        if ip:
-            new_domain_obj['ipv4'] = ip
-        new_domain_obj['URI'] = domain_name_obj
-        return new_domain_obj
-
-    def reorder_domain_objects(self, domain_obj_map):
-        ordered_objs = [domain_obj_map['URI']]
-        if domain_obj_map['Whois']:
-            ordered_objs.append(domain_obj_map['Whois'])
-        if domain_obj_map['DNSQueryV4']:
-            ordered_objs.append(domain_obj_map['DNSQueryV4'])
-        if domain_obj_map['DNSResultV4']:
-            ordered_objs.append(domain_obj_map['DNSResultV4'])
-        if domain_obj_map['ipv4']:
-            ordered_objs.append(domain_obj_map['ipv4'])
-        if domain_obj_map['DNSQueryV6']:
-            ordered_objs.append(domain_obj_map['DNSQueryV6'])
-        if domain_obj_map['DNSResultV6']:
-            ordered_objs.append(domain_obj_map['DNSResultV6'])
-        if domain_obj_map['ipv6']:
-            ordered_objs.append(domain_obj_map['ipv6'])
-        return ordered_objs
-
-    def create_cybox_email_links(self, links):
-        unique_urls = set()
-        unique_domains = set()
-        for link in links:
-            unique_urls.add(link)
-            domain = whois.extract_domain(link)
-            unique_domains.add(domain)
-        domain_map = {}
-        domain_list = []
-        url_list = []
-        for domain in unique_domains:
-            domain_obj = self.create_cybox_domain_object(domain)
-            domain_list.extend(self.reorder_domain_objects(domain_obj))
-            domain_map[domain] = domain_obj['URI']
-        for url in unique_urls:
-            url_obj = self.create_cybox_uri_object(url)
-            if not url_obj:
-                continue
-            domain_obj = domain_map[whois.extract_domain(url)]
-            if domain_obj:
-                domain_obj.add_related(url_obj, 'Extracted_From', inline=False)
-                domain_obj.add_related(url_obj, 'FQDN_Of', inline=False)
-                url_obj.add_related(domain_obj, 'Contains', inline=False)
-            url_list.append(url_obj)
-        return url_list, domain_list
 
     def create_cybox_email_header_part(self, properties):
         cybox_email_header = email_message_object.EmailHeader()
         """ recipients """
-        recipient_list = email_message_object.EmailRecipients()
-        recipient_list.append(address_object.EmailAddress(properties['to']))
-        cybox_email_header.to = recipient_list
+        if properties['to'].strip():
+            recipient_list = email_message_object.EmailRecipients()
+            for recipient in properties['to'].splitlines(False):
+                recipient_list.append(address_object.EmailAddress(recipient.strip()))
+            cybox_email_header.to = recipient_list
         """ sender """
-        cybox_email_header.from_ = address_object.EmailAddress(properties['from_'])
+        if properties['from_'].strip():
+            cybox_email_header.from_ = address_object.EmailAddress(properties['from_'])
         """ subject """
-        cybox_email_header.subject = String(properties['subject'])
-        """ in reply to list """
-        cybox_email_header.in_reply_to = String(properties['in_reply_to'])
-        """ received date """
-        cybox_email_header.date = DateTime(properties['received_date'])
+        if properties['subject'].strip():
+            cybox_email_header.subject = String(properties['subject'])
+        """ in reply to """
+        if properties['in_reply_to'].strip():
+            cybox_email_header.in_reply_to = String(properties['in_reply_to'])
+        """ send date """
+        if properties['send_date']:
+            cybox_email_header.date = DateTime(properties['send_date'])
         return cybox_email_header
 
 
@@ -82,60 +41,60 @@ class TEMPLATE_Default(Base):
 
     class ObjectForm(ObjectFormTemplate):
 
-        from_ = forms.CharField(max_length=256, required=False)
-        to = forms.CharField(widget=forms.Textarea(attrs={'placeholder':"Recipients line by line"}), required=False)
-        subject = forms.CharField(max_length=1024) # required to identify observable later in list
-        in_reply_to = forms.CharField(max_length=1024, required=False)
-        received_date = forms.CharField(required=False)
-        raw_header = forms.CharField(widget=forms.Textarea, required=False)
-        raw_body = forms.CharField(widget=forms.Textarea, required=False)
-        links = forms.CharField(widget=forms.Textarea(attrs={'placeholder':'Links line by line'}), required=False)
+        from_ = forms.CharField(max_length=256,
+                                required=False,
+                                help_text="Email address of the sender of the email message.")
+        to = forms.CharField(widget=forms.Textarea(attrs={'placeholder':"Recipients line by line"}),
+                             required=False,
+                             help_text="Email addresses of the recipients of the email message.")
+        subject = forms.CharField(max_length=1024,
+                                  required=False,
+                                  help_text="Subject of email message.")
+        in_reply_to = forms.CharField(max_length=1024,
+                                      required=False,
+                                      help_text = "Message ID of the message that this email is a reply to." )
+        send_date = forms.DateTimeField(required=False,
+                                        help_text = "Date/time that the email message was sent.")
+        #raw_header = forms.CharField(widget=forms.Textarea,
+        #                             required=False)
+
+        #raw_body = forms.CharField(widget=forms.Textarea,
+        #                           required=False)
+        links = forms.CharField(widget=forms.Textarea(attrs={'placeholder':'Links line by line'}),
+                                required=False,
+                                help_text = "Relevant links contained in email message")
 
 
     def process_form(self, properties):
+        id_salt = properties['observable_id']
         cybox_email = email_message_object.EmailMessage()
-        if properties['raw_body']:
-            cybox_email.raw_body = String(properties['raw_body'])
-        if properties['raw_header']:
-            cybox_email.raw_header = String(properties['raw_header'])
+
+        # We leave away raw body and raw header, because
+        # our objective is mainly to enter indicators rather than
+        # a full description of an object.
+        #
+        #if properties['raw_body']:
+        #    cybox_email.raw_body = String(properties['raw_body'])
+        #if properties['raw_header']:
+        #    cybox_email.raw_header = String(properties['raw_header'])
         cybox_email.header = self.create_cybox_email_header_part(properties)
-        if len(properties['links'])>0:
-            url_list, domain_list = self.create_cybox_email_links(properties['links'])
-            if url_list:
-                email_links = email_message_object.Links()
-                for url in url_list:
-                    links.append(email_message_object.LinkReference(url.parent.id_))
-                if links:
-                    cybox_email.links = links
-        return cybox_email
+        link_objects = []
+        links = properties['links'].splitlines(False)
+        if len(links)>0:
+            for link in links:
+                if link.strip():
+                    id_base = self.create_hashed_id(id_salt,link.strip())
+                    uri_obj = self.create_cybox_uri_object(link.strip())
+                    link_objects.append((id_base,uri_obj))
 
+        if link_objects:
+            email_links = email_message_object.Links()
+            for (id_base,obj) in link_objects:
+                email_links.append(email_message_object.LinkReference("URI-%s" % id_base))
 
-class DISABLED_TEMPLATE_Test(Base):
-    class ObjectForm(ObjectFormTemplate):
+                cybox_email.links = email_links
 
-        from_ = forms.CharField(max_length=256, required=False)
-        to = forms.CharField(widget=forms.Textarea(attrs={'placeholder':"Recipients line by line"}), required=False)
-        subject = forms.CharField(max_length=1024) # required to identify observable later in list
-        in_reply_to = forms.CharField(max_length=1024, required=False)
-        received_date = forms.CharField(required=False)
-        raw_header = forms.CharField(widget=forms.Textarea, required=False)
-        raw_body = forms.CharField(widget=forms.Textarea, required=False)
-        links = forms.CharField(widget=forms.Textarea(attrs={'placeholder':'Links line by line'}), required=False)
-
-
-    def process_form(self, properties):
-        cybox_email = email_message_object.EmailMessage()
-        if properties['raw_body']:
-            cybox_email.raw_body = String(properties['raw_body'])
-        if properties['raw_header']:
-            cybox_email.raw_header = String(properties['raw_header'])
-        cybox_email.header = self.create_cybox_email_header_part(properties)
-        if len(properties['links'])>0:
-            url_list, domain_list = self.create_cybox_email_links(properties['links'])
-            if url_list:
-                email_links = email_message_object.Links()
-                for url in url_list:
-                    links.append(email_message_object.LinkReference(url.parent.id_))
-                if links:
-                    cybox_email.links = links
-        return cybox_email
+            # The user has specified
+            return (cybox_email,link_objects)
+        else:
+            return cybox_email

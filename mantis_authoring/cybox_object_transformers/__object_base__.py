@@ -1,4 +1,4 @@
-import cybox.objects, importlib, os
+import cybox.objects, importlib, os, hashlib
 from cybox.common import Hash, String, Time, ToolInformation, ToolInformationList, ObjectProperties, DateTime, StructuredText, AnyURI, PositiveInteger
 import cybox.utils
 
@@ -41,6 +41,11 @@ class transformer_object(object):
         pass
 
     relevant_fact_term_list = []
+
+
+    def create_hashed_id(self,salt,fact):
+        return "%s" % (hashlib.md5("%s-%s" % (salt,fact)).hexdigest())
+
     def get_relevant_fact_term_list(self):
         return self.relevant_fact_term_list or None
 

@@ -433,11 +433,30 @@ class stixTransformer:
             #
             #    continue
 
-            if type(cybox_obs)==list: # We have multiple objects as result. We now need to create new ids and update the relations
+            if isinstance(cybox_obs,list):
+
+                result_type = 'bulk'
+                main_obj = None
+                obj_list = cybox_obs
+
+            elif isinstance(cybox_obs,tuple):
+
+                result_type = 'obj_with_subobjects'
+                main_obj = cybox_obs[0]
+                obj_list = cybox_obs[1]
+
+            else:
+                result_type = 'single_obj'
+                main_obj = cybox_obs
+
+
+            if result_type == 'bulk' or result_type == 'obj_with_subobjects':
+
                 old_id = obs['observable_id']
                 new_ids = []
-                translations = {} # used to keep track of which new __ id was translated
-                for ((id_base,line),no) in cybox_obs:
+                #translations = {} # used to keep track of which new __ id was translated
+
+                for (id_base,no) in obj_list:
                     # Title and description don't have an effect on the
                     # cybox object, but we use it to transport the
                     # information to the observable we are going to create
@@ -446,43 +465,47 @@ class stixTransformer:
                     no.mantis_description = obs.get('observable_description', '')
                     # New ID
 
-                    _tmp_id =  "%s-%s" % ("Observable",hashlib.md5("%s-%s" % (id_base,line)).hexdigest())
+                    _tmp_id =  "%s-%s" % ("Observable",id_base)
+                    #_tmp_id =  "%s-%s" % ("Observable",hashlib.md5("%s-%s" % (id_base,line)).hexdigest())
                     cybox_observable_dict[_tmp_id] = no
                     new_ids.append(_tmp_id)
-                    translations[_tmp_id] = old_id
+                    #translations[_tmp_id] = old_id
 
                 # Now find references to the old observable_id and replace with relations to the new ids.
                 # Instead of manipulation the ids, we just generate a new array of relations
 
-                new_relations = {}
-                for obs_id, obs_rel in relations.iteritems():
-                    if obs_id==old_id: # our old object has relations to other objects
-                        for ni in new_ids: # for each new key ...
-                            new_relations[ni] = {}
-                            for ork, orv in obs_rel.iteritems(): # ... we insert the new relations
-                                if ork==old_id: # skip entries where we reference ourselfs
-                                    continue
-                                new_relations[ni][ork] = orv
-                    else: # our old object might be referenced by another one
-                        new_relations[obs_id] = {} #create old key
-                        #try to find relations to our old object...
-                        for ork, orv in obs_rel.iteritems():
-                            if ork==old_id: # Reference to our old key...
-                                for ni in new_ids: #..insert relation to each new key
-                                    new_relations[obs_id][ni] = orv
-                            else: #just insert. this has nothing to do with our old key
-                                new_relations[obs_id][ork] = orv
+                if result_type == 'bulk':
 
-                relations = new_relations
+                    new_relations = {}
+                    for obs_id, obs_rel in relations.iteritems():
+                        if obs_id==old_id: # our old object has relations to other objects
+                            for ni in new_ids: # for each new key ...
+                                new_relations[ni] = {}
+                                for ork, orv in obs_rel.iteritems(): # ... we insert the new relations
+                                    if ork==old_id: # skip entries where we reference ourselfs
+                                        continue
+                                    new_relations[ni][ork] = orv
+                        else: # our old object might be referenced by another one
+                            new_relations[obs_id] = {} #create old key
+                            #try to find relations to our old object...
+                            for ork, orv in obs_rel.iteritems():
+                                if ork==old_id: # Reference to our old key...
+                                    for ni in new_ids: #..insert relation to each new key
+                                        new_relations[obs_id][ni] = orv
+                                else: #just insert. this has nothing to do with our old key
+                                    new_relations[obs_id][ork] = orv
 
-            else: # only one object. No need to adjust relations or ids
+                    relations = new_relations
+
+            if result_type == 'single_obj' or result_type == 'obj_with_subobjects':
+                # only one object. No need to adjust relations or ids
                 # Title and description don't have an effect on the
                 # cybox object, but we use it to transport the
                 # information to the observable we are going to create
                 # later on
-                cybox_obs.mantis_title = obs.get('observable_title', '')
-                cybox_obs.mantis_description = obs.get('observable_description', '')
-                cybox_observable_dict[obs['observable_id']] = cybox_obs
+                main_obj.mantis_title = obs.get('observable_title', '')
+                main_obj.mantis_description = obs.get('observable_description', '')
+                cybox_observable_dict[obs['observable_id']] = main_obj
 
         # Actually, what we have called 'obs' ('Observable') above is not
         # really an observable, but an ObjectProperties instance.
@@ -502,9 +525,6 @@ class stixTransformer:
         for obs_id, obs in cybox_observable_dict.iteritems():
 
             obs = Object(obs)
-            print "Naming"
-            print obs.properties.__class__.__name__
-            print obs_id
 
             obj_name = obs_id.replace("Observable",obs.properties.__class__.__name__)
 
@@ -526,7 +546,7 @@ class stixTransformer:
             description = obs.mantis_description
 
 
-            for rel_id, rel_type in relations[obs_id].iteritems():
+            for rel_id, rel_type in relations.get(obs_id,{}).iteritems():
                 related_object = cybox_observable_dict[rel_id]
                 if not related_object: # This might happen if an observable was not generated (because data was missing); TODO!                
                     continue

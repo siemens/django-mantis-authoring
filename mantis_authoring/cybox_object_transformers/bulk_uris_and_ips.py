@@ -19,7 +19,7 @@ class TEMPLATE_Default(transformer_object):
         
         return_objects = []
 
-        id_base = properties['observable_id']
+        pseudo_id = properties['observable_id']
 
         for ln in properties['data'].splitlines(False):
             ln = ln.strip()
@@ -29,15 +29,17 @@ class TEMPLATE_Default(transformer_object):
                 is_ip=True
             except:
                 pass
-        
+
+            id_base = self.create_hashed_id(pseudo_id,ln)
             if is_ip:
                 ao = address_object.Address()
                 ao.address_value = ln
-                return_objects.append(((id_base,ln),ao))
+
+                return_objects.append((id_base,ao))
             else:
                 do = self.create_cybox_uri_object(ln) #dns_record_object.DNSRecord()
                 #do.domain_name = ln
-                return_objects.append(((id_base,ln),do))
+                return_objects.append((id_base,do))
 
         return return_objects
         

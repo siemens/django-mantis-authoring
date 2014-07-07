@@ -31,7 +31,7 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 
 	    $.each(instance.obs_pool_elements_templates, function(i,v){
 		// Skip the reference object
-		if($(v).attr('id')=='dda-observable-template_ReferenceObject_Default') return true;
+		if($(v).attr('id')=='dda-observable-template_referenceobject_Default') return true;
 
 		var tpl = {
 		    icon: $(v).find('#id_I_icon').val(),
@@ -159,7 +159,7 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 	 */
 	obs_pool_add_ref: function(guid_passed, replacement){
 	    var instance = this,
-	        template_id = 'dda-observable-template_ReferenceObject_Default';
+	        template_id = 'dda-observable-template_referenceobject_Default';
 
 	    instance.obs_pool_add_elem(template_id, guid_passed, true, true);
 	    instance.obs_pool_remove_elem(replacement, guid_passed);
