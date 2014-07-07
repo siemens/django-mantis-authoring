@@ -12,9 +12,9 @@ class TEMPLATE_Default(transformer_object):
     class ObjectForm(ObjectFormTemplate):
 
         URI_TYPES = (
-            ('TYPE_URL', 'URL'),
-            ('TYPE_GENERAL', 'General URN'),
-            ('TYPE_DOMAIN', 'Domain Name')
+            ('URL', 'URL'),
+            ('General URN', 'General URN'),
+            ('Domain Name', 'Domain Name')
         )
 
         type_ = forms.ChoiceField(choices=URI_TYPES, required=False, initial="TYPE_URL")

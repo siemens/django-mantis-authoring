@@ -17,7 +17,7 @@
 #
 
 
-import os, datetime, tempfile, importlib, json, pytz, copy
+import os, datetime, tempfile, importlib, json, pytz, copy, hashlib
 from lxml import etree
 from StringIO import StringIO
 from base64 import b64decode
@@ -418,7 +418,6 @@ class stixTransformer:
             relations[obs['observable_id']] = obs['related_observables']
 
         for obs in observables:
-            print obs
             object_type = obs['observable_properties']['object_type']
             object_subtype = obs.get('object_subtype', 'Default')
 
@@ -438,15 +437,16 @@ class stixTransformer:
                 old_id = obs['observable_id']
                 new_ids = []
                 translations = {} # used to keep track of which new __ id was translated
-                for no in cybox_obs:
+                for ((id_base,line),no) in cybox_obs:
                     # Title and description don't have an effect on the
                     # cybox object, but we use it to transport the
                     # information to the observable we are going to create
                     # later on
                     no.mantis_title = obs.get('observable_title', '')
                     no.mantis_description = obs.get('observable_description', '')
-                    # New temporary ID
-                    _tmp_id = '__' + str(uuid4())
+                    # New ID
+
+                    _tmp_id =  "%s-%s" % ("Observable",hashlib.md5("%s-%s" % (id_base,line)).hexdigest())
                     cybox_observable_dict[_tmp_id] = no
                     new_ids.append(_tmp_id)
                     translations[_tmp_id] = old_id
@@ -502,6 +502,9 @@ class stixTransformer:
         for obs_id, obs in cybox_observable_dict.iteritems():
 
             obs = Object(obs)
+            print "Naming"
+            print obs.properties.__class__.__name__
+            print obs_id
 
             obj_name = obs_id.replace("Observable",obs.properties.__class__.__name__)
 
