@@ -1,8 +1,12 @@
-from .__object_base__ import *
+
 
 from .__object_base__ import transformer_object, ObjectFormTemplate
 
 from django import forms
+
+from cybox.objects import win_service_object
+
+from cybox.common import String
 
 from django.templatetags.static import static
 
@@ -12,18 +16,27 @@ class TEMPLATE_Default(transformer_object):
 
     class ObjectForm(ObjectFormTemplate):
 
-        display_name = forms.CharField(max_length=1024, required=True)
-        service_name = forms.CharField(max_length=1024, required=False)
-        service_dll = forms.CharField(max_length=1024, required=False)
-        startup_command_line = forms.CharField(max_length=1024, required=False)
-        service_description = forms.CharField(widget=forms.Textarea, required=False)
+        display_name = forms.CharField(max_length=1024,
+                                       required=False,
+                                       help_text = "The displayed name of the service in Windows GUI controls. See also: http://msdn.microsoft.com/en-us/library/windows/desktop/ms683228(v=vs.85).aspx.")
+        service_name = forms.CharField(max_length=1024,
+                                       required=False,
+                                       help_text=" The name of the service. See also: http://msdn.microsoft.com/en-us/library/windows/desktop/ms683229(v=vs.85).aspx.")
+        service_dll = forms.CharField(max_length=1024,
+                                      required=False,
+                                      help_text = "The name of the DLL instantiated in the service.")
+        startup_command_line = forms.CharField(max_length=1024,
+                                               required=False,
+                                               help_text = "The full command line used to start the service.")
 
-    def process_form(self, properties,id_base):
+    def process_form(self, properties,id_base=None,namespace_tag=None):
         service_object = win_service_object.WinService()
-        service_object.display_name = String(str(properties.get('display_name','')))
-        service_object.service_dll = String(str(properties.get('service_dll','')))
-        service_object.startup_command_line = String(str(properties.get('startup_command_line','')))
-        desc_list = win_service_object.ServiceDescriptionList(str(properties.get('service_description',''),))
-        service_object.description_list = desc_list
+        if properties['display_name'].strip():
+            service_object.display_name = String(str(properties.get('display_name','')))
+        if properties['service_dll'].strip():
+            service_object.service_dll = String(str(properties.get('service_dll','')))
+        if properties['startup_command_line'].strip():
+            service_object.startup_command_line = String(str(properties.get('startup_command_line','')))
+
         return service_object
 

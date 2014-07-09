@@ -1,4 +1,4 @@
-from .__object_base__ import *
+
 
 from .__object_base__ import transformer_object, ObjectFormTemplate
 

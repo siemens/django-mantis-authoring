@@ -429,8 +429,8 @@ class stixTransformer:
             namespace_tag = properties_obj['observable_id'].split(':')[0]
 
             if True: #try:
-                cybox_properties_obj = template_obj.process_form(properties_obj['observable_properties'],id_base,namespace_tag)
-                if cybox_properties_obj==None:
+                transform_result = template_obj.process_form(properties_obj['observable_properties'],id_base,namespace_tag)
+                if transform_result==None:
                     self.cybox_observable_references.append(properties_obj['observable_id'])
                     continue
             #except Exception as e:
@@ -438,22 +438,16 @@ class stixTransformer:
             #
             #    continue
 
-            if isinstance(cybox_properties_obj,list):
+            if isinstance(transform_result,dict):
 
-                result_type = 'bulk'
-                main_properties_obj = None
-                properties_obj_list = cybox_properties_obj
-
-            elif isinstance(cybox_properties_obj,tuple):
-
-                result_type = 'obj_with_subobjects'
-                main_properties_obj = cybox_properties_obj[0]
-                properties_obj_list = cybox_properties_obj[1]
+                result_type = transform_result['type']
+                main_properties_obj = transform_result['main_obj_properties_instance']
+                properties_obj_list = transform_result['obj_properties_instances']
 
             else:
                 result_type = 'single_obj'
-                main_properties_obj = cybox_properties_obj
-
+                main_properties_obj = transform_result
+                properties_obj_list = []
 
             if result_type == 'bulk' or result_type == 'obj_with_subobjects':
 

@@ -1,4 +1,3 @@
-import whois
 
 
 from cybox.objects import email_message_object, address_object
@@ -7,8 +6,6 @@ from cybox.common import String
 
 from .__object_base__ import transformer_object, ObjectFormTemplate
 from django import forms
-from django.templatetags.static import static
-
 
 
 class Base(transformer_object):
@@ -61,7 +58,7 @@ class TEMPLATE_Default(Base):
         send_date = forms.DateTimeField(required=False,
                                         help_text = "Date/time that the email message was sent.")
 
-        links = forms.CharField(widget=forms.Textarea(attrs={'placeholder':'Links line by line'}),
+        links = forms.CharField(widget=forms.Textarea(attrs={'placeholder':'URLs line by line'}),
                                 required=False,
                                 help_text = "Paste here URLs contained in email message; for each URL, a"
                                             " URI object will be generated and associated as 'Link' with the"
@@ -115,6 +112,7 @@ class TEMPLATE_Default(Base):
                 cybox_email.links = email_links
 
             # The user has specified
-            return (cybox_email,link_objects)
-        else:
-            return cybox_email
+
+        return {'type': 'obj_with_subobjects',
+                'main_obj_properties_instance': cybox_email,
+                'obj_properties_instances' : link_objects }

@@ -1,4 +1,6 @@
-from .__object_base__ import *
+from cybox.objects import file_object
+
+from cybox.common import Hash, String
 
 from .__object_base__ import transformer_object, ObjectFormTemplate
 

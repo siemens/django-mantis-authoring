@@ -4,7 +4,7 @@ from django import forms
 
 from django.templatetags.static import static
 
-from cybox.objects import address_object, dns_record_object
+from cybox.objects import address_object
 
 class TEMPLATE_Default(transformer_object):
 
@@ -12,7 +12,7 @@ class TEMPLATE_Default(transformer_object):
     class ObjectForm(ObjectFormTemplate):
         _multi = forms.CharField(initial=static('true'), widget=forms.HiddenInput)
 
-        data = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'Copy & Paste your Command and Control Domains/IPs here line by line.'}), required=False)
+        data = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'Copy & Paste a list of URLs/Domains/IPs here line by line.'}), required=False)
 
     def process_form(self, properties,id_base=None,namespace_tag=None):
         import socket
@@ -44,11 +44,11 @@ class TEMPLATE_Default(transformer_object):
                 return_objects.append((obj_id_base,ao))
                 #return_objects.append(("%s:Address-%s" % (namespace_tag,obj_id_base),ao))
             else:
-                print "%s:URI-%s" % (namespace_tag,obj_id_base)
-                do = self.create_cybox_uri_object(ln) #dns_record_object.DNSRecord()
-                #do.domain_name = ln
-                return_objects.append((obj_id_base,do))
-                #return_objects.append(("%s:URI-%s" % (namespace_tag,obj_id_base),do))
 
-        return return_objects
+                do = self.create_cybox_uri_object(ln) #dns_record_object.DNSRecord()
+                return_objects.append((obj_id_base,do))
+
+        return {'type': 'bulk',
+                'main_obj_properties_instance': None,
+                'obj_properties_instances' : return_objects }
         

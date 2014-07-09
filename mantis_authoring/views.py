@@ -221,16 +221,23 @@ class GetObjectName(BasicJSONView):
         try:
             im = importlib.import_module('mantis_authoring.cybox_object_transformers.' + object_type)
             template_obj = getattr(im,'TEMPLATE_%s' % object_subtype)()
-            process_result = template_obj.process_form(object_element)
-            if isinstance(process_result,list):
+            transform_result = template_obj.process_form(object_element,'dummy','dummy')
+            if isinstance(transform_result,dict):
+                result_type = transform_result['type']
+                main_properties_obj = transform_result['main_obj_properties_instance']
+                properties_obj_list = transform_result['obj_properties_instances']
                 res['status'] = True
-                if len(process_result) > 0:
-                    ((id,line),obs) = process_result[0]
-                    res['data'] = 'Bulk: %s ...' % line
+                if main_properties_obj:
+                    cybox_xml = main_properties_obj.to_xml()
+                    res['data'] = name_cybox_obj(cybox_xml)
+                    res['status'] = True
+                elif len(properties_obj_list) > 0:
+                        (id,properties_obj) = properties_obj_list[0]
+                        res['data'] = 'Bulk: %s ...' % name_cybox_obj(properties_obj.to_xml())
                 else:
                     res['data'] = 'Empty Bulk Object'
             else:
-                cybox_xml = process_result.to_xml()
+                cybox_xml = transform_result.to_xml()
                 res['data'] = name_cybox_obj(cybox_xml)
                 res['status'] = True
         except Exception as e:
