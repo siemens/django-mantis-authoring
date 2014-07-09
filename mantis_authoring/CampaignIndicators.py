@@ -404,76 +404,76 @@ class stixTransformer:
         Processes the observables JSON part and produces a list of observables.
         """
         try:
-            observables = self.jsn['observables']
+            observable_definitions = self.jsn['observables']
         except:
             print "Error. No observables passed."
             return
 
-        cybox_observable_dict = {}
+        cybox_object_dict = {}
         relations = {}
 
 
         # First collect all object relations.
-        for obs in observables:
-            relations[obs['observable_id']] = obs['related_observables']
+        for properties_obj in observable_definitions:
+            relations[properties_obj['observable_id']] = properties_obj['related_observables']
 
-        for obs in observables:
-            object_type = obs['observable_properties']['object_type']
-            object_subtype = obs.get('object_subtype', 'Default')
+        for properties_obj in observable_definitions:
+            object_type = properties_obj['observable_properties']['object_type']
+            object_subtype = properties_obj.get('object_subtype', 'Default')
 
             im = importlib.import_module('mantis_authoring.cybox_object_transformers.' + object_type.lower())
             template_obj = getattr(im,'TEMPLATE_%s' % object_subtype)()
 
-            id_base = obs['observable_id'].split(':')[1].replace('Observable-','')
+            id_base = properties_obj['observable_id'].split(':')[1].replace('Observable-','')
 
-            namespace_tag = obs['observable_id'].split(':')[0]
+            namespace_tag = properties_obj['observable_id'].split(':')[0]
 
             if True: #try:
-                cybox_obs = template_obj.process_form(obs['observable_properties'],id_base,namespace_tag)
-                if cybox_obs==None:
-                    self.cybox_observable_references.append(obs['observable_id'])
+                cybox_properties_obj = template_obj.process_form(properties_obj['observable_properties'],id_base,namespace_tag)
+                if cybox_properties_obj==None:
+                    self.cybox_observable_references.append(properties_obj['observable_id'])
                     continue
             #except Exception as e:
             #    raise e
             #
             #    continue
 
-            if isinstance(cybox_obs,list):
+            if isinstance(cybox_properties_obj,list):
 
                 result_type = 'bulk'
-                main_obj = None
-                obj_list = cybox_obs
+                main_properties_obj = None
+                properties_obj_list = cybox_properties_obj
 
-            elif isinstance(cybox_obs,tuple):
+            elif isinstance(cybox_properties_obj,tuple):
 
                 result_type = 'obj_with_subobjects'
-                main_obj = cybox_obs[0]
-                obj_list = cybox_obs[1]
+                main_properties_obj = cybox_properties_obj[0]
+                properties_obj_list = cybox_properties_obj[1]
 
             else:
                 result_type = 'single_obj'
-                main_obj = cybox_obs
+                main_properties_obj = cybox_properties_obj
 
 
             if result_type == 'bulk' or result_type == 'obj_with_subobjects':
 
-                old_id = obs['observable_id']
+                old_id = properties_obj['observable_id']
                 new_ids = []
                 #translations = {} # used to keep track of which new __ id was translated
 
-                for (id_base,no) in obj_list:
+                for (id_base,no) in properties_obj_list:
                     # Title and description don't have an effect on the
                     # cybox object, but we use it to transport the
                     # information to the observable we are going to create
                     # later
-                    no.mantis_title = obs.get('observable_title', '')
-                    no.mantis_description = obs.get('observable_description', '')
+                    no.mantis_title = properties_obj.get('observable_title', '')
+                    no.mantis_description = properties_obj.get('observable_description', '')
                     # New ID
 
                     _tmp_id =  "%s:Observable-%s" % (namespace_tag,id_base)
 
                     #_tmp_id =  "%s-%s" % ("Observable",hashlib.md5("%s-%s" % (id_base,line)).hexdigest())
-                    cybox_observable_dict[_tmp_id] = no
+                    cybox_object_dict[_tmp_id] = no
                     new_ids.append(_tmp_id)
                     #translations[_tmp_id] = old_id
 
@@ -509,9 +509,9 @@ class stixTransformer:
                 # cybox object, but we use it to transport the
                 # information to the observable we are going to create
                 # later on
-                main_obj.mantis_title = obs.get('observable_title', '')
-                main_obj.mantis_description = obs.get('observable_description', '')
-                cybox_observable_dict[obs['observable_id']] = main_obj
+                main_properties_obj.mantis_title = properties_obj.get('observable_title', '')
+                main_properties_obj.mantis_description = properties_obj.get('observable_description', '')
+                cybox_object_dict[properties_obj['observable_id']] = main_properties_obj
 
         # Actually, what we have called 'obs' ('Observable') above is not
         # really an observable, but an ObjectProperties instance.
@@ -528,13 +528,12 @@ class stixTransformer:
         # Note that the processing of relations has to be carried out *after*
         # the identifiers have been set correctly!!!
 
-        for obs_id, obs in cybox_observable_dict.iteritems():
+        for obs_id in cybox_object_dict.keys():
+
+            cybox_object_dict[obs_id] = Object(cybox_object_dict[obs_id])
 
 
-            obs = Object(obs)
-
-
-            obs.id_ = obs_id.replace("Observable",obs.properties.__class__.__name__)
+            cybox_object_dict[obs_id].id_ = obs_id.replace("Observable",cybox_object_dict[obs_id].properties.__class__.__name__)
 
 
         # Observables and relations are now processed. The only thing
@@ -545,54 +544,30 @@ class stixTransformer:
 
 
         self.cybox_observable_list = []
-        for obs_id, obs in cybox_observable_dict.iteritems():
+        for obs_id, cybox_obj in cybox_object_dict.iteritems():
 
             # Observable title and description were transported in our cybox object
-            title = obs.mantis_title
-            description = obs.mantis_description
+            title = cybox_obj.properties.mantis_title
+            description = cybox_obj.properties.mantis_description
 
 
             for rel_id, rel_type in relations.get(obs_id,{}).iteritems():
-                related_object = cybox_observable_dict[rel_id]
+                related_object = cybox_object_dict[rel_id].properties
                 if not related_object: # This might happen if an observable was not generated (because data was missing); TODO!                
                     continue
-                obs.add_related(related_object, rel_type, inline=False)
-            if not obs_id.startswith('__'): # If this is not a generated object we keep the observable id!                                   
-                obs = Observable(obs, obs_id)
-            else:
-                obs = Observable(obs)
+                cybox_obj.add_related(related_object, rel_type, inline=False)
 
-                self.old_observable_mapping[obs.id_] = translations[obs_id]
+            cybox_obs = Observable(cybox_obj, obs_id)
 
             if title.strip():
-                obs.title = title
+                cybox_obs.title = title
             if description.strip():
-                obs.description = description
+                cybox_obs.description = description
 
-            self.cybox_observable_list.append(obs)
+            self.cybox_observable_list.append(cybox_obs)
 
         return self.cybox_observable_list
 
-
-        # Observables and relations are now processed. The only
-        # thing left is to include the relation into the actual
-        # objects.
-        self.cybox_observable_list = []
-        for obs_id, obs in cybox_observable_dict.iteritems():
-            for rel_id, rel_type in relations[obs_id].iteritems():
-                related_object = cybox_observable_dict[rel_id]
-                if not related_object: # This might happen if a observable was not generated(because data was missing); TODO!
-                    continue
-                obs.add_related(related_object, rel_type, inline=False)
-            if not obs_id.startswith('__'): # If this is not a generated object we keep the observable id!
-		obs = Observable(obs, obs_id)
-            else:
-                obs = Observable(obs)
-                self.old_observable_mapping[obs.id_] = translations[obs_id]
-
-            self.cybox_observable_list.append(obs)
-
-	return self.cybox_observable_list
 
 
 
