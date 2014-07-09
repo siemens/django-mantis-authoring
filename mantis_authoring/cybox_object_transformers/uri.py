@@ -21,5 +21,5 @@ class TEMPLATE_Default(transformer_object):
         value = forms.CharField(max_length=2048)
 
 
-    def process_form(self, properties):
+    def process_form(self, properties,id_base=None,namespace_tag=None):
         return self.create_cybox_uri_object(properties['value'], properties['type_'])

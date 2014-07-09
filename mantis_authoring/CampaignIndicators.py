@@ -423,8 +423,13 @@ class stixTransformer:
 
             im = importlib.import_module('mantis_authoring.cybox_object_transformers.' + object_type.lower())
             template_obj = getattr(im,'TEMPLATE_%s' % object_subtype)()
+
+            id_base = obs['observable_id'].split(':')[1].replace('Observable-','')
+
+            namespace_tag = obs['observable_id'].split(':')[0]
+
             if True: #try:
-                cybox_obs = template_obj.process_form(obs['observable_properties'])
+                cybox_obs = template_obj.process_form(obs['observable_properties'],id_base,namespace_tag)
                 if cybox_obs==None:
                     self.cybox_observable_references.append(obs['observable_id'])
                     continue
@@ -460,12 +465,13 @@ class stixTransformer:
                     # Title and description don't have an effect on the
                     # cybox object, but we use it to transport the
                     # information to the observable we are going to create
-                    # later on
+                    # later
                     no.mantis_title = obs.get('observable_title', '')
                     no.mantis_description = obs.get('observable_description', '')
                     # New ID
 
-                    _tmp_id =  "%s-%s" % ("Observable",id_base)
+                    _tmp_id =  "%s:Observable-%s" % (namespace_tag,id_base)
+
                     #_tmp_id =  "%s-%s" % ("Observable",hashlib.md5("%s-%s" % (id_base,line)).hexdigest())
                     cybox_observable_dict[_tmp_id] = no
                     new_ids.append(_tmp_id)
@@ -524,11 +530,11 @@ class stixTransformer:
 
         for obs_id, obs in cybox_observable_dict.iteritems():
 
+
             obs = Object(obs)
 
-            obj_name = obs_id.replace("Observable",obs.properties.__class__.__name__)
 
-            obs.id_ = obj_name
+            obs.id_ = obs_id.replace("Observable",obs.properties.__class__.__name__)
 
 
         # Observables and relations are now processed. The only thing

@@ -14,7 +14,7 @@ class TEMPLATE_Default(transformer_object):
     class ObjectForm(ObjectFormTemplate):
         object_id =  forms.CharField(initial='', widget=forms.HiddenInput)
 
-    def process_form(self, properties):
+    def process_form(self, properties,id_base=None,namespace_tag=None):
         pass
 
 

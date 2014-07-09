@@ -18,7 +18,7 @@ class TEMPLATE_Default(transformer_object):
         startup_command_line = forms.CharField(max_length=1024, required=False)
         service_description = forms.CharField(widget=forms.Textarea, required=False)
 
-    def process_form(self, properties):
+    def process_form(self, properties,id_base):
         service_object = win_service_object.WinService()
         service_object.display_name = String(str(properties.get('display_name','')))
         service_object.service_dll = String(str(properties.get('service_dll','')))

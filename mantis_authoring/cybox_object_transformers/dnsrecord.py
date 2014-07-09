@@ -35,7 +35,7 @@ class DISABLEDTEMPLATE_Default(transformer_object):
         queried_date = forms.DateTimeField(help_text = "Enter date and time (UTC) in format YYYY-MM-DD HH:MM:SS",
                                            required=False)
 
-    def process_form(self, properties):
+    def process_form(self, properties,id_base=None,namespace_tag=None):
         cybox_dns_record = dns_record_object.DNSRecord()
         cybox_dns_record.domain_name = self.create_cybox_uri_object(properties.get('domain_name', ''))
         cybox_dns_record.ip_address = address_object.Address(String(str(properties.get('ip_address',''))))

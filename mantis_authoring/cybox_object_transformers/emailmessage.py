@@ -1,8 +1,9 @@
 import whois
 
-from .__object_base__ import *
 
-from cybox.objects import email_message_object
+from cybox.objects import email_message_object, address_object
+
+from cybox.common import String
 
 from .__object_base__ import transformer_object, ObjectFormTemplate
 from django import forms
@@ -11,6 +12,9 @@ from django.templatetags.static import static
 
 
 class Base(transformer_object):
+    # We factor out helper functions that might be used
+    # by serveral variants (at time of writing, there
+    # is only the 'Default' variant.
 
     def create_cybox_email_header_part(self, properties):
         cybox_email_header = email_message_object.EmailHeader()
@@ -35,6 +39,7 @@ class Base(transformer_object):
         return cybox_email_header
 
 
+
 class TEMPLATE_Default(Base):
 
     display_name = "Email"
@@ -55,42 +60,57 @@ class TEMPLATE_Default(Base):
                                       help_text = "Message ID of the message that this email is a reply to." )
         send_date = forms.DateTimeField(required=False,
                                         help_text = "Date/time that the email message was sent.")
-        #raw_header = forms.CharField(widget=forms.Textarea,
-        #                             required=False)
 
-        #raw_body = forms.CharField(widget=forms.Textarea,
-        #                           required=False)
         links = forms.CharField(widget=forms.Textarea(attrs={'placeholder':'Links line by line'}),
                                 required=False,
-                                help_text = "Relevant links contained in email message")
+                                help_text = "Paste here URLs contained in email message; for each URL, a"
+                                            " URI object will be generated and associated as 'Link' with the"
+                                            " created email message object. Alternatively, create a URI object"
+                                            " in the observable pool and relate it to this EmailMessage using"
+                                            " the 'contained_in' relation. The latter is preferable if you may"
+                                            " want to also relate the URI with other objects, as well.")
 
 
-    def process_form(self, properties):
-        id_salt = properties['observable_id']
+
+    def process_form(self, properties,id_base=None,namespace_tag=None):
+
+        print properties
+
+        # Create the object
+
         cybox_email = email_message_object.EmailMessage()
 
-        # We leave away raw body and raw header, because
-        # our objective is mainly to enter indicators rather than
-        # a full description of an object.
-        #
-        #if properties['raw_body']:
-        #    cybox_email.raw_body = String(properties['raw_body'])
-        #if properties['raw_header']:
-        #    cybox_email.raw_header = String(properties['raw_header'])
+        # Fill in header information from user input
         cybox_email.header = self.create_cybox_email_header_part(properties)
+
+        # See whether there are URI objects to be created
+
         link_objects = []
         links = properties['links'].splitlines(False)
         if len(links)>0:
+            # We need to generate identifiers for the URI objects. We
+            # do this by using the 'create_derived_id' function that
+            # is contained in the 'transformer_object' class.
+
+            counter = 0
             for link in links:
+
                 if link.strip():
-                    id_base = self.create_hashed_id(id_salt,link.strip())
+                    obj_id_base = self.create_derived_id(id_base,
+                                                     fact=link.strip(),
+                                                     counter=counter
+
+                    )
+                    counter +=1
+
                     uri_obj = self.create_cybox_uri_object(link.strip())
-                    link_objects.append((id_base,uri_obj))
+                    link_objects.append((obj_id_base,uri_obj))
 
         if link_objects:
+
             email_links = email_message_object.Links()
             for (id_base,obj) in link_objects:
-                email_links.append(email_message_object.LinkReference("URI-%s" % id_base))
+                email_links.append(email_message_object.LinkReference("%s:URI-%s" % (namespace_tag,id_base)))
 
                 cybox_email.links = email_links
 

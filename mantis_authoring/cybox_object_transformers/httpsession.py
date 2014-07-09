@@ -17,7 +17,7 @@ class TEMPLATE_Default(transformer_object):
         port = forms.CharField(max_length=5, required=False)
         user_agent = forms.CharField(max_length=1024, required=False)
 
-    def process_form(self, properties):
+    def process_form(self, properties,id_base=None,namespace_tag=None):
         cybox_http_session = http_session_object.HTTPSession()
         cybox_http_session.http_request_response = [self.__create_cybox_http_request_response(properties)]
         return cybox_http_session

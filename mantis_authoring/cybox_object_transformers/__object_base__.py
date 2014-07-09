@@ -15,6 +15,8 @@ from django import forms
 
 from django.templatetags.static import static
 
+from mantis_authoring.settings import MANTIS_AUTHORING_ID_DERIVATION_STRATEGY, HASH_MODE, COUNTER_MODE
+
 class ObjectFormTemplate(forms.Form):
 
     def __init__(self,*args,**kwargs):
@@ -43,8 +45,22 @@ class transformer_object(object):
     relevant_fact_term_list = []
 
 
-    def create_hashed_id(self,salt,fact):
-        return "%s" % (hashlib.md5("%s-%s" % (salt,fact)).hexdigest())
+    def create_derived_id(self,father_id,
+                          fact=None,
+                          mode= MANTIS_AUTHORING_ID_DERIVATION_STRATEGY,
+                          counter=None):
+        if mode==HASH_MODE:
+            if fact == None:
+                raise StandardError("You need to pass a hashable fact.")
+            return "%s" % (hashlib.md5("%s-%s" % (father_id,fact)).hexdigest())
+        elif mode == COUNTER_MODE:
+            if counter == None:
+                raise StandardError("You need to pass a counter value.")
+            else:
+                print father_id
+                return "%s-%04d" % (father_id,counter)
+        else:
+            raise StandardError("You need to pass a valid mode to 'create_derived_id'.")
 
     def get_relevant_fact_term_list(self):
         return self.relevant_fact_term_list or None

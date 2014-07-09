@@ -44,6 +44,6 @@ class TEMPLATE_Default(transformer_object):
         #artifact_type = forms.ChoiceField(choices=ARTIFACT_TYPES, required=False, initial="TYPE_GENERIC")
 
 
-    def process_form(self, properties):
+    def process_form(self, properties,id_base=None,namespace_tag=None):
         return artifact_object.Artifact(properties['data'])
         

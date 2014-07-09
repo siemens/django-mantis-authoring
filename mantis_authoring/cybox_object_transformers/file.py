@@ -52,7 +52,7 @@ class TEMPLATE_Default(transformer_object):
 
             return self.cleaned_data
 
-    def process_form(self, properties):
+    def process_form(self, properties,id_base=None,namespace_tag=None):
         cybox_file = file_object.File()
 
         if properties['file_name']:

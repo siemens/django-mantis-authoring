@@ -18,7 +18,7 @@ class TEMPLATE_Default(transformer_object):
         layer4_protocol = forms.CharField(max_length=1024, required=False)
 
 
-    def process_form(self, properties):
+    def process_form(self, properties,id_base=None,namespace_tag=None):
         cybox_port = port_object.Port()
         cybox_port.port_value = PositiveInteger(properties['port_value'])
         cybox_port.layer4_protocol = String(properties['layer4_protocol'])
