@@ -58,8 +58,10 @@ class transformer_object(object):
                 raise StandardError("You need to pass a counter value.")
             else:
                 # We make an offset so by looking at the indicator
-                # one cannot see how many subobjects must at least exist
-                offset = sum(map(lambda c: ord(c), father_id)) % 10000
+                # one cannot see how many subobjects must do (at least) exist
+
+                offset_part = sum(map(lambda c: ord(c), father_id))
+                offset = ((offset_part * offset_part) + 8 * offset_part) % 10000
                 return "%s-%05d" % (father_id,offset+counter)
         else:
             raise StandardError("You need to pass a valid mode to 'create_derived_id'.")

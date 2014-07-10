@@ -280,11 +280,20 @@ class stixTransformer:
         if campaign.get('object_type') == 'CampaignReference':
             camp = Campaign()
             camp.idref = campaign.get('object_id', '')
+            # must remove the timestamp, since the reference is meant
+            # to refer to always the latest revision
+            camp.timestamp = None
             camp.id_ = None
             self.campaign = camp
         elif campaign.get('name','').strip() != '':
             camp = Campaign()
-            camp.timestamp = None
+            campaign_identifier = self.jsn['stix_header']['stix_package_id'].replace('package-','campaign-')
+            if campaign_identifier == self.jsn['stix_header']['stix_package_id']:
+                # replace did not work
+                raise StandardError("Could not derive identifier for campaign from identifier from package")
+
+            camp.id_ = campaign_identifier
+
             camp.names =  Names(Name(campaign.get('name', '')))
             camp.title = campaign.get('title','')
             camp.description = campaign.get('description', '')
@@ -303,15 +312,27 @@ class stixTransformer:
         if threatactor.get('object_type') == 'ThreatActorReference':
             tac = ThreatActor()
             tac.idref = threatactor.get('object_id', '')
+            tac.timestamp=None
             tac.id_ = None
             if self.campaign:
                 tac.associated_campaigns = camp
             self.threatactor = tac
         elif threatactor.get('identity_name', '').strip() != '' and self.campaign:
             tac = ThreatActor()
+            tac_identifier = self.jsn['stix_header']['stix_package_id'].replace('package-','threatactor-')
+            if tac_identifier == self.jsn['stix_header']['stix_package_id']:
+                # replace did not work
+                raise StandardError("Could not derive identifier for threat actor from identifier of package")
+
+            tac.id_ = tac_identifier
             tac_id = tac.id_
+
             identity_id_format_string = tac_id.replace('threatactor','threatactor-id-%d')
-            tac.timestamp = None
+
+            if identity_id_format_string == tac_id:
+                # replace did not work
+                raise StandardError("Could not derive identifier for identity from identifier of threat actor")
+
             related_identities = []
             tac.identity = Identity(id_=identity_id_format_string % 0, idref=None, name=threatactor.get('identity_name', ''))
             counter = 1
@@ -331,7 +352,7 @@ class stixTransformer:
 
             ta_camp = Campaign()
             ta_camp.timestamp=None
-            ta_camp.id_ = tac.id_.replace('threatactor','campaign')
+            ta_camp.id_ = tac.id_.replace('threatactor','campaign-of-ta')
             ta_camp.title = "Campaign Collector of %s" % tac.title
             ta_camp.description = "We need to reference from Campaign to Threat Actor rather than the" \
                                   " other way around; we do this by referencing new Campaigns to this " \
@@ -347,7 +368,7 @@ class stixTransformer:
                 ref_camp = Campaign()
                 ref_camp.id_ = None
                 ref_camp.timestamp=None
-                ref_camp.idref = tac.id_.replace('threatactor','campaign')
+                ref_camp.idref = tac.id_.replace('threatactor','campaign-of-ta')
                 campaign_assoc_campaigns = AssociatedCampaigns()
                 campaign_assoc_campaigns.append(ref_camp)
                 self.campaign.associated_campaigns = campaign_assoc_campaigns
@@ -683,8 +704,8 @@ class stixTransformer:
         #tlpmark.set_color(stix_properties['stix_header_tlp'])
         tlpmark = TLPMarkingStructure()
         tlpmark.color = stix_properties['stix_header_tlp']
-        #spec.set_Marking_Structure([tlpmark])
-        spec.marking_structure = [tlpmark]
+
+        spec.marking_structures.append(tlpmark)
         stix_package = STIXPackage(indicators=stix_indicators, observables=Observables(self.cybox_observable_list), id_=stix_id, threat_actors=self.threatactor)
         stix_header = STIXHeader()
         stix_header.title = stix_properties['stix_header_title']
