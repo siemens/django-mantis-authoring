@@ -11,9 +11,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   readme
    installation
    usage
+   developers_guide
    contributing
    authors
    history

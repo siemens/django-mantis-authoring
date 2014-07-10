@@ -107,7 +107,8 @@ class TEMPLATE_Default(Base):
 
             email_links = email_message_object.Links()
             for (id_base,obj) in link_objects:
-                email_links.append(email_message_object.LinkReference("%s:URI-%s" % (namespace_tag,id_base)))
+                id_ref = self.form_id_from_id_base(obj,namespace_tag,id_base)
+                email_links.append(email_message_object.LinkReference(id_ref))
 
                 cybox_email.links = email_links
 

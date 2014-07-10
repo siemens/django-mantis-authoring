@@ -57,10 +57,17 @@ class transformer_object(object):
             if counter == None:
                 raise StandardError("You need to pass a counter value.")
             else:
-                print father_id
-                return "%s-%04d" % (father_id,counter)
+                # We make an offset so by looking at the indicator
+                # one cannot see how many subobjects must at least exist
+                offset = sum(map(lambda c: ord(c), father_id)) % 10000
+                return "%s-%05d" % (father_id,offset+counter)
         else:
             raise StandardError("You need to pass a valid mode to 'create_derived_id'.")
+
+    def form_id_from_id_base(self,obj,namespace_tag,id_base):
+        return "%s:%s-%s" % (namespace_tag,
+                             obj.__class__.__name__,
+                             id_base)
 
     def get_relevant_fact_term_list(self):
         return self.relevant_fact_term_list or None
