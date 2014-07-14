@@ -38,7 +38,7 @@ class file_analyzer(file_object):
         res['status'] = True
         res['object_class'] = self.test_object()
         res['data'] = [{ 'object_class': 'observable',
-                         'object_type': 'File',
+                         'object_type': 'file',
                          'object_subtype': 'Default',
                          'properties': { 'file_name': self.file_name,
                                          'file_path': '',
