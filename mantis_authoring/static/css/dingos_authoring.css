@@ -87,6 +87,13 @@ button span {
     border: 0 none;
 }
 
+.dda-add-element .dda-obs-error {
+    margin-top: 5px;
+    margin-right: 10px;
+    color: #bf3030;
+    font-weight: bold;
+}
+
 #dda-observable-pool-list > .dda-add-element {
     margin-bottom: 15px;
 }

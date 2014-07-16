@@ -231,6 +231,16 @@ if (typeof Object.create !== 'function') {
     };
 }
 
+/* Object size enumeration */
+if (typeof Object.size !== 'function') {
+    Object.size = function (o) {
+	var s = 0, key;
+	for (key in o)
+            if (o.hasOwnProperty(key)) s++;
+	return s;
+    };
+}
+
 
 
 

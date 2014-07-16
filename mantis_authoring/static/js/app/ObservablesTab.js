@@ -179,6 +179,7 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 	        observable_container_tmpl = dust.compile('<div class="dda-add-element clearfix" data-id="{id}"> \
                     <button class="dda-obs-find_similar pull-right"></button> \
 		    <button class="dda-obs-remove pull-right"></button> \
+                    <span class="pull-right dda-obs-error"></span> \
 		    <h3>{title}</h3> \
 		    <p class="obs_object_name">{obs_name}</p> \
 		    <div> \
@@ -523,6 +524,14 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 	        obs = instance.observable_registry[id],
 	        obs_jsn = instance.obs_get_json(id);
 
+            // Check if we already validated this element (we use a string representation of the json)
+            if(obs.__check_change != undefined){
+		if(obs.__check_change == JSON.stringify(obs_jsn))
+                    return;
+            }
+            obs.__check_change = JSON.stringify(obs_jsn);
+
+
 	    $.post('validate_object', obs_jsn, function(data){
 		if(data.status){
 		    // Remove all previous validation results
@@ -539,6 +548,16 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 				)
 			    );
 			});
+
+			if(data.data['__all__'] != undefined){
+                            $('.dda-obs-error', obs.element).text(data.data['__all__']);
+			}else{
+                            if(Object.size(data.data) >= 1)
+				$('.dda-obs-error', obs.element).text(Object.size(data.data) + ' Error(s)');
+			}
+
+		    }else{
+			$('.dda-obs-error', obs.element).text('');
 		    }
 
 		    // Update the observable name

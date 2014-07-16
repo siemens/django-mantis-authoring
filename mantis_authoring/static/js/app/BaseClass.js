@@ -101,6 +101,7 @@ define(['jquery', 'form2js'],function($, form2js){
 			    $.each(v.properties, function(i1,v1){
 				$('[name="'+i1+'"]', el.element).val(v1);
 			    });
+			    instance.obs_elem_validate(el.observable_id); // this also triggers name generation
 			    log_message('Created '+ v.object_type +' ('+ v.object_subtype +') object: ' + el.observable_id, 'success', 5000);
 			}else if(v.object_class=='testmechanism'){
 			    var el = instance.tes_pool_add_elem('dda-test-mechanism-template_' + v.object_type + '_' + v.object_subtype, v.object_id);
