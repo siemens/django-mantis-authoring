@@ -1,4 +1,4 @@
-define(['jquery'],function($){
+define(['jquery', 'dust'],function($){
 
     /* 
      * Defines the prototype enhancements of the base application
