@@ -1,4 +1,4 @@
-define(['jquery', 'form2js'],function($, form2js){
+define(['jquery', 'form2js', 'dust'],function($, form2js){
 
     /* 
      * Return a javascript object literal with our base config of the
