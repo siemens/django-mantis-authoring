@@ -24,7 +24,7 @@ readme = open('README.rst').read()
 history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
-    name='mantis-authoring',
+    name='django-mantis-authoring',
     version=version,
     description="""An module that supports authoring of threat-intelligence information in Mantis.""",
     long_description=readme + '\n\n' + history,
