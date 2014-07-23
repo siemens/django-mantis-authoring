@@ -48,7 +48,7 @@ from stix.extensions.test_mechanism.open_ioc_2010_test_mechanism import OpenIOCT
 from stix.extensions.test_mechanism.snort_test_mechanism import SnortTestMechanism
 from stix.extensions.marking.tlp import TLPMarkingStructure
 from stix.bindings.extensions.marking.tlp import TLPMarkingStructureType
-from stix.campaign import Campaign, Names, AssociatedCampaigns
+from stix.campaign import Campaign, Names, AssociatedCampaigns, Attribution
 
 # 'Name' has been removed in STIX 1.1.1
 try:
@@ -272,7 +272,6 @@ class stixTransformer:
             print "Error. No threat campaigns passed."
             return
 
-
         try:
             threatactor = campaign['threatactor']
         except:
@@ -317,10 +316,18 @@ class stixTransformer:
             tac.idref = threatactor.get('object_id', '')
             tac.timestamp=None
             tac.id_ = None
-            if self.campaign:
-                tac.associated_campaigns = camp
+            if self.campaign and self.campaign.id_:
+                related_ta = ThreatActor()
+                related_ta.idref= tac.idref
+                related_ta.timestamp = None
+
+                self.campaign.attribution.append(related_ta)
+
+                print "Aha"
+                print self.campaign.attribution
+
             self.threatactor = tac
-        elif threatactor.get('identity_name', '').strip() != '' and self.campaign:
+        elif threatactor.get('identity_name', '').strip() != '':
             tac = ThreatActor()
             tac_identifier = self.jsn['stix_header']['stix_package_id'].replace('package-','threatactor-')
             if tac_identifier == self.jsn['stix_header']['stix_package_id']:
@@ -349,36 +356,18 @@ class stixTransformer:
             #tac.information_source.description = threatactor.get('information_source', '')
             tac.confidence = Confidence(threatactor.get('confidence', ''))
 
-            # Because we need to reference from Campaign to ThreatActor rather than
-            # the other way around, we create a generic Campaign for this threat actor,
-            # which we then reference from new campaigns as 'Associated Campaign'.
-
-            ta_camp = Campaign()
-            ta_camp.timestamp=None
-            ta_camp.id_ = tac.id_.replace('threatactor','campaign-of-ta')
-            ta_camp.title = "Campaign Collector of %s" % tac.title
-            ta_camp.description = "We need to reference from Campaign to Threat Actor rather than the" \
-                                  " other way around; we do this by referencing new Campaigns to this " \
-                                  "campaign using the 'Associated Campaign' construct."
-
-            #tac.associated_campaigns = camp
-            tac_assoc_campaigns = AssociatedCampaigns()
-            tac_assoc_campaigns.append(ta_camp)
-            tac.associated_campaigns = tac_assoc_campaigns
-
-
             if self.campaign and self.campaign.id_:
-                ref_camp = Campaign()
-                ref_camp.id_ = None
-                ref_camp.timestamp=None
-                ref_camp.idref = tac.id_.replace('threatactor','campaign-of-ta')
-                campaign_assoc_campaigns = AssociatedCampaigns()
-                campaign_assoc_campaigns.append(ref_camp)
-                self.campaign.associated_campaigns = campaign_assoc_campaigns
+                related_ta = ThreatActor()
+                related_ta.idref= tac.idref
+                related_ta.timestamp = None
+
+                self.campaign.attribution.append(related_ta)
+
+                print "Aha"
+                print self.campaign.attribution
+
 
             self.threatactor = tac
-
-
 
     def __create_test_mechanism_object(self, test):
         """
