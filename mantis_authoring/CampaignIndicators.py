@@ -534,10 +534,12 @@ class stixTransformer:
                     self.bulk_observable_mapping[old_id] = new_ids
                     new_relations = {}
                     for obs_id, obs_rel in relations.iteritems():
+                        obs_id = self.gen_slugged_id(obs_id)
                         if obs_id==old_id: # our old object has relations to other objects
                             for ni in new_ids: # for each new key ...
                                 new_relations[ni] = {}
                                 for ork, orv in obs_rel.iteritems(): # ... we insert the new relations
+                                    ork = self.gen_slugged_id(ork)
                                     if ork==old_id: # skip entries where we reference ourselfs
                                         continue
                                     new_relations[ni][ork] = orv
@@ -545,6 +547,7 @@ class stixTransformer:
                             new_relations[obs_id] = {} #create old key
                             #try to find relations to our old object...
                             for ork, orv in obs_rel.iteritems():
+                                ork = self.gen_slugged_id(ork)
                                 if ork==old_id: # Reference to our old key...
                                     for ni in new_ids: #..insert relation to each new key
                                         new_relations[obs_id][ni] = orv
@@ -659,6 +662,7 @@ class stixTransformer:
 
             # Add the observables to the indicator
             for related_observable_id in related_observables:
+                related_observable_id = self.gen_slugged_id(related_observable_id)
                 if related_observable_id in self.bulk_observable_mapping:
                     for related_id in self.bulk_observable_mapping[related_observable_id]:
                         obs_rel = Observable()
