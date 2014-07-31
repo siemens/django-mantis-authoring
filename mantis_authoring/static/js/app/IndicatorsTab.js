@@ -71,7 +71,7 @@ define(['jquery', 'dust'],function($){
 
 	    // Get a new ID or use supplied one
 	    var guid = guid_gen(),
-	        guid_indicator = instance.namespace_slug + ':' + template.find('#id_object_type').val() + '-' + guid;
+	        guid_indicator = "{" + instance.namespace_uri + '}' + template.find('#id_object_type').val() + '-' + guid;
 
 	    if(guid_passed){
 		if(instance.indicator_registry[guid_passed] != undefined){

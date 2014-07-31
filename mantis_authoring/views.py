@@ -47,7 +47,10 @@ class GetAuthoringObjectReference(BasicJSONView):
                     filter(q_q). \
                     distinct().order_by('name')[:10]
             # TODO: fetch campaigns and associated threatactor from DB
-            res['data'] = map(lambda x : {'id': x.identifier.uid, 'name': x.name, 'cat': str(x.iobject_type), 'threatactor': {}}, data)
+            res['data'] = map(lambda x : {'id': "{%s}%s" % (x.identifier.namespace.uri,x.identifier.uid),
+                                          'name': x.name,
+                                          'cat': str(x.iobject_type),
+                                          'threatactor': {}}, data)
         
             
         elif object_type == 'threatactor':
@@ -58,14 +61,16 @@ class GetAuthoringObjectReference(BasicJSONView):
                     exclude(iobject_family__name__exact='ioc'). \
                     filter(q_q). \
                     distinct().order_by('name')[:10]
-            res['data'] = map(lambda x : {'id': x.identifier.uid, 'name': x.name, 'cat': str(x.iobject_type)}, data)
+            res['data'] = map(lambda x : {'id': "{%s}%s" % (x.identifier.namespace.uri,x.identifier.uid),
+                                          'name': x.name, 'cat': str(x.iobject_type)}, data)
 
         else:
             try:
                 im = importlib.import_module('mantis_authoring.cybox_object_transformers.' + object_type)
                 template_obj = getattr(im,'TEMPLATE_%s' % object_subtype)()
                 data = template_obj.autocomplete(queryterm, object_element)
-                res['data'] = map(lambda x : {'id': x.iobject.identifier.uid, 'name': x.iobject.name, 'cat': str(x.iobject.iobject_type)}, data)
+                res['data'] = map(lambda x : {'id': "{%s}%s" % (x.identifier.namespace.uri,x.identifier.uid),
+                                              'name': x.iobject.name, 'cat': str(x.iobject.iobject_type)}, data)
                 res['status'] = True
                 res['msg'] = ''
             except Exception as e:
