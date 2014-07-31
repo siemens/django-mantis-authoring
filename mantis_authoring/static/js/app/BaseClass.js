@@ -6,7 +6,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
      * files/extensions (except for the STIX tab functionality which is found here)
      */
     return {
-	namespace_slug: false,
+	namespace_uri: false,
 	package_indicators: $('#dda-package-indicators'),
 	load_name: false, 	// Holds the name of the currently loaded template-json
 	load_uuid: false, 	// Holds the uuid of the currently loaded template-json
@@ -160,14 +160,14 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 	},
 
 	/**
-	 * Initializes the users namespace and sets this.namespace_slug
+	 * Initializes the users namespace and sets this.namespace_uri
 	 * @param {function} callback Callback function thats being called when namespace is set
 	 */
 	init_user_namespace: function(callback){
 	    var instance = this;
 	    $.get('get_namespace', function(data){
 		if(data.status){
-		    instance.namespace_slug = data.data.default_ns_slug;
+		    instance.namespace_uri = data.data.default_ns_uri;
 		    callback(true);
 		}else{
 		    log_message(data.msg, 'error');
@@ -743,7 +743,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 	    var instance = this;
 	    // Generate package id if not already existing
 	    if($('#dda-stix-meta').find('input[name="stix_package_id"]').val()=='')
-		$('#dda-stix-meta').find('input[name="stix_package_id"]').val(instance.namespace_slug + ':package-' + guid_gen());
+		$('#dda-stix-meta').find('input[name="stix_package_id"]').val("{" + instance.namespace_uri + '}package-' + guid_gen());
 	    var stix_base = {
 		'stix_header': form2js($('#dda-stix-meta').find('input, select, textarea').get(), undefined, false),
 		'campaign': {},
