@@ -48,7 +48,7 @@ from stix.extensions.test_mechanism.open_ioc_2010_test_mechanism import OpenIOCT
 from stix.extensions.test_mechanism.snort_test_mechanism import SnortTestMechanism
 from stix.extensions.marking.tlp import TLPMarkingStructure
 from stix.bindings.extensions.marking.tlp import TLPMarkingStructureType
-from stix.campaign import Campaign, Names, AssociatedCampaigns
+from stix.campaign import Campaign, Names, AssociatedCampaigns, Attribution
 
 # 'Name' has been removed in STIX 1.1.1
 try:
@@ -62,6 +62,7 @@ from stix.data_marking import Marking, MarkingSpecification
 from mantis_stix_importer.importer import STIX_Import
 from dingos import DINGOS_DEFAULT_ID_NAMESPACE_URI, DINGOS_TEMPLATE_FAMILY
 from dingos.view_classes import BasicJSONView
+from dingos.models import IdentifierNameSpace
 from dingos_authoring.view_classes import BasicProcessingView, AuthoringMethodMixin
 from dingos_authoring.models import AuthoredData
 from .view_classes import BasicSTIXPackageTemplateView
@@ -99,7 +100,7 @@ class FormView(BasicSTIXPackageTemplateView):
         identity_aliases = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'Line by line aliases of this threat actor'}), required=False, )
         title = forms.CharField(max_length=1024)
         description = forms.CharField(widget=forms.Textarea, required=False)
-        confidence = forms.ChoiceField(choices=CONFIDENCE_TYPES, required=False, initial="med")
+        #confidence = forms.ChoiceField(choices=CONFIDENCE_TYPES, required=False, initial="med")
         #information_source = forms.CharField(max_length=1024)
 
 
@@ -134,9 +135,9 @@ class FormView(BasicSTIXPackageTemplateView):
         title = forms.CharField(max_length=1024)
         description = forms.CharField(widget=forms.Textarea, required=False)
         status = forms.ChoiceField(choices=STATUS_TYPES, required=False, initial="Unknown")
-        activity_timestamp_from = forms.CharField(max_length=1024)
-        activity_timestamp_to = forms.CharField(max_length=1024)
-        confidence = forms.ChoiceField(choices=CONFIDENCE_TYPES, required=False, initial="med")
+        #activity_timestamp_from = forms.CharField(max_length=1024)
+        #activity_timestamp_to = forms.CharField(max_length=1024)
+        #confidence = forms.ChoiceField(choices=CONFIDENCE_TYPES, required=False, initial="med")
 
     class StixCampaignReference(forms.Form):
         object_type = forms.CharField(initial="CampaignReference", widget=forms.HiddenInput)
@@ -153,13 +154,20 @@ class FormView(BasicSTIXPackageTemplateView):
             ('None', 'None'),
             ('Unknown', 'Unknown')
         )
+
+        OPERATOR_TYPES = (
+            ('OR', 'OR'),
+            ('AND', 'AND'),
+        )
         object_type = forms.CharField(initial="Indicator", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Indicator", widget=forms.HiddenInput)
         I_icon =  forms.CharField(initial=static('img/stix/indicator.svg'), widget=forms.HiddenInput)
         indicator_title = forms.CharField(max_length=1024)
         indicator_description = forms.CharField(widget=forms.Textarea, required=False)
         indicator_confidence = forms.ChoiceField(choices=CONFIDENCE_TYPES, required=False, initial="med")
-
+        indicator_operator = forms.ChoiceField(choices=OPERATOR_TYPES, required=False, initial="OR",
+                                               help_text="Chose 'OR' if any of the observables in the indicator by themselves are indicative of an attack; "
+                                                         "chose 'AND' if the observables in this indicator must be present 'together'.")
 
     class TestMechanismIOC(forms.Form):
         object_type = forms.CharField(initial="Test_Mechanism", widget=forms.HiddenInput)
@@ -213,11 +221,43 @@ class stixTransformer:
     Implements the transformer used to transform the JSON produced by
     the MANTIS Authoring GUI into a valid STIX document.
     """
+
+    def gen_slugged_id(self,id_string):
+        if not id_string:
+            return id_string
+        elif '{' in id_string:
+            ns_uri,uid = tuple(id_string[1:].split('}',1))
+            if ns_uri in self.namespace_map:
+                return "%s:%s" % (self.namespace_map[ns_uri],uid)
+            else:
+                try: 
+                    ns_slug = IdentifierNameSpace.objects.get(uri=ns_uri).name
+                except ObjectDoesNotExist:
+                    ns_slug = "authoring"
+
+                if ns_slug in self.namespace_map.values():
+                    counter = 0
+                    while "%s%d" % (ns_slug,counter) in self.namespace_map.values():
+                        counter +=1
+                    ns_slug = "%s%d" % (ns_slug,counter)
+                self.namespace_map[ns_uri] = ns_slug
+                return "%s:%s" % (ns_slug,ns_uri)    
+        else:
+            return id_string
+
+            
+
     def __init__(self, *args,**kwargs):
 
         # Setup our namespace
+
         self.namespace_name = kwargs.get('namespace_uri', DINGOS_DEFAULT_ID_NAMESPACE_URI)
         self.namespace_prefix = kwargs.get('namespace_slug', "dingos_default")
+        self.namespace_map = {self.namespace_name: self.namespace_prefix,
+                              'http://data-marking.mitre.org/Marking-1': 'stixMarking',
+                              }
+
+
         self.namespace = cybox.utils.Namespace(self.namespace_name, self.namespace_prefix)
         cybox.utils.set_id_namespace(self.namespace)
         stix.utils.set_id_namespace({self.namespace_name: self.namespace_prefix})
@@ -272,7 +312,6 @@ class stixTransformer:
             print "Error. No threat campaigns passed."
             return
 
-
         try:
             threatactor = campaign['threatactor']
         except:
@@ -282,7 +321,7 @@ class stixTransformer:
         # The campaign
         if campaign.get('object_type') == 'CampaignReference':
             camp = Campaign()
-            camp.idref = campaign.get('object_id', '')
+            camp.idref = self.gen_slugged_id(campaign.get('object_id', ''))
             # must remove the timestamp, since the reference is meant
             # to refer to always the latest revision
             camp.timestamp = None
@@ -295,39 +334,45 @@ class stixTransformer:
                 # replace did not work
                 raise StandardError("Could not derive identifier for campaign from identifier from package")
 
-            camp.id_ = campaign_identifier
+            camp.id_ = self.gen_slugged_id(campaign_identifier)
 
             camp.names =  Names(Name(campaign.get('name', '')))
             camp.title = campaign.get('title','')
             camp.description = campaign.get('description', '')
-            camp.confidence = Confidence(campaign.get('confidence', ''))
+            #camp.confidence = Confidence(campaign.get('confidence', ''))
             camp.status = StixVocabString(campaign.get('status', ''))
-            afrom = Activity()
-            afrom.date_time = DateTimeWithPrecision(value=campaign.get('activity_timestamp_from', ''), precision="minute")
-            afrom.description = StixStructuredText('Timestamp from')
-            ato = Activity()
-            ato.date_time = DateTimeWithPrecision(value=campaign.get('activity_timestamp_to', ''), precision="minute")
-            ato.description = StixStructuredText('Timestamp to')
-            camp.activity = [afrom, ato]
+            #afrom = Activity()
+            #afrom.date_time = DateTimeWithPrecision(value=campaign.get('activity_timestamp_from', ''), precision="minute")
+            #afrom.description = StixStructuredText('Timestamp from')
+            #ato = Activity()
+            #ato.date_time = DateTimeWithPrecision(value=campaign.get('activity_timestamp_to', ''), precision="minute")
+            #ato.description = StixStructuredText('Timestamp to')
+            #camp.activity = [afrom, ato]
             self.campaign = camp
             
 
         if threatactor.get('object_type') == 'ThreatActorReference':
             tac = ThreatActor()
-            tac.idref = threatactor.get('object_id', '')
+            tac.idref = self.gen_slugged_id(threatactor.get('object_id', ''))
             tac.timestamp=None
             tac.id_ = None
-            if self.campaign:
-                tac.associated_campaigns = camp
+            if self.campaign and self.campaign.id_:
+                related_ta = ThreatActor()
+                related_ta.idref= self.gen_slugged_id(tac.idref)
+                related_ta.timestamp = None
+
+                self.campaign.attribution.append(related_ta)
+
+
             self.threatactor = tac
-        elif threatactor.get('identity_name', '').strip() != '' and self.campaign:
+        elif threatactor.get('identity_name', '').strip() != '':
             tac = ThreatActor()
             tac_identifier = self.jsn['stix_header']['stix_package_id'].replace('package-','threatactor-')
             if tac_identifier == self.jsn['stix_header']['stix_package_id']:
                 # replace did not work
                 raise StandardError("Could not derive identifier for threat actor from identifier of package")
 
-            tac.id_ = tac_identifier
+            tac.id_ = self.gen_slugged_id(tac_identifier)
             tac_id = tac.id_
 
             identity_id_format_string = tac_id.replace('threatactor','threatactor-id-%d')
@@ -347,38 +392,19 @@ class stixTransformer:
             tac.description = StixStructuredText(threatactor.get('description', ''))
             #tac.information_source = InformationSource()
             #tac.information_source.description = threatactor.get('information_source', '')
-            tac.confidence = Confidence(threatactor.get('confidence', ''))
-
-            # Because we need to reference from Campaign to ThreatActor rather than
-            # the other way around, we create a generic Campaign for this threat actor,
-            # which we then reference from new campaigns as 'Associated Campaign'.
-
-            ta_camp = Campaign()
-            ta_camp.timestamp=None
-            ta_camp.id_ = tac.id_.replace('threatactor','campaign-of-ta')
-            ta_camp.title = "Campaign Collector of %s" % tac.title
-            ta_camp.description = "We need to reference from Campaign to Threat Actor rather than the" \
-                                  " other way around; we do this by referencing new Campaigns to this " \
-                                  "campaign using the 'Associated Campaign' construct."
-
-            #tac.associated_campaigns = camp
-            tac_assoc_campaigns = AssociatedCampaigns()
-            tac_assoc_campaigns.append(ta_camp)
-            tac.associated_campaigns = tac_assoc_campaigns
-
+            #tac.confidence = Confidence(threatactor.get('confidence', ''))
 
             if self.campaign and self.campaign.id_:
-                ref_camp = Campaign()
-                ref_camp.id_ = None
-                ref_camp.timestamp=None
-                ref_camp.idref = tac.id_.replace('threatactor','campaign-of-ta')
-                campaign_assoc_campaigns = AssociatedCampaigns()
-                campaign_assoc_campaigns.append(ref_camp)
-                self.campaign.associated_campaigns = campaign_assoc_campaigns
+                related_ta = ThreatActor()
+                related_ta.idref= self.gen_slugged_id(tac.idref)
+                related_ta.timestamp = None
+
+                self.campaign.attribution.append(related_ta)
+
+
+
 
             self.threatactor = tac
-
-
 
     def __create_test_mechanism_object(self, test):
         """
@@ -448,9 +474,10 @@ class stixTransformer:
             im = importlib.import_module('mantis_authoring.cybox_object_transformers.' + object_type.lower())
             template_obj = getattr(im,'TEMPLATE_%s' % object_subtype)()
 
-            id_base = properties_obj['observable_id'].split(':')[1].replace('Observable-','')
+            id_base = properties_obj['observable_id'].split('}')[1].replace('Observable-','')
 
-            namespace_tag = properties_obj['observable_id'].split(':')[0]
+
+            namespace_tag = self.namespace_map[properties_obj['observable_id'][1:].split('}')[0]]
 
             if True: #try:
                 transform_result = template_obj.process_form(properties_obj['observable_properties'],id_base,namespace_tag)
@@ -475,7 +502,7 @@ class stixTransformer:
 
             if result_type == 'bulk' or result_type == 'obj_with_subobjects':
 
-                old_id = properties_obj['observable_id']
+                old_id = self.gen_slugged_id(properties_obj['observable_id'])
                 new_ids = []
                 #translations = {} # used to keep track of which new __ id was translated
 
@@ -490,7 +517,7 @@ class stixTransformer:
                     no.mantis_description = properties_obj.get('observable_description', '')
                     # New ID
 
-                    _tmp_id =  "%s:Observable-%s" % (namespace_tag,id_base)
+                    _tmp_id =  self.gen_slugged_id("%s:Observable-%s" % (namespace_tag,id_base))
 
                     #_tmp_id =  "%s-%s" % ("Observable",hashlib.md5("%s-%s" % (id_base,line)).hexdigest())
                     cybox_object_dict[_tmp_id] = no
@@ -534,7 +561,7 @@ class stixTransformer:
                 # later on
                 main_properties_obj.mantis_title = properties_obj.get('observable_title', '')
                 main_properties_obj.mantis_description = properties_obj.get('observable_description', '')
-                cybox_object_dict[properties_obj['observable_id']] = main_properties_obj
+                cybox_object_dict[self.gen_slugged_id(properties_obj['observable_id'])] = main_properties_obj
 
         # Actually, what we have called 'obs' ('Observable') above is not
         # really an observable, but an ObjectProperties instance.
@@ -556,7 +583,7 @@ class stixTransformer:
             cybox_object_dict[obs_id] = Object(cybox_object_dict[obs_id])
 
 
-            cybox_object_dict[obs_id].id_ = obs_id.replace("Observable",cybox_object_dict[obs_id].properties.__class__.__name__)
+            cybox_object_dict[obs_id].id_ = self.gen_slugged_id(obs_id.replace("Observable",cybox_object_dict[obs_id].properties.__class__.__name__))
 
 
         # Observables and relations are now processed. The only thing
@@ -599,10 +626,11 @@ class stixTransformer:
         """
         Helper function to create an Indicator object
         """
-        stix_indicator = Indicator(indicator['indicator_id'])
+        stix_indicator = Indicator(self.gen_slugged_id(indicator['indicator_id']))
         stix_indicator.title = String(indicator['indicator_title'])
         stix_indicator.description = String(indicator['indicator_description'])
         stix_indicator.confidence = Confidence(indicator['indicator_confidence'])
+        stix_indicator.observable_composition_operator = indicator['indicator_operator']
         #stix_indicator.indicator_types = String(indicator['object_type'])
 
         return stix_indicator
@@ -634,13 +662,13 @@ class stixTransformer:
                 if related_observable_id in self.bulk_observable_mapping:
                     for related_id in self.bulk_observable_mapping[related_observable_id]:
                         obs_rel = Observable()
-                        obs_rel.idref = related_id
+                        obs_rel.idref = self.gen_slugged_id(related_id)
                         obs_rel.id_ = None
 
                         stix_indicator.add_observable(obs_rel)
                 else:
                     obs_rel = Observable()
-                    obs_rel.idref = related_observable_id
+                    obs_rel.idref = self.gen_slugged_id(related_observable_id)
                     obs_rel.id_ = None
                     stix_indicator.add_observable(obs_rel)
 
@@ -669,7 +697,7 @@ class stixTransformer:
                     if check_tes_id in already_included_tests:
                         test_mechanism_ref = tm.__class__()
                         test_mechanism_ref.id_ = None
-                        test_mechanism_ref.idref = check_tes_id
+                        test_mechanism_ref.idref = self.gen_slugged_id(check_tes_id)
                         stix_indicator.add_test_mechanism(test_mechanism_ref)
                     else:
                         stix_indicator.add_test_mechanism(tm)
@@ -682,9 +710,9 @@ class stixTransformer:
                 ref_camp.id_ = None
                 ref_camp.timestamp=None
                 if self.campaign.id_:
-                    ref_camp.idref = self.campaign.id_
+                    ref_camp.idref = self.gen_slugged_id(self.campaign.id_)
                 else:
-                    ref_camp.idref = self.campaign.idref
+                    ref_camp.idref = self.gen_slugged_id(self.campaign.idref)
                 indicator_assoc_campaigns = AssociatedCampaigns()
 
                 indicator_assoc_campaigns.append(ref_camp)
@@ -714,7 +742,7 @@ class stixTransformer:
 
         #stix_id_generator = stix.utils.IDGenerator(namespace={self.namespace_name: self.namespace_prefix})
         #stix_id = stix_id_generator.create_id()
-        stix_id = stix_properties['stix_package_id']
+        stix_id = self.gen_slugged_id(stix_properties['stix_package_id'])
         #spec = MarkingSpecificationType(idref=stix_id)
         spec = MarkingSpecification()
         #spec.idref = stix_id
@@ -738,7 +766,7 @@ class stixTransformer:
         stix_package.stix_header = stix_header
         if self.campaign:
             stix_package.campaigns.append(self.campaign)
-        self.stix_package = stix_package.to_xml(ns_dict={'http://data-marking.mitre.org/Marking-1': 'stixMarking'})
+        self.stix_package = stix_package.to_xml(ns_dict=self.namespace_map)
         return self.stix_package
 
 
