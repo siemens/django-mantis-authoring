@@ -33,7 +33,7 @@ class BasicSTIXPackageTemplateView(BasicTemplateView):
     title = 'Mantis Authoring'
 
     cybox_object_template_registry = CYBOX_OBJECT_TEMPLATE_REGISTRY
-    print cybox_object_template_registry
+
 
     @property
     def cybox_object_template_forms(self):

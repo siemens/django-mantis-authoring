@@ -157,7 +157,6 @@ class ValidateObject(FormView):
         return kwargs
 
     def post(self, request, *args, **kwargs):
-        print "Validation queried"
         POST = self.request.POST
         post_dict = parser.parse(POST.urlencode())
         observable_properties = post_dict.get('observable_properties', {})
