@@ -1,20 +1,18 @@
 import importlib, json
-
-from django.db.models import Q
-
-from django.http import HttpResponse, HttpResponseRedirect
-
-from django.views.generic.edit import FormView
-
-from dingos.view_classes import BasicJSONView
-
-from dingos.models import InfoObject
-
 from querystring_parser import parser
 
+from django.db.models import Q
+from django.http import HttpResponse, HttpResponseRedirect
+from django.views.generic.edit import FormView
+
 from dingos import DINGOS_INTERNAL_IOBJECT_FAMILY_NAME
+from dingos.view_classes import BasicJSONView
+from dingos.models import InfoObject
 
 from .utilities import name_cybox_obj, find_similar_cybox_obj
+
+
+
 
 class GetAuthoringObjectReference(BasicJSONView):
     """
@@ -137,6 +135,9 @@ class GetAuthoringSimilarObjects(BasicJSONView):
         return res
 
 
+
+
+
 class ValidateObject(FormView):
 
     def errors_to_json(self, errors):
@@ -201,6 +202,8 @@ class ValidateObject(FormView):
             'data': self.errors_to_json(form.errors)
         }
         return HttpResponse(json.dumps(res), content_type='application/json', )
+
+
 
 
 

@@ -222,11 +222,11 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 		    if(data.status){
 			var dlg = $('<div id="dda-show-stix-dlg" title="STIX Package Output"><div id="dda-show-stix-edit"></div></div>');
 			dlg.dialog({
-			    width       : $(window).width()-30,
-			    height      : $(window).height()-30,
+			    width: $(window).width()-30,
+			    height: $(window).height()-30,
 			    modal: true,
-			    draggable   : false,
-			    resizable   : false,
+			    draggable: false,
+			    resizable: false,
 			    create: function(event, ui){
 				$('body').css('overflow', 'hidden');
 			    },
@@ -245,6 +245,8 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 			editor.setReadOnly(true);
 			editor.getSession().setMode("ace/mode/xml");
 			editor.setValue(data.xml);
+			editor.moveCursorTo(1,1);
+			editor.selection.clearSelection();
 		    }else{
 			log_message(data.msg, 'error');
 		    }
@@ -274,6 +276,8 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 		editor.setReadOnly(true);
 		editor.getSession().setMode("ace/mode/javascript");
 		editor.setValue(result);
+		editor.moveCursorTo(1,1);
+		editor.selection.clearSelection();
 	    });
 	    $('#dda-stix-meta').after(get_jsn_btn);
 
@@ -687,7 +691,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 		$.get('load?list', function(data){
 		    if(data.status)
 			$.each(data.data, function(i,v){
-			    var _t_sel = $('<option></option>').attr('value',v.id).text(v.name);
+			    var _t_sel = $('<option></option>').attr('value',v.id).text(v.name + ' ('+v.date+')');
 			    sel.append(_t_sel);
 			});
 		});

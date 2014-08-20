@@ -782,13 +782,14 @@ class stixTransformer:
             return None
 
 
+
+
+
 class ProcessingView(BasicProcessingView):
 
     author_view = FORM_VIEW_NAME
     transformer = stixTransformer
     importer_class = STIX_Import
-
-
 
 
 
