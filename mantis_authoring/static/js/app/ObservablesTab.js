@@ -344,8 +344,10 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 		     {#items} \
 		     <li class="ui-widget-content"> \
 		     <div class="dda-add-element"> \
-		     <h3>{title}</h3> \
-		     <p>{details}</p> \
+                     <a href="{url}" target="_blank"> \
+		      <h3>{title}</h3> \
+		      <p>{details}</p> \
+                     </a> \
 		     </div> \
 		     </li> \
 		     {/items} \
@@ -358,12 +360,10 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 
 	    $.post('similar_object', obs_jsn, function(data){
 		if(data.status){
-
 		    if(data.data){
 			dust.loadSource(dlg_content_tmpl);
 			dust.render('find_similar_content', data.data, function(err, out){
 			    out = $(out);
-			    out.selectable();
 			    dlg.html(out);
 			    dlg.dialog("option", "position", ['center', 'center'] );
 			});
@@ -483,7 +483,8 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 	 */
 	obs_elem_restore_from_preview: function(){
 	    var instance = this,
-	        id = $('.dda-observable-template', '#dda-relation-object-details').first().attr('id');
+	        //id = $('.dda-observable-template', '#dda-relation-object-details').first().attr('id');
+	        id = $('#dda-relation-object-details').data('observable_id');
 
 	    if(!id) return;
 
@@ -511,6 +512,7 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 	    $('#dda-relation-object-details').append(
 		instance.observable_registry[id].element.find('.dda-pool-element')
 	    );
+	    $('#dda-relation-object-details').data('observable_id', id);
 	},
 
 	/**

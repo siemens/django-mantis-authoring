@@ -71,8 +71,6 @@ class TEMPLATE_Default(Base):
 
     def process_form(self, properties,id_base=None,namespace_tag=None):
 
-        print properties
-
         # Create the object
 
         cybox_email = email_message_object.EmailMessage()

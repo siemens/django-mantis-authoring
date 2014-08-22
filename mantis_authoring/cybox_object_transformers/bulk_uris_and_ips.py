@@ -34,9 +34,6 @@ class TEMPLATE_Default(transformer_object):
                                                  counter = counter)
             counter += 1
 
-            print "Bulk id base %s" % obj_id_base
-
-
             if is_ip:
                 ao = address_object.Address()
                 ao.address_value = ln
@@ -44,7 +41,6 @@ class TEMPLATE_Default(transformer_object):
                 return_objects.append((obj_id_base,ao))
                 #return_objects.append(("%s:Address-%s" % (namespace_tag,obj_id_base),ao))
             else:
-
                 do = self.create_cybox_uri_object(ln) #dns_record_object.DNSRecord()
                 return_objects.append((obj_id_base,do))
 

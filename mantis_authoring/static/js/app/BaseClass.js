@@ -354,10 +354,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 	 */
 	refresh_stix_package_tab: function(){
 	    var instance = this,
-	        pool_elem_tmpl = dust.compile('<div class="dda-add-element clearfix" data-id="{id}" data-type="{type}""> \
-		    {?existing} \
-		    <span class="pull-right">+</span> \
-		    {/existing} \
+	        pool_elem_tmpl = dust.compile('<div class="dda-add-element clearfix {?existing}dda-bg-green{/existing}" data-id="{id}" data-type="{type}""> \
 		    <h3>{title}</h3> \
 		    <p>{description}</p> \
 		    </div>', 'pool_elem'),
@@ -900,11 +897,6 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 	    var instance = this;
 	    $.get('load', {name : save_uuid}, function(data){
 		if(data.status){
-// try {		    
-//     jsonlint.parse(data.data.jsn);
-// }catch (err){
-//     alert(err);
-// }
 		    var jsn_template = $.parseJSON(data.data.jsn);
 		    instance._last_save = jsn_template;
 		    instance.load_from_json(jsn_template, data.data.name, data.data.id);

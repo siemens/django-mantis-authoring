@@ -2,6 +2,7 @@ import importlib, json
 from querystring_parser import parser
 
 from django.db.models import Q
+from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic.edit import FormView
 
@@ -117,9 +118,9 @@ class GetAuthoringSimilarObjects(BasicJSONView):
                     det.append(
                         ', '.join(map(lambda x: x.get('value') ,fact.fact_values.values()))
                     )
-
-
+                
                 res['data']['items'].append({
+                    'url': reverse('url.dingos.view.infoobject', args=(similar_obj.pk,)),
                     'title': similar_obj.name,
                     'details': ', '.join(det)
                 })

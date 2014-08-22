@@ -1,0 +1,537 @@
+/* reset button and input width, this includes #dda-export-btn */
+input, button {
+    width: auto;
+}
+
+.clearfix:before, .clearfix:after {
+    content: " ";
+    display: table;
+}
+.clearfix:after {
+    clear: both;
+}
+
+.pull-right {
+    float: right;
+}
+
+.pull-left {
+    float: left;
+}
+
+#dda-main-loading {
+    top: 20px;
+    left: 0;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    z-index: 1001;
+    display: block;
+    text-align: center;
+    vertical-align: middle;
+}
+
+#dda-template-body input {
+    width: auto !important;
+}
+
+.ui-widget button, .ui-widget-header button {
+    margin: auto auto;
+}
+
+button span {
+    margin-left: inherit;
+}
+
+#dda-template-table{
+    width: 100%;
+}
+
+#dda-template-body > .alpaca-fieldset > legend.alpaca-fieldset-legend {
+    display: none !important;
+}
+#dda-template-body > .alpaca-fieldset {
+    border: 0px none !important;
+}
+#dda-template-body .alpaca-fieldset-legend {
+    color: #444;
+    background-image: linear-gradient(#E5E5E5, #DBDBDB);
+    background-size: 100% auto;
+    border: 1px solid #CCCCCC;
+    border-radius: 3px;
+    padding: 5px 10px 4px;
+    text-shadow: 0 1px 0 #F5F5F5;
+}
+
+#dda-template-body .ui-button  {
+    background-image: linear-gradient(#fff, #DBDBDB);
+}
+#dda-template-body .ui-button.ui-state-active  {
+    background-image: linear-gradient(#E5E5E5, #DBDBDB);
+}
+#dda-template-body .ui-button:hover {
+    color: #000;
+}
+
+.dda-add-element {
+    cursor: pointer;
+    background-image: linear-gradient(#E5E5E5, #DBDBDB);
+    background-size: 100% auto;
+    border: 1px solid #CCCCCC;
+    padding: 5px 10px;
+    text-shadow: 0 1px 0 #F5F5F5;
+    margin-bottom: 2px;
+}
+.dda-add-element h3 {
+    padding: 0;
+    border: 0 none;
+}
+
+.dda-add-element a {
+    outline: 0;
+}
+
+.dda-add-element .dda-obs-error {
+    margin-top: 5px;
+    margin-right: 10px;
+    color: #bf3030;
+    font-weight: bold;
+}
+
+.dda-bg-green, .dda-bg-green h3 {
+    background: none repeat scroll 0 0 #d1ecb5;
+}
+
+
+
+#dda-observable-pool-list > .dda-add-element {
+    margin-bottom: 15px;
+}
+
+
+.ui-draggable-dragging {
+    z-index: 9999;
+}
+
+.ui-helper-hidden-accessible {
+    position: absolute !important;
+}
+
+.dda-array-toolbar-container-right {
+    margin-top: 2px;
+    float:right;
+}
+
+.dda-ref-toggles > .ui-button {
+    margin-left: 0px !important;
+}
+
+.dda-autocomplete-cat {
+    font-weight: bold;
+    padding: .2em .4em;
+    margin: .3em 0 .2em;
+    line-height: 1.5;
+}
+
+.dda-autocomplete-desc {
+    font-weight: normal;
+}
+
+
+.dda-ref-toggle{
+   color: black !important;
+}
+.dda-toggle-active {
+    background-image: linear-gradient(#E5E5E5, #DBDBDB) !important;  
+}
+
+
+/* builder styles */
+#grp-content-container #dda-container-tabs > .ui-widget-content {
+    padding: 20px 0 !important;
+}
+
+#dda-pool-elements {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+#dda-pool-list, #dda-indicator-list {
+    background: #fff;
+    min-height: 200px;
+}
+
+#dda-pool-list > .dda-add-element, #dda-indicator-list > .dda-add-element {
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+.dda-campaign-template table, .dda-threatactor-template table, .dda-add-element table, .dda-observable-template table{
+    width: 100%;
+}
+.dda-pool-element table {
+    width: 100%;
+}
+.dda-pool-element table textarea, #dda-indicator-list > .dda-add-element table textarea, #dda-pool-list > .dda-add-element table textarea {
+    width: 100%;
+    resize: vertical;
+}
+
+#dda-pool-list .dda-pool-element {
+    margin-top: 20px;
+}
+
+.dda-campaign-template input, 
+.dda-threatactor-template input, 
+.dda-observable-template input, 
+.dda-indicator-template input, 
+.dda-add-element input {
+    width: 100%;
+}
+.dda-campaign-template textarea, 
+.dda-threatactor-template textarea, 
+.dda-observable-template textarea, 
+.dda-indicator-template textarea,
+.dda-add-element textarea{
+    width: 100%;
+    resize: vertical;
+    min-height: 40px;
+}
+.dda-indicator-template textarea {
+    min-height: 80px;
+}
+
+#dda-indicator-add-btn-menu {
+    position: absolute;
+    top: 30px;
+    right:10px;
+}
+
+.dda-dropzone-highlight {
+    border: 1px dashed #888888;
+    min-height: 20px;
+    margin-top: 4px;
+}
+
+.dda-dropzone-hover {
+  background-color: #EEEEEE;
+  border: 1px dashed #888888;
+  min-height: 50px;
+}
+
+#dda-package-indicators .dda-add-element {
+    margin-bottom: 10px;
+}
+
+.dda-package-indicators_dropzone {
+    margin-top: 5px;
+    margin-left: 40px;
+}
+
+.dda-package_top_drop {
+    margin: 10px;
+}
+
+.dda-package_top_drop p {
+    font-style: italic;
+    text-align: center;
+    margin-top: 2px;
+    visibility: hidden;
+}
+
+.dda-dropzone-highlight.dda-package_top_drop p {
+    visibility: visible;
+}
+.dda-dropzone-hover.dda-package_top_drop p {
+    margin-top: 15px;
+}
+.dda-package-indicators_dropzone .ui-icon {
+    display: inline-block;
+    margin-bottom: -3px;
+}
+
+#relation-pane {
+    width: 100%;
+    height: 800px;
+    background-color: #fff;
+}
+
+
+
+#dda-relation-list .dda-rel-selected, #dda-relation-list .dda-rel-selected h3, .ui-selected > div {
+    background: #CEE9F2;
+}
+
+.node{
+  cursor: crosshair;
+}
+
+.node circle {
+    fill: #fff;
+    stroke: #000;
+    stroke-width: 2px;
+}
+.node text, .labelAnchor text {
+  pointer-events: none;
+}
+
+.node_selected circle{
+  fill: #ff7f0e;
+  stroke: #ff7f0e;
+}
+
+.drag_line {
+  stroke: #999;
+  stroke-width: 5;
+  pointer-events: none;
+}
+
+.drag_line_hidden {
+  stroke: #999;
+  stroke-width: 0;
+  pointer-events: none;
+}
+
+.link {
+  stroke: #999;
+  stroke-width: 2.5px;
+  cursor: crosshair;
+  fill: none;
+}
+
+.link_selected {
+  stroke: #ff7f0e !important;
+}
+
+li.ui-selectee {
+    border: 0 none;
+}
+
+.ui-dialog {
+    z-index: 2000;
+}
+
+.ui-widget-overlay {
+    z-index: 1000;
+    background: black;
+    opacity: 0.5;
+}
+
+#dda-show-stix-edit, #dda-show-json-edit, #dda-import-json-edit {
+    width: 100%;
+    height: 100%;
+}
+#dda-import-json-edit {
+    margin-bottom: -40px;
+}
+
+#dda-stix-meta textarea {
+    resize: vertical;
+    min-height: 30px;
+}
+
+
+.helptext {
+    margin-top: 5px;
+    display: block;
+}
+
+
+.dda-grp-message > .ui-icon{
+    display: inline-block !important;
+    margin-bottom: -3px;
+    margin-right: 5px;
+}
+
+
+#dda-save-json-dlg input {
+    width: 100%;
+}
+#dda-save-json-dlg button {
+    margin-top: 10px;
+}
+
+#dda-load-json-dlg select {
+    width: 100%;
+}
+
+#dda-load-json-dlg button {
+    margin-top: 10px;
+}
+
+
+
+/* CSS for timepicker */
+.ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
+.ui-timepicker-div dl { text-align: left; }
+.ui-timepicker-div dl dt { float: left; clear:left; padding: 0 0 0 5px; }
+.ui-timepicker-div dl dd { margin: 0 10px 10px 45%; }
+.ui-timepicker-div td { font-size: 90%; }
+.ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
+
+.ui-timepicker-rtl{ direction: rtl; }
+.ui-timepicker-rtl dl { text-align: right; padding: 0 5px 0 0; }
+.ui-timepicker-rtl dl dt{ float: right; clear: right; }
+.ui-timepicker-rtl dl dd { margin: 0 45% 10px 10px; }
+
+
+
+/* CSS for Dropzone JS */
+.dz-message {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.dropzone,
+.dropper*,
+.dropzone-previews,
+.dropzone-previews * {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+.dropper{
+  position: relative;
+  background: rgba(0,0,0,0.02);
+  padding: 1em;
+}
+.dropper.dz-clickable {
+  cursor: pointer;
+}
+.dropper.dz-clickable .dz-message,
+.dropper.dz-clickable .dz-message span {
+  cursor: pointer;
+}
+.dropper.dz-clickable * {
+  cursor: default;
+}
+.dropper.dz-message {
+  opacity: 1;
+  -ms-filter: none;
+  filter: none;
+}
+.dropper.dz-drag-hover {
+  border-color: rgba(0,0,0,0.15);
+  background: rgba(0,0,0,0.04);
+}
+.dropper.dz-started .dz-message {
+  display: none;
+}
+.dropper.dz-preview,
+.dropzone-previews .dz-preview {
+  background: rgba(255,255,255,0.8);
+  position: relative;
+  display: inline-block;
+  margin: 17px;
+  vertical-align: top;
+  border: 1px solid #acacac;
+  padding: 6px 6px 6px 6px;
+}
+.dropper.dz-preview.dz-file-preview [data-dz-thumbnail],
+.dropzone-previews .dz-preview.dz-file-preview [data-dz-thumbnail] {
+  display: none;
+}
+.dropper.dz-preview .dz-details,
+.dropzone-previews .dz-preview .dz-details {
+  width: 100px;
+  height: 100px;
+  position: relative;
+  background: #ebebeb;
+  padding: 5px;
+  margin-bottom: 22px;
+}
+.dropper.dz-preview .dz-details .dz-filename,
+.dropzone-previews .dz-preview .dz-details .dz-filename {
+  overflow: hidden;
+  height: 100%;
+}
+.dropper.dz-preview .dz-details img,
+.dropzone-previews .dz-preview .dz-details img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100px;
+  height: 100px;
+}
+.dropper.dz-preview .dz-details .dz-size,
+.dropzone-previews .dz-preview .dz-details .dz-size {
+  position: absolute;
+  bottom: -28px;
+  left: 3px;
+  height: 28px;
+  line-height: 28px;
+}
+.dropper.dz-preview.dz-error .dz-error-mark,
+.dropzone-previews .dz-preview.dz-error .dz-error-mark {
+  display: block;
+}
+.dropper.dz-preview.dz-success .dz-success-mark,
+.dropzone-previews .dz-preview.dz-success .dz-success-mark {
+  display: block;
+}
+.dropper.dz-preview:hover .dz-details img,
+.dropzone-previews .dz-preview:hover .dz-details img {
+  display: none;
+}
+.dropper.dz-preview .dz-success-mark,
+.dropzone-previews .dz-preview .dz-success-mark,
+.dropper.dz-preview .dz-error-mark,
+.dropzone-previews .dz-preview .dz-error-mark {
+  display: none;
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  font-size: 30px;
+  text-align: center;
+  right: -10px;
+  top: -10px;
+}
+.dropper.dz-preview .dz-success-mark,
+.dropzone-previews .dz-preview .dz-success-mark {
+  color: #8cc657;
+}
+.dropper.dz-preview .dz-error-mark,
+.dropzone-previews .dz-preview .dz-error-mark {
+  color: #ee162d;
+}
+.dropper.dz-preview .dz-progress,
+.dropzone-previews .dz-preview .dz-progress {
+  position: absolute;
+  top: 100px;
+  left: 6px;
+  right: 6px;
+  height: 6px;
+  background: #d7d7d7;
+  display: none;
+}
+.dropper.dz-preview .dz-progress .dz-upload,
+.dropzone-previews .dz-preview .dz-progress .dz-upload {
+  display: block;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0%;
+  background-color: #8cc657;
+}
+.dropper.dz-preview.dz-processing .dz-progress,
+.dropzone-previews .dz-preview.dz-processing .dz-progress {
+  display: block;
+}
+.dropper.dz-preview .dz-error-message,
+.dropzone-previews .dz-preview .dz-error-message {
+  display: none;
+  position: absolute;
+  top: -5px;
+  left: -20px;
+  background: rgba(245,245,245,0.8);
+  padding: 8px 10px;
+  color: #800;
+  min-width: 140px;
+  max-width: 500px;
+  z-index: 500;
+}
+.dropper.dz-preview:hover.dz-error .dz-error-message,
+.dropzone-previews .dz-preview:hover.dz-error .dz-error-message {
+  display: block;
+}
