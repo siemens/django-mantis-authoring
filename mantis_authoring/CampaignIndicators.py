@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 #
 # Copyright (c) Siemens AG, 2014
 #
@@ -245,14 +248,14 @@ class stixTransformer:
         else:
             return id_string
 
-            
+
 
     def __init__(self, *args,**kwargs):
 
         # Setup our namespace
 
-        self.namespace_name = kwargs.get('namespace_uri', DINGOS_DEFAULT_ID_NAMESPACE_URI)
-        self.namespace_prefix = kwargs.get('namespace_slug', "dingos_default")
+        self.namespace_name = kwargs.get('namespace_uri', DINGOS_DEFAULT_ID_NAMESPACE_URI).decode('utf-8').encode('ascii')
+        self.namespace_prefix = kwargs.get('namespace_slug', "dingos_default").decode('utf-8').encode('ascii')
         self.namespace_map = {self.namespace_name: self.namespace_prefix,
                               'http://data-marking.mitre.org/Marking-1': 'stixMarking',
                               }
@@ -727,13 +730,13 @@ class stixTransformer:
         #tlpmark = TLPMarkingStructureType()
         #tlpmark.set_color(stix_properties['stix_header_tlp'])
         tlpmark = TLPMarkingStructure()
-        tlpmark.color = stix_properties['stix_header_tlp']
+        tlpmark.color = stix_properties['stix_header_tlp'].decode('utf-8').encode('ascii')
 
         spec.marking_structures.append(tlpmark)
         stix_package = STIXPackage(
             indicators=stix_indicators, 
             observables=Observables(self.cybox_observable_list), 
-            id_=stix_id, 
+            id_=stix_id.decode('utf-8').encode('ascii'),
             threat_actors=self.threatactor)
         stix_header = STIXHeader()
         stix_header.title = stix_properties['stix_header_title']
