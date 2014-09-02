@@ -87,11 +87,20 @@ define(['jquery', 'datetimepicker'],function($){
 
 	    ref.find('#id_object_id').val(item.value);
 	    ref.find('#id_label').val(item.label);
-	    ref.prepend(
-		$('<span></span>').text(item.label + ' ('+ item.value +')')
+
+	    var cdc = $('<div>').addClass('dda-threatactor-template clearfix');
+	    cdc.prepend(
+		$('<span></span>').text(' ('+ item.value +')').prepend($('<strong>').text(item.label))
+	    );
+	    cdc.prepend(
+		$('<i class="ui-icon ui-icon-close pull-left"></i>').click(function(e){
+		    $('.dda-threatactor-template', '#dda-campaign-container').first().replaceWith(instance._old_threat_actor_element);
+		    instance.cam_bind_reference_completer();
+		})
 	    );
 
-	    $('.dda-threatactor-template', '#dda-campaign-container').first().replaceWith(ref);
+	    ref.prepend(cdc);
+	    instance._old_threat_actor_element = $('.dda-threatactor-template', '#dda-campaign-container').first().replaceWith(cdc);
 	},
 
 
@@ -106,11 +115,20 @@ define(['jquery', 'datetimepicker'],function($){
 
 	    ref.find('#id_object_id').val(item.value);
 	    ref.find('#id_label').val(item.label);
-	    ref.prepend(
-		$('<span></span>').text(item.label + ' ('+ item.value +')')
-	    );
 
-	    $('.dda-campaign-template', '#dda-campaign-container').first().replaceWith(ref);
+	    var cdc = $('<div>').addClass('dda-campaign-template clearfix');
+	    cdc.prepend(
+		$('<span></span>').text(' ('+ item.value +')').prepend($('<strong>').text(item.label))
+	    );
+	    cdc.prepend(
+		$('<i class="ui-icon ui-icon-close pull-left"></i>').click(function(e){
+		    $('.dda-campaign-template', '#dda-campaign-container').first().replaceWith(instance._old_campaign_element);
+		    instance.cam_bind_reference_completer();
+		})
+	    );
+	    
+	    ref.prepend(cdc);
+	    instance._old_campaign_element = $('.dda-campaign-template', '#dda-campaign-container').first().replaceWith(cdc);
 	},
 
 	
@@ -159,6 +177,9 @@ define(['jquery', 'datetimepicker'],function($){
 			}else{
 			    instance.cam_replace_threat_actor(ui.item);
 			}
+
+			event.preventDefault();
+			//$(event.target).val('');
                     }
 		});
 	    });
