@@ -8,14 +8,14 @@ for co in cybox_objects:
     globals()[co] = importlib.import_module('.'+co, 'cybox.objects')
 
 from django.db.models import Q
+from django import forms
+from django.templatetags.static import static
+
 from dingos.models import InfoObject2Fact, InfoObject, UserData, get_or_create_fact
 from dingos import DINGOS_INTERNAL_IOBJECT_FAMILY_NAME, DINGOS_TEMPLATE_FAMILY
 
-from django import forms
-
-from django.templatetags.static import static
-
 from mantis_authoring.settings import MANTIS_AUTHORING_ID_DERIVATION_STRATEGY, HASH_MODE, COUNTER_MODE
+from mantis_stix_importer import STIX_OBJECTTYPE_ICON_MAPPING
 
 class ObjectFormTemplate(forms.Form):
 
@@ -32,7 +32,8 @@ class ObjectFormTemplate(forms.Form):
             self.fields['I_object_display_name'] = forms.CharField(initial="%s (%s)" % (object_type,object_subtype),
                                                                    widget=forms.HiddenInput)
 
-    I_icon =  forms.CharField(initial=static('img/stix/observable.svg'), widget=forms.HiddenInput)
+    I_icon =  forms.CharField(initial=STIX_OBJECTTYPE_ICON_MAPPING['stix.mitre.org']['Observable']['xlink:href'], 
+                              widget=forms.HiddenInput)
     observable_id = forms.CharField(initial="", widget=forms.HiddenInput)
 
 

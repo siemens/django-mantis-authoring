@@ -98,7 +98,7 @@ class FormView(BasicSTIXPackageTemplateView):
         )
         object_type = forms.CharField(initial="ThreatActor", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Threat Actor", widget=forms.HiddenInput)
-        I_icon =  forms.CharField(initial=static('img/stix/threat_actor.svg'), widget=forms.HiddenInput)
+        I_icon =  forms.CharField(initial=static('mantis_authoring/img/stix/threat_actor.svg'), widget=forms.HiddenInput)
         identity_name = forms.CharField(max_length=1024, help_text="*required", required=True)
         identity_aliases = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'Line by line aliases of this threat actor'}), required=False, )
         title = forms.CharField(max_length=1024)
@@ -110,7 +110,7 @@ class FormView(BasicSTIXPackageTemplateView):
     class StixThreatActorReference(forms.Form):
         object_type = forms.CharField(initial="ThreatActorReference", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Threat Actor Reference", widget=forms.HiddenInput)
-        I_icon =  forms.CharField(initial=static('img/stix/threat_actor.svg'), widget=forms.HiddenInput)
+        I_icon =  forms.CharField(initial=static('mantis_authoring/img/stix/threat_actor.svg'), widget=forms.HiddenInput)
         object_id =  forms.CharField(initial='', widget=forms.HiddenInput)
         label =  forms.CharField(initial='', widget=forms.HiddenInput)
 
@@ -133,7 +133,7 @@ class FormView(BasicSTIXPackageTemplateView):
         )
         object_type = forms.CharField(initial="Campaign", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Campaign", widget=forms.HiddenInput)
-        I_icon =  forms.CharField(initial=static('img/stix/campaign.svg'), widget=forms.HiddenInput)
+        I_icon =  forms.CharField(initial=static('mantis_authoring/img/stix/campaign.svg'), widget=forms.HiddenInput)
         name = forms.CharField(max_length=1024, help_text="*required", required=True)
         title = forms.CharField(max_length=1024)
         description = forms.CharField(widget=forms.Textarea, required=False)
@@ -145,7 +145,7 @@ class FormView(BasicSTIXPackageTemplateView):
     class StixCampaignReference(forms.Form):
         object_type = forms.CharField(initial="CampaignReference", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Campaign Reference", widget=forms.HiddenInput)
-        I_icon =  forms.CharField(initial=static('img/stix/campaign.svg'), widget=forms.HiddenInput)
+        I_icon =  forms.CharField(initial=static('mantis_authoring/img/stix/campaign.svg'), widget=forms.HiddenInput)
         object_id =  forms.CharField(initial='', widget=forms.HiddenInput)
         label =  forms.CharField(initial='', widget=forms.HiddenInput)
 
@@ -164,7 +164,7 @@ class FormView(BasicSTIXPackageTemplateView):
         )
         object_type = forms.CharField(initial="Indicator", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Indicator", widget=forms.HiddenInput)
-        I_icon =  forms.CharField(initial=static('img/stix/indicator.svg'), widget=forms.HiddenInput)
+        I_icon =  forms.CharField(initial=static('mantis_authoring/img/stix/indicator.svg'), widget=forms.HiddenInput)
         indicator_title = forms.CharField(max_length=1024)
         indicator_description = forms.CharField(widget=forms.Textarea, required=False)
         indicator_confidence = forms.ChoiceField(choices=CONFIDENCE_TYPES, required=False, initial="med")
