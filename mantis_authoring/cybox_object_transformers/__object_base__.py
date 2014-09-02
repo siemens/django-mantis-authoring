@@ -15,7 +15,8 @@ from dingos.models import InfoObject2Fact, InfoObject, UserData, get_or_create_f
 from dingos import DINGOS_INTERNAL_IOBJECT_FAMILY_NAME, DINGOS_TEMPLATE_FAMILY
 
 from mantis_authoring.settings import MANTIS_AUTHORING_ID_DERIVATION_STRATEGY, HASH_MODE, COUNTER_MODE
-from mantis_stix_importer import STIX_OBJECTTYPE_ICON_MAPPING
+from mantis_stix_importer.templatetags.mantis_stix_importer_tags import get_StixIcon
+
 
 class ObjectFormTemplate(forms.Form):
 
@@ -32,7 +33,7 @@ class ObjectFormTemplate(forms.Form):
             self.fields['I_object_display_name'] = forms.CharField(initial="%s (%s)" % (object_type,object_subtype),
                                                                    widget=forms.HiddenInput)
 
-    I_icon =  forms.CharField(initial=STIX_OBJECTTYPE_ICON_MAPPING['stix.mitre.org']['Observable']['xlink:href'], 
+    I_icon =  forms.CharField(initial=get_StixIcon('Observable', 'stix.mitre.org'), 
                               widget=forms.HiddenInput)
     observable_id = forms.CharField(initial="", widget=forms.HiddenInput)
 
@@ -99,20 +100,6 @@ class transformer_object(object):
                              'fact__fact_values') \
                 .filter(q_q)\
                 .select_related().distinct().order_by('iobject__id')[:limit]
-
-
-        # t_q = Q(iobject_type__name__icontains=type_)
-        # q_q = Q(identifier__uid__icontains=term) | Q(name__icontains=term)
-        # return InfoObject.objects.exclude(latest_of=None)\
-        #                          .exclude(iobject_family__name__exact=DINGOS_INTERNAL_IOBJECT_FAMILY_NAME)\
-        #                          .prefetch_related(
-        #                              'iobject_type',
-        #                              'iobject_family',
-        #                              'iobject_family_revision',
-        #                              'identifier')\
-        #                          .filter(q_q)\
-        #                          .filter(t_q)\
-        #                          .select_related().distinct().order_by('-latest_of__pk')[:limit]
 
 
     # Creates a cybox URI object, used in multiple objects
