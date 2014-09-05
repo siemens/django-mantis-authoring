@@ -99,7 +99,7 @@ define(['jquery', 'datetimepicker'],function($){
 		})
 	    );
 
-	    ref.prepend(cdc);
+	    cdc.prepend(ref);
 	    instance._old_threat_actor_element = $('.dda-threatactor-template', '#dda-campaign-container').first().replaceWith(cdc);
 	},
 
@@ -112,6 +112,7 @@ define(['jquery', 'datetimepicker'],function($){
 	    var instance = this;
 	    	template = instance.cam_pool_elements_templates.filter('#dda-campaign-template_CampaignReference'),
 	        ref = template.clone();
+
 
 	    ref.find('#id_object_id').val(item.value);
 	    ref.find('#id_label').val(item.label);
@@ -127,7 +128,7 @@ define(['jquery', 'datetimepicker'],function($){
 		})
 	    );
 	    
-	    ref.prepend(cdc);
+	    cdc.prepend(ref);
 	    instance._old_campaign_element = $('.dda-campaign-template', '#dda-campaign-container').first().replaceWith(cdc);
 	},
 

@@ -227,12 +227,14 @@ class stixTransformer:
     """
 
     def gen_slugged_id(self,id_string):
+        ret = ''
+
         if not id_string:
-            return id_string
+            ret = id_string
         elif '{' in id_string:
             ns_uri,uid = tuple(id_string[1:].split('}',1))
             if ns_uri in self.namespace_map:
-                return "%s:%s" % (self.namespace_map[ns_uri],uid)
+                ret = "%s:%s" % (self.namespace_map[ns_uri],uid)
             else:
                 try: 
                     ns_slug = IdentifierNameSpace.objects.get(uri=ns_uri).name
@@ -245,10 +247,13 @@ class stixTransformer:
                         counter +=1
                     ns_slug = "%s%d" % (ns_slug,counter)
                 self.namespace_map[ns_uri] = ns_slug
-                return "%s:%s" % (ns_slug,ns_uri)    
+                ret = "%s:%s" % (ns_slug,ns_uri)
         else:
-            return id_string
+            ret = id_string
 
+        if ret:
+            return ret.decode('utf-8').encode('ascii')
+        return id_string
 
 
     def __init__(self, *args,**kwargs):
@@ -392,7 +397,7 @@ class stixTransformer:
                 related_identities.append(Identity(id_=identity_id_format_string % counter, idref=None, name=ia.strip('\n').strip('\r').strip()))
                 counter += 1
             tac.identity.related_identities = RelatedIdentities(related_identities)
-            tac.title = String(threatactor.get('title', ''))
+            tac.title = threatactor.get('title', '')
             tac.description = StixStructuredText(threatactor.get('description', ''))
             #tac.information_source = InformationSource()
             #tac.information_source.description = threatactor.get('information_source', '')
@@ -615,11 +620,11 @@ class stixTransformer:
         Helper function to create an Indicator object
         """
         stix_indicator = Indicator(self.gen_slugged_id(indicator['indicator_id']))
-        stix_indicator.title = String(indicator['indicator_title'])
-        stix_indicator.description = String(indicator['indicator_description'])
+        stix_indicator.title = indicator['indicator_title']
+        stix_indicator.description = indicator['indicator_description']
         stix_indicator.confidence = Confidence(indicator['indicator_confidence'])
         stix_indicator.observable_composition_operator = indicator['indicator_operator']
-        #stix_indicator.indicator_types = String(indicator['object_type'])
+        #stix_indicator.indicator_types = indicator['object_type']
 
         return stix_indicator
 

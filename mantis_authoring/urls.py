@@ -26,7 +26,6 @@ urlpatterns = [
     url(r'^Templates/CampaignIndicators/transform$', CampaignIndicators.ProcessingView.as_view()),
     url(r'^Templates/CampaignIndicators/upload$', CampaignIndicators.UploadFile.as_view(), name="url.mantis_authoring.upload_file"),
 
-    url(r'^ref$', views.GetAuthoringObjectReference.as_view(), name="url.mantis_authoring.ref"),
     url(r'/ref$', views.GetAuthoringObjectReference.as_view(), name="url.mantis_authoring.ref"),
 
     url(r'^validate_object$', views.ValidateObject.as_view(), name="url.mantis_authoring.validate_object"),
