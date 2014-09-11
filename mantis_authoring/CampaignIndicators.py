@@ -736,7 +736,7 @@ class stixTransformer:
         #tlpmark = TLPMarkingStructureType()
         #tlpmark.set_color(stix_properties['stix_header_tlp'])
         tlpmark = TLPMarkingStructure()
-        tlpmark.color = stix_properties['stix_header_tlp'].decode('utf-8').encode('ascii')
+        tlpmark.color = stix_properties['stix_header_tlp'].decode('utf-8').encode('ascii').upper()
 
         spec.marking_structures.append(tlpmark)
         stix_package = STIXPackage(
