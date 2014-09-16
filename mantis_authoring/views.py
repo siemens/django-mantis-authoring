@@ -28,7 +28,8 @@ class GetAuthoringObjectReference(BasicJSONView):
         }
 
         POST = self.request.POST
-        post_dict = parser.parse(POST.urlencode())
+        post_dict = parser.parse(str(POST.urlencode()))
+
 
         object_element = post_dict.get('el', {})
         object_type = object_element.get('object_type', None).lower().strip()
@@ -97,7 +98,7 @@ class GetAuthoringSimilarObjects(BasicJSONView):
         }
 
         POST = self.request.POST
-        post_dict = parser.parse(POST.urlencode())
+        post_dict = parser.parse(str(POST.urlencode()))
 
         object_element = post_dict.get('observable_properties', {})
         object_type = object_element.get('object_type', '').lower().strip()
@@ -160,7 +161,7 @@ class ValidateObject(FormView):
 
     def post(self, request, *args, **kwargs):
         POST = self.request.POST
-        post_dict = parser.parse(POST.urlencode())
+        post_dict = parser.parse(str(POST.urlencode()))
         observable_properties = post_dict.get('observable_properties', {})
         observable_properties['observable_id'] = post_dict.get('observable_id')
         observable_properties['I_object_display_name'] = 'NONE'
@@ -220,7 +221,7 @@ class GetObjectName(BasicJSONView):
             'data': ''
         }
         POST = self.request.POST
-        post_dict = parser.parse(POST.urlencode())
+        post_dict = parser.parse(str(POST.urlencode()))
 
         object_element = post_dict.get('observable_properties', {})
         object_type = object_element.get('object_type', '').lower().strip()

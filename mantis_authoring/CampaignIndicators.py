@@ -304,10 +304,8 @@ class stixTransformer:
         self.__process_observables()
         self.__process_test_mechanisms()
 
-
         self.__process_campaigns()
         self.__process_indicators()
-
 
         self.__create_stix_package()
 
@@ -512,6 +510,7 @@ class stixTransformer:
                     # cybox object, but we use it to transport the
                     # information to the observable we are going to create
                     # later
+
                     no.mantis_title = properties_obj.get('observable_title', '')
                     no.mantis_description = properties_obj.get('observable_description', '')
 
@@ -556,6 +555,7 @@ class stixTransformer:
                 # cybox object, but we use it to transport the
                 # information to the observable we are going to create
                 # later on
+
                 main_properties_obj.mantis_title = properties_obj.get('observable_title', '')
                 main_properties_obj.mantis_description = properties_obj.get('observable_description', '')
                 cybox_object_dict[self.gen_slugged_id(properties_obj['observable_id'])] = main_properties_obj
@@ -592,7 +592,6 @@ class stixTransformer:
             # Observable title and description were transported in our cybox object
             title = cybox_obj.properties.mantis_title
             description = cybox_obj.properties.mantis_description
-
 
             for rel_id, rel_type in relations.get(obs_id,{}).iteritems():
                 related_object = cybox_object_dict[rel_id].properties
@@ -708,7 +707,6 @@ class stixTransformer:
 
                 stix_indicator.associated_campaigns = indicator_assoc_campaigns
 
-
             self.stix_indicators.append(stix_indicator)
 
 
@@ -737,7 +735,6 @@ class stixTransformer:
         #tlpmark.set_color(stix_properties['stix_header_tlp'])
         tlpmark = TLPMarkingStructure()
         tlpmark.color = stix_properties['stix_header_tlp'].decode('utf-8').encode('ascii').upper()
-
         spec.marking_structures.append(tlpmark)
         stix_package = STIXPackage(
             indicators=stix_indicators, 
@@ -794,7 +791,7 @@ class UploadFile(AuthoringMethodMixin,View):
         }
 
         POST = self.request.POST
-        post_dict = parser.parse(POST.urlencode())
+        post_dict = parser.parse(str(POST.urlencode()))
         ns_info = self.get_authoring_namespaces(self.request.user,fail_silently=False)
 
 
