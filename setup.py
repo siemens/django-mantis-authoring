@@ -40,6 +40,7 @@ setup(
         'pytz>=2013.9',
         'lxml>=3.2.1',
         'querystring-parser>=1.2.0',
+        'django-mantis-stix-import>=0.2.0'
     ],
     license="GPLv2+",
     zip_safe=False,
