@@ -236,7 +236,7 @@ class stixTransformer:
             if ns_uri in self.namespace_map:
                 ret = "%s:%s" % (self.namespace_map[ns_uri],uid)
             else:
-                try: 
+                try:
                     ns_slug = IdentifierNameSpace.objects.get(uri=ns_uri).name
                 except ObjectDoesNotExist:
                     ns_slug = "authoring"
@@ -267,7 +267,7 @@ class stixTransformer:
                               }
 
 
-        
+
 
         self.namespace = cybox.utils.Namespace(self.namespace_name, self.namespace_prefix)
         cybox.utils.set_id_namespace(self.namespace)
@@ -324,7 +324,7 @@ class stixTransformer:
         except:
             print "Error. No threat actor passed."
             return
-        
+
         # The campaign
         if campaign.get('object_type') == 'CampaignReference':
             camp = Campaign()
@@ -356,7 +356,7 @@ class stixTransformer:
             #ato.description = StixStructuredText('Timestamp to')
             #camp.activity = [afrom, ato]
             self.campaign = camp
-            
+
 
         if threatactor.get('object_type') == 'ThreatActorReference':
             tac = ThreatActor()
@@ -595,7 +595,7 @@ class stixTransformer:
 
             for rel_id, rel_type in relations.get(obs_id,{}).iteritems():
                 related_object = cybox_object_dict[rel_id].properties
-                if not related_object: # This might happen if an observable was not generated (because data was missing); TODO!                
+                if not related_object: # This might happen if an observable was not generated (because data was missing); TODO!
                     continue
                 cybox_obj.add_related(related_object, rel_type, inline=False)
 
@@ -737,8 +737,8 @@ class stixTransformer:
         tlpmark.color = stix_properties['stix_header_tlp'].decode('utf-8').encode('ascii').upper()
         spec.marking_structures.append(tlpmark)
         stix_package = STIXPackage(
-            indicators=stix_indicators, 
-            observables=Observables(self.cybox_observable_list), 
+            indicators=stix_indicators,
+            observables=Observables(self.cybox_observable_list),
             id_=stix_id.decode('utf-8').encode('ascii'),
             threat_actors=self.threatactor)
         stix_header = STIXHeader()
@@ -801,10 +801,11 @@ class UploadFile(AuthoringMethodMixin,View):
             ftype = post_dict.get('type', '')
 
 
-
             # Get file properties from cache
-            te = cache.get('MANTIS_AUTHORING__file__' + fid)
-            
+            rs = request.session.get('mantis_authoring_filecache', {})
+            te = rs.get('MANTIS_AUTHORING__file__' + fid, None)
+
+
             if (fid!='' and ftype!='') and (te) and (os.path.isfile(te['cache_file'])):
 
                 # Iterate over available file processors and filter those with the correct type the GUI wants us to use.
@@ -816,7 +817,7 @@ class UploadFile(AuthoringMethodMixin,View):
                     ao = getattr(im,'file_analyzer')(te)
                     if ao.is_class_type(ftype):
                         proc_modules.append(ao)
-                        
+
                 if not proc_modules:
                     res['msg'] = 'Could not find suitable modules for the requested processing type.'
                 else:
@@ -874,7 +875,7 @@ class UploadFile(AuthoringMethodMixin,View):
                             file_id = str(uuid4())
                             for mod in mod_choices:
                                 res['data'].append({
-                                    'fid': file_id, 
+                                    'fid': file_id,
                                     'type': mod.test_object(),
                                     'title': mod.test_object(),
                                     'details': mod.get_description()
@@ -888,10 +889,14 @@ class UploadFile(AuthoringMethodMixin,View):
                                 dest_file.write(chunk)
                             dest_file.close()
 
-                            cache.set('MANTIS_AUTHORING__file__' + file_id, {
+                            # Cache file meta in session
+                            if 'mantis_authoring_filecache' not in request.session:
+                                request.session['mantis_authoring_filecache'] = {}
+                            request.session['mantis_authoring_filecache']['MANTIS_AUTHORING__file__' + file_id] = {
                                 'cache_file': dest_file.name,
                                 'filename': f.name
-                            })                            
+                            }
+                            request.session.save()
 
                         else:
                             # There is only one module. Use that and process the file
@@ -905,8 +910,8 @@ class UploadFile(AuthoringMethodMixin,View):
                                 res['status'] = True
                                 res['data'] = proc_res['data']
                                 res['action'] = 'create'
-            
-            
+
+
         if not request.is_ajax(): # Indicates fallback (form based upload)
             ret  = '<script>'
             ret += '  var r = ' + json.dumps(res) + ';';
