@@ -59,7 +59,7 @@ try:
 except:
     from stix.campaign import Name
 
-from stix.threat_actor import ThreatActor
+from stix.threat_actor import ThreatActor, AssociatedActors
 from stix.data_marking import Marking, MarkingSpecification
 
 from mantis_stix_importer.importer import STIX_Import
@@ -364,10 +364,12 @@ class stixTransformer:
             tac.timestamp=None
             tac.id_ = None
             if self.campaign and self.campaign.id_:
-                related_ta = ThreatActor()
-                related_ta.idref= self.gen_slugged_id(tac.idref)
-                related_ta.timestamp = None
-
+                related_ta = AssociatedActors()
+                related_ta1 = ThreatActor()
+                related_ta1.idref= self.gen_slugged_id(tac.idref)
+                related_ta1.timestamp = None
+                related_ta.append(related_ta1)
+                
                 self.campaign.attribution.append(related_ta)
 
 

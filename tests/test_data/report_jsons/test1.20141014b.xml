@@ -12,14 +12,14 @@
 	xmlns:URIObj="http://cybox.mitre.org/objects#URIObject-2"
 	xmlns:WinProcessObj="http://cybox.mitre.org/objects#WinProcessObject-2"
 	xmlns:WinServiceObj="http://cybox.mitre.org/objects#WinServiceObject-2"
-	xmlns:stixMarking="http://data-marking.mitre.org/Marking-1"
+	xmlns:marking="http://data-marking.mitre.org/Marking-1"
 	xmlns:tlpMarking="http://data-marking.mitre.org/extensions/MarkingStructure#TLP-1"
 	xmlns:campaign="http://stix.mitre.org/Campaign-1"
-	xmlns:incident="http://stix.mitre.org/Incident-1"
 	xmlns:indicator="http://stix.mitre.org/Indicator-2"
 	xmlns:ta="http://stix.mitre.org/ThreatActor-1"
 	xmlns:stixCommon="http://stix.mitre.org/common-1"
 	xmlns:stixVocabs="http://stix.mitre.org/default_vocabularies-1"
+	xmlns:stix-openioc="http://stix.mitre.org/extensions/TestMechanism#OpenIOC2010-1"
 	xmlns:stix="http://stix.mitre.org/stix-1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:my_organization="my.organization.com"
@@ -40,24 +40,24 @@
 	http://data-marking.mitre.org/Marking-1 http://stix.mitre.org/XMLSchema/data_marking/1.1.1/data_marking.xsd
 	http://data-marking.mitre.org/extensions/MarkingStructure#TLP-1 http://stix.mitre.org/XMLSchema/extensions/marking/tlp/1.1.1/tlp_marking.xsd
 	http://stix.mitre.org/Campaign-1 http://stix.mitre.org/XMLSchema/campaign/1.1.1/campaign.xsd
-	http://stix.mitre.org/Incident-1 http://stix.mitre.org/XMLSchema/incident/1.1.1/incident.xsd
 	http://stix.mitre.org/Indicator-2 http://stix.mitre.org/XMLSchema/indicator/2.1.1/indicator.xsd
 	http://stix.mitre.org/ThreatActor-1 http://stix.mitre.org/XMLSchema/threat_actor/1.1.1/threat_actor.xsd
 	http://stix.mitre.org/common-1 http://stix.mitre.org/XMLSchema/common/1.1.1/stix_common.xsd
 	http://stix.mitre.org/default_vocabularies-1 http://stix.mitre.org/XMLSchema/default_vocabularies/1.1.1/stix_default_vocabularies.xsd
-	http://stix.mitre.org/stix-1 http://stix.mitre.org/XMLSchema/core/1.1.1/stix_core.xsd" id="my_organization:package-80528ef0-4cdb-7ad5-0799-a385a6a89616" version="1.1.1" timestamp="2014-10-14T07:29:15.586763+00:00">
+	http://stix.mitre.org/extensions/TestMechanism#OpenIOC2010-1 http://stix.mitre.org/XMLSchema/extensions/test_mechanism/open_ioc_2010/1.1.1/open_ioc_2010_test_mechanism.xsd
+	http://stix.mitre.org/stix-1 http://stix.mitre.org/XMLSchema/core/1.1.1/stix_core.xsd" id="my_organization:package-80528ef0-4cdb-7ad5-0799-a385a6a89616" version="1.1.1" timestamp="2014-10-14T09:48:21.061999+00:00">
     <stix:STIX_Header>
         <stix:Title>Test Packate</stix:Title>
         <stix:Description>Use this package to test output after upgrade</stix:Description>
         <stix:Handling>
-            <stixMarking:Marking>
-                <stixMarking:Controlled_Structure>//node()</stixMarking:Controlled_Structure>
-                <stixMarking:Marking_Structure xsi:type='tlpMarking:TLPMarkingStructureType' color="WHITE"/>
-            </stixMarking:Marking>
+            <marking:Marking>
+                <marking:Controlled_Structure>//node()</marking:Controlled_Structure>
+                <marking:Marking_Structure xsi:type='tlpMarking:TLPMarkingStructureType' color="WHITE"/>
+            </marking:Marking>
         </stix:Handling>
         <stix:Information_Source>
             <stixCommon:Time>
-                <cyboxCommon:Produced_Time>2014-10-14T09:29:15.601251+02:00</cyboxCommon:Produced_Time>
+                <cyboxCommon:Produced_Time>2014-10-14T11:48:21.062053+02:00</cyboxCommon:Produced_Time>
             </stixCommon:Time>
             <stixCommon:Tools>
                 <cyboxCommon:Tool>
@@ -185,7 +185,7 @@
                     <HTTPSessionObj:HTTP_Request_Response>
                         <HTTPSessionObj:HTTP_Client_Request>
                             <HTTPSessionObj:HTTP_Request_Line>
-                                <HTTPSessionObj:HTTP_Method datatype="string">GET</HTTPSessionObj:HTTP_Method>
+                                <HTTPSessionObj:HTTP_Method>GET</HTTPSessionObj:HTTP_Method>
                                 <HTTPSessionObj:Value>path</HTTPSessionObj:Value>
                             </HTTPSessionObj:HTTP_Request_Line>
                             <HTTPSessionObj:HTTP_Request_Header>
@@ -269,10 +269,10 @@
         </cybox:Observable>
     </stix:Observables>
     <stix:Indicators>
-        <stix:Indicator id="my_organization:Indicator-14ae8f77-eb0a-3cdc-f0be-be7dd8e630bb" timestamp="2014-10-14T07:29:15.585438+00:00" xsi:type='indicator:IndicatorType' negate="false" version="2.1.1">
+        <stix:Indicator id="my_organization:Indicator-14ae8f77-eb0a-3cdc-f0be-be7dd8e630bb" timestamp="2014-10-14T09:48:21.060455+00:00" xsi:type='indicator:IndicatorType'>
             <indicator:Title>File Indicator</indicator:Title>
             <indicator:Description>File-Indicator Description</indicator:Description>
-            <indicator:Observable id="my_organization:Observable-2de90d35-adca-4bc5-923f-e468eae9cbea">
+            <indicator:Observable id="my_organization:Observable-b2af0a23-1185-4d15-850a-3cbcae2ad0c9">
                 <cybox:Observable_Composition operator="OR">
                     <cybox:Observable idref="my_organization:Observable-396b4d89-41a3-0e75-f27d-70603ed7414c">
                     </cybox:Observable>
@@ -280,32 +280,32 @@
                     </cybox:Observable>
                 </cybox:Observable_Composition>
             </indicator:Observable>
-            <indicator:Confidence timestamp="2014-10-14T07:29:15.585453+00:00">
+            <indicator:Confidence timestamp="2014-10-14T09:48:21.060473+00:00">
                 <stixCommon:Value xsi:type="stixVocabs:HighMediumLowVocab-1.0">High</stixCommon:Value>
             </indicator:Confidence>
         </stix:Indicator>
-        <stix:Indicator id="my_organization:Indicator-d21c5704-6ac8-558c-e2de-d183e5067fae" timestamp="2014-10-14T07:29:15.585702+00:00" xsi:type='indicator:IndicatorType' negate="false" version="2.1.1">
+        <stix:Indicator id="my_organization:Indicator-d21c5704-6ac8-558c-e2de-d183e5067fae" timestamp="2014-10-14T09:48:21.060774+00:00" xsi:type='indicator:IndicatorType'>
             <indicator:Title>Host-based Indicator</indicator:Title>
             <indicator:Description>Host-based Indicator Description</indicator:Description>
             <indicator:Observable idref="my_organization:Observable-086a3391-8441-0d0e-b367-4d6456f27d2a">
             </indicator:Observable>
-            <indicator:Confidence timestamp="2014-10-14T07:29:15.585711+00:00">
+            <indicator:Confidence timestamp="2014-10-14T09:48:21.060786+00:00">
                 <stixCommon:Value xsi:type="stixVocabs:HighMediumLowVocab-1.0">High</stixCommon:Value>
             </indicator:Confidence>
         </stix:Indicator>
-        <stix:Indicator id="my_organization:Indicator-7ffed050-3769-0b03-bc02-91354c1eeb9c" timestamp="2014-10-14T07:29:15.585885+00:00" xsi:type='indicator:IndicatorType' negate="false" version="2.1.1">
+        <stix:Indicator id="my_organization:Indicator-7ffed050-3769-0b03-bc02-91354c1eeb9c" timestamp="2014-10-14T09:48:21.060986+00:00" xsi:type='indicator:IndicatorType'>
             <indicator:Title>Email Indicator</indicator:Title>
             <indicator:Description>Email Indicator Description</indicator:Description>
             <indicator:Observable idref="my_organization:Observable-733880b0-66d0-30b2-90e0-aac36990aa58">
             </indicator:Observable>
-            <indicator:Confidence timestamp="2014-10-14T07:29:15.585894+00:00">
+            <indicator:Confidence timestamp="2014-10-14T09:48:21.060997+00:00">
                 <stixCommon:Value xsi:type="stixVocabs:HighMediumLowVocab-1.0">High</stixCommon:Value>
             </indicator:Confidence>
         </stix:Indicator>
-        <stix:Indicator id="my_organization:Indicator-893bc960-3bc6-bfe5-b632-bc18595c09eb" timestamp="2014-10-14T07:29:15.586065+00:00" xsi:type='indicator:IndicatorType' negate="false" version="2.1.1">
+        <stix:Indicator id="my_organization:Indicator-893bc960-3bc6-bfe5-b632-bc18595c09eb" timestamp="2014-10-14T09:48:21.061212+00:00" xsi:type='indicator:IndicatorType'>
             <indicator:Title>Network Indicators</indicator:Title>
             <indicator:Description>Network Indicator Description</indicator:Description>
-            <indicator:Observable id="my_organization:Observable-298dbc7c-68a8-4f95-a075-a017dfa4dd54">
+            <indicator:Observable id="my_organization:Observable-5b761ea3-a2ff-4a48-ae8a-51057e3700a2">
                 <cybox:Observable_Composition operator="OR">
                     <cybox:Observable idref="my_organization:Observable-7f2228ae-fbd8-1258-1818-8240b922f933">
                     </cybox:Observable>
@@ -325,13 +325,91 @@
                     </cybox:Observable>
                 </cybox:Observable_Composition>
             </indicator:Observable>
-            <indicator:Confidence timestamp="2014-10-14T07:29:15.586074+00:00">
+            <indicator:Confidence timestamp="2014-10-14T09:48:21.061225+00:00">
+                <stixCommon:Value xsi:type="stixVocabs:HighMediumLowVocab-1.0">High</stixCommon:Value>
+            </indicator:Confidence>
+        </stix:Indicator>
+        <stix:Indicator id="my_organization:Indicator-7db3d35b-0c51-1ffb-008e-1a9b7dada432" timestamp="2014-10-14T09:48:21.061788+00:00" xsi:type='indicator:IndicatorType'>
+            <indicator:Title>IOC Test Indicator</indicator:Title>
+            <indicator:Test_Mechanisms>
+                <indicator:Test_Mechanism id="my_organization:Test_Mechanism-6d2a1b03-b216-4cd8-9a9e-8827af6ebf93" xmlns:stix-openioc='http://stix.mitre.org/extensions/TestMechanism#OpenIOC2010-1' xsi:type='stix-openioc:OpenIOC2010TestMechanismType'>
+                    <stix-openioc:ioc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.mandiant.com/2010/ioc" xmlns:stix-openioc="http://stix.mitre.org/extensions/TestMechanism#OpenIOC2010-1" id="6d2a1b03-b216-4cd8-9a9e-8827af6ebf93" last-modified="2011-10-28T19:28:20">
+  <short_description>Zeus</short_description>
+  <description>Finds Zeus variants, twexts, sdra64, ntos</description>
+  <keywords/>
+  <authored_by>Mandiant</authored_by>
+  <authored_date>0001-01-01T00:00:00</authored_date>
+  <links/>
+  <definition>
+    <Indicator operator="OR" id="9c8df971-32a8-4ede-8a3a-c5cb2c1439c6">
+      <Indicator operator="AND" id="0781258f-6960-4da5-97a0-ec35fb403cac">
+        <IndicatorItem id="50455b63-35bf-4efa-9f06-aeba2980f80a" condition="contains">
+          <Context document="ProcessItem" search="ProcessItem/name" type="mir"/>
+          <Content type="string">winlogon.exe</Content>
+        </IndicatorItem>
+        <IndicatorItem id="b05d9b40-0528-461f-9721-e31d5651abdc" condition="contains">
+          <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Type" type="mir"/>
+          <Content type="string">File</Content>
+        </IndicatorItem>
+        <Indicator operator="OR" id="67505775-6577-43b2-bccd-74603223180a">
+          <IndicatorItem id="c5ae706f-c032-4da7-8acd-4523f1dae9f6" condition="contains">
+            <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Name" type="mir"/>
+            <Content type="string">system32\sdra64.exe</Content>
+          </IndicatorItem>
+          <IndicatorItem id="25ff12a7-665b-4e45-8b0f-6e5ca7b95801" condition="contains">
+            <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Name" type="mir"/>
+            <Content type="string">system32\twain_32\user.ds</Content>
+          </IndicatorItem>
+          <IndicatorItem id="fea11706-9ebe-469b-b30a-4047cfb7436b" condition="contains">
+            <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Type" type="mir"/>
+            <Content type="string">\WINDOWS\system32\twext.exe</Content>
+          </IndicatorItem>
+          <IndicatorItem id="94ac992c-8d6d-441f-bfc4-5235f9b09af8" condition="contains">
+            <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Name" type="mir"/>
+            <Content type="string">system32\twain32\local.ds</Content>
+          </IndicatorItem>
+          <IndicatorItem id="bc12f44e-7d93-47ea-9cc9-86a2beeaa04c" condition="contains">
+            <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Name" type="mir"/>
+            <Content type="string">system32\twext.exe</Content>
+          </IndicatorItem>
+          <IndicatorItem id="1c3f8902-d4e2-443a-a407-15be3951bef9" condition="contains">
+            <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Name" type="mir"/>
+            <Content type="string">system32\lowsec\user.ds</Content>
+          </IndicatorItem>
+          <IndicatorItem id="7fab12d1-67ed-4149-b46a-ec50fc622bee" condition="contains">
+            <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Name" type="mir"/>
+            <Content type="string">system32\lowsec\local.ds</Content>
+          </IndicatorItem>
+        </Indicator>
+      </Indicator>
+      <Indicator operator="AND" id="9f7a5703-8a26-45cf-b801-1c13f0f15d40">
+        <IndicatorItem id="cf77d82f-0ac9-4c81-af0b-d634f71525b5" condition="contains">
+          <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Type" type="mir"/>
+          <Content type="string">Mutant</Content>
+        </IndicatorItem>
+        <Indicator operator="OR" id="83f72cf7-6399-4620-b735-d08ce23ba517">
+          <IndicatorItem id="a1250d55-cd63-46cd-9436-e1741f5f42c7" condition="contains">
+            <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Name" type="mir"/>
+            <Content type="string">__SYSTEM__</Content>
+          </IndicatorItem>
+          <IndicatorItem id="e033b865-95ba-44ab-baa5-3b1e8e5f348c" condition="contains">
+            <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Name" type="mir"/>
+            <Content type="string">_AVIRA_</Content>
+          </IndicatorItem>
+        </Indicator>
+      </Indicator>
+    </Indicator>
+  </definition>
+</stix-openioc:ioc>
+                </indicator:Test_Mechanism>
+            </indicator:Test_Mechanisms>
+            <indicator:Confidence timestamp="2014-10-14T09:48:21.061797+00:00">
                 <stixCommon:Value xsi:type="stixVocabs:HighMediumLowVocab-1.0">High</stixCommon:Value>
             </indicator:Confidence>
         </stix:Indicator>
     </stix:Indicators>
     <stix:Campaigns>
-        <stix:Campaign id="my_organization:campaign-80528ef0-4cdb-7ad5-0799-a385a6a89616" timestamp="2014-10-14T07:29:15.585062+00:00" xsi:type='campaign:CampaignType' version="1.1.1">
+        <stix:Campaign id="my_organization:campaign-80528ef0-4cdb-7ad5-0799-a385a6a89616" timestamp="2014-10-14T09:48:21.059915+00:00" xsi:type='campaign:CampaignType'>
             <campaign:Title>Campaign Title</campaign:Title>
             <campaign:Description>Campaign Description</campaign:Description>
             <campaign:Names>
@@ -339,12 +417,14 @@
             </campaign:Names>
             <campaign:Status>Unknown</campaign:Status>
             <campaign:Attribution>
-                <stixCommon:Threat_Actor id="my_organization:threatactor-ce98cc0c-69ba-470b-b8c5-16b7ea4981a7" xsi:type='ta:ThreatActorType' version="1.1.1"/>
+                <campaign:Attributed_Threat_Actor>
+                    <stixCommon:Threat_Actor id="my_organization:threatactor-d53fb1a4-a910-43f2-965e-032d68e397a0" xsi:type='ta:ThreatActorType'/>
+                </campaign:Attributed_Threat_Actor>
             </campaign:Attribution>
         </stix:Campaign>
     </stix:Campaigns>
     <stix:Threat_Actors>
-        <stix:Threat_Actor id="my_organization:threatactor-80528ef0-4cdb-7ad5-0799-a385a6a89616" timestamp="2014-10-14T07:29:15.585207+00:00" xsi:type='ta:ThreatActorType' version="1.1.1">
+        <stix:Threat_Actor id="my_organization:threatactor-80528ef0-4cdb-7ad5-0799-a385a6a89616" timestamp="2014-10-14T09:48:21.060069+00:00" xsi:type='ta:ThreatActorType'>
             <ta:Title>Threat-Actor Title</ta:Title>
             <ta:Description>Threat-Actor Description</ta:Description>
             <ta:Identity id="my_organization:threatactor-id-0-80528ef0-4cdb-7ad5-0799-a385a6a89616">
