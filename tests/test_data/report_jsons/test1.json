@@ -1,0 +1,220 @@
+{
+    "stix_header": {
+        "stix_header_title": "Test Packate",
+        "stix_package_id": "{my.organization.com}package-80528ef0-4cdb-7ad5-0799-a385a6a89616",
+        "stix_header_description": "Use this package to test output after upgrade",
+        "stix_header_tlp": "WHITE"
+    },
+    "campaign": {
+        "name": "campaign_name",
+        "title": "Campaign Title",
+        "description": "Campaign Description",
+        "status": "Unknown",
+        "object_type": "Campaign",
+        "threatactor": {
+            "identity_name": "identity_name",
+            "identity_aliases": "identity_alias1\nidentity_alials2",
+            "title": "Threat-Actor Title",
+            "description": "Threat-Actor Description",
+            "object_type": "ThreatActor"
+        }
+    },
+    "incidents": [],
+    "indicators": [
+        {
+            "indicator_title": "File Indicator",
+            "indicator_description": "File-Indicator Description",
+            "indicator_confidence": "High",
+            "indicator_operator": "OR",
+            "object_type": "Indicator",
+            "related_observables": [
+                "{my.organization.com}Observable-396b4d89-41a3-0e75-f27d-70603ed7414c",
+                "{my.organization.com}Observable-e3432839-032f-82e3-24ce-790c4327c16d"
+            ],
+            "related_observables_condition": "AND",
+            "indicator_id": "{my.organization.com}Indicator-14ae8f77-eb0a-3cdc-f0be-be7dd8e630bb",
+            "related_test_mechanisms": []
+        },
+        {
+            "indicator_title": "Host-based Indicator",
+            "indicator_description": "Host-based Indicator Description",
+            "indicator_confidence": "High",
+            "indicator_operator": "OR",
+            "object_type": "Indicator",
+            "related_observables": [
+                "{my.organization.com}Observable-086a3391-8441-0d0e-b367-4d6456f27d2a"
+            ],
+            "related_observables_condition": "AND",
+            "indicator_id": "{my.organization.com}Indicator-d21c5704-6ac8-558c-e2de-d183e5067fae",
+            "related_test_mechanisms": []
+        },
+        {
+            "indicator_title": "Email Indicator",
+            "indicator_description": "Email Indicator Description",
+            "indicator_confidence": "High",
+            "indicator_operator": "OR",
+            "object_type": "Indicator",
+            "related_observables": [
+                "{my.organization.com}Observable-733880b0-66d0-30b2-90e0-aac36990aa58"
+            ],
+            "related_observables_condition": "AND",
+            "indicator_id": "{my.organization.com}Indicator-7ffed050-3769-0b03-bc02-91354c1eeb9c",
+            "related_test_mechanisms": []
+        },
+        {
+            "indicator_title": "Network Indicators",
+            "indicator_description": "Network Indicator Description",
+            "indicator_confidence": "High",
+            "indicator_operator": "OR",
+            "object_type": "Indicator",
+            "related_observables": [
+                "{my.organization.com}Observable-7f2228ae-fbd8-1258-1818-8240b922f933",
+                "{my.organization.com}Observable-0f4455a1-73e5-b17e-4f0b-3cfd276272bb",
+                "{my.organization.com}Observable-2c7840aa-1252-9245-889a-e4ffeef1762f",
+                "{my.organization.com}Observable-6e150676-e69c-99c3-e053-d94ff47e4c13",
+                "{my.organization.com}Observable-dac6f290-73b5-b61b-8aa4-35f6fba61ddd"
+            ],
+            "related_observables_condition": "AND",
+            "indicator_id": "{my.organization.com}Indicator-893bc960-3bc6-bfe5-b632-bc18595c09eb",
+            "related_test_mechanisms": []
+        }
+    ],
+    "observables": [
+        {
+            "observable_id": "{my.organization.com}Observable-396b4d89-41a3-0e75-f27d-70603ed7414c",
+            "observable_title": "Artifact",
+            "observable_description": "Artifact Description",
+            "related_observables": {},
+            "observable_properties": {
+                "data": "this is an artifact",
+                "observable_id": "",
+                "object_type": "artifact",
+                "object_subtype": "Default"
+            }
+        },
+        {
+            "observable_id": "{my.organization.com}Observable-733880b0-66d0-30b2-90e0-aac36990aa58",
+            "observable_title": "Email",
+            "observable_description": "Email Description",
+            "related_observables": {
+                "{my.organization.com}Observable-396b4d89-41a3-0e75-f27d-70603ed7414c": "Contains",
+                "{my.organization.com}Observable-e3432839-032f-82e3-24ce-790c4327c16d": "Contains"
+            },
+            "observable_properties": {
+                "from_": "evil@sender.org",
+                "to": "poor@recipient.blah\r\nanother@victimc.om",
+                "subject": "I 0wn you!",
+                "in_reply_to": "message-id",
+                "send_date": "2014-01-01",
+                "links": "http://very.evil.link.com/blah",
+                "observable_id": "",
+                "object_type": "emailmessage",
+                "object_subtype": "Default"
+            }
+        },
+        {
+            "observable_id": "{my.organization.com}Observable-e3432839-032f-82e3-24ce-790c4327c16d",
+            "observable_title": "File",
+            "observable_description": "File Description",
+            "related_observables": {
+                "{my.organization.com}Observable-6e150676-e69c-99c3-e053-d94ff47e4c13": "Connected_To",
+                "{my.organization.com}Observable-0f4455a1-73e5-b17e-4f0b-3cfd276272bb": "Connected_To"
+            },
+            "observable_properties": {
+                "file_name": "evil_file.exe",
+                "file_path": "bla/evil_file.exe",
+                "file_size": "4711",
+                "md5": "md5md5md5",
+                "sha1": "sha1sha1sha1",
+                "sha256": "sha256sha256sha256",
+                "observable_id": "",
+                "object_type": "file",
+                "object_subtype": "Default"
+            }
+        },
+        {
+            "observable_id": "{my.organization.com}Observable-7f2228ae-fbd8-1258-1818-8240b922f933",
+            "observable_title": "HTTP Session",
+            "observable_description": "HTTP Session Description",
+            "related_observables": {},
+            "observable_properties": {
+                "request_method": "GET",
+                "request_value": "path",
+                "host": "host",
+                "port": "80",
+                "user_agent": "UA Agent",
+                "observable_id": "",
+                "object_type": "httpsession",
+                "object_subtype": "Default"
+            }
+        },
+        {
+            "observable_id": "{my.organization.com}Observable-0f4455a1-73e5-b17e-4f0b-3cfd276272bb",
+            "observable_title": "IP Address",
+            "observable_description": "IP Descr",
+            "related_observables": {},
+            "observable_properties": {
+                "ip_addr": "127.0.0.1",
+                "category": "ipv4-addr",
+                "observable_id": "",
+                "object_type": "address",
+                "object_subtype": "Default"
+            }
+        },
+        {
+            "observable_id": "{my.organization.com}Observable-dac6f290-73b5-b61b-8aa4-35f6fba61ddd",
+            "observable_title": "Port",
+            "observable_description": "Port Descr",
+            "related_observables": {},
+            "observable_properties": {
+                "port_value": "80",
+                "layer4_protocol": "tcp",
+                "observable_id": "",
+                "object_type": "port",
+                "object_subtype": "Default"
+            }
+        },
+        {
+            "observable_id": "{my.organization.com}Observable-2c7840aa-1252-9245-889a-e4ffeef1762f",
+            "observable_title": "URI",
+            "observable_description": "URI Description",
+            "related_observables": {},
+            "observable_properties": {
+                "type_": "URL",
+                "value": "http://another.evil.url.com/bla",
+                "observable_id": "",
+                "object_type": "uri",
+                "object_subtype": "Default"
+            }
+        },
+        {
+            "observable_id": "{my.organization.com}Observable-6e150676-e69c-99c3-e053-d94ff47e4c13",
+            "observable_title": "Bulk Object",
+            "observable_description": "Bulk Description",
+            "related_observables": {},
+            "observable_properties": {
+                "data": "127.0.0.1\r\n1.bulk.com\r\n2.bulk.com\r\n3.bulk.com",
+                "observable_id": "",
+                "_multi": "/static/true",
+                "object_type": "bulk_uris_and_ips",
+                "object_subtype": "Default"
+            }
+        },
+        {
+            "observable_id": "{my.organization.com}Observable-086a3391-8441-0d0e-b367-4d6456f27d2a",
+            "observable_title": "Win Service",
+            "observable_description": "Service Description",
+            "related_observables": {},
+            "observable_properties": {
+                "display_name": "display name",
+                "service_name": "service name",
+                "service_dll": "service dll",
+                "startup_command_line": "cmd.exe start this up",
+                "observable_id": "",
+                "object_type": "winservice",
+                "object_subtype": "Default"
+            }
+        }
+    ],
+    "test_mechanisms": []
+}
