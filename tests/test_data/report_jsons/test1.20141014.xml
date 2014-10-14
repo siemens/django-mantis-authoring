@@ -1,0 +1,368 @@
+<stix:STIX_Package 
+	xmlns:cyboxCommon="http://cybox.mitre.org/common-2"
+	xmlns:cybox="http://cybox.mitre.org/cybox-2"
+	xmlns:cyboxVocabs="http://cybox.mitre.org/default_vocabularies-2"
+	xmlns:AddressObj="http://cybox.mitre.org/objects#AddressObject-2"
+	xmlns:ArtifactObj="http://cybox.mitre.org/objects#ArtifactObject-2"
+	xmlns:EmailMessageObj="http://cybox.mitre.org/objects#EmailMessageObject-2"
+	xmlns:FileObj="http://cybox.mitre.org/objects#FileObject-2"
+	xmlns:HTTPSessionObj="http://cybox.mitre.org/objects#HTTPSessionObject-2"
+	xmlns:PortObj="http://cybox.mitre.org/objects#PortObject-2"
+	xmlns:ProcessObj="http://cybox.mitre.org/objects#ProcessObject-2"
+	xmlns:URIObj="http://cybox.mitre.org/objects#URIObject-2"
+	xmlns:WinProcessObj="http://cybox.mitre.org/objects#WinProcessObject-2"
+	xmlns:WinServiceObj="http://cybox.mitre.org/objects#WinServiceObject-2"
+	xmlns:marking="http://data-marking.mitre.org/Marking-1"
+	xmlns:tlpMarking="http://data-marking.mitre.org/extensions/MarkingStructure#TLP-1"
+	xmlns:campaign="http://stix.mitre.org/Campaign-1"
+	xmlns:indicator="http://stix.mitre.org/Indicator-2"
+	xmlns:ta="http://stix.mitre.org/ThreatActor-1"
+	xmlns:stixCommon="http://stix.mitre.org/common-1"
+	xmlns:stixVocabs="http://stix.mitre.org/default_vocabularies-1"
+	xmlns:stix="http://stix.mitre.org/stix-1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:my_organization="my.organization.com"
+	xsi:schemaLocation="
+	http://cybox.mitre.org/common-2 http://cybox.mitre.org/XMLSchema/common/2.1/cybox_common.xsd
+	http://cybox.mitre.org/cybox-2 http://cybox.mitre.org/XMLSchema/core/2.1/cybox_core.xsd
+	http://cybox.mitre.org/default_vocabularies-2 http://cybox.mitre.org/XMLSchema/default_vocabularies/2.1/cybox_default_vocabularies.xsd
+	http://cybox.mitre.org/objects#AddressObject-2 http://cybox.mitre.org/XMLSchema/objects/Address/2.1/Address_Object.xsd
+	http://cybox.mitre.org/objects#ArtifactObject-2 http://cybox.mitre.org/XMLSchema/objects/Artifact/2.1/Artifact_Object.xsd
+	http://cybox.mitre.org/objects#EmailMessageObject-2 http://cybox.mitre.org/XMLSchema/objects/Email_Message/2.1/Email_Message_Object.xsd
+	http://cybox.mitre.org/objects#FileObject-2 http://cybox.mitre.org/XMLSchema/objects/File/2.1/File_Object.xsd
+	http://cybox.mitre.org/objects#HTTPSessionObject-2 http://cybox.mitre.org/XMLSchema/objects/HTTP_Session/2.1/HTTP_Session_Object.xsd
+	http://cybox.mitre.org/objects#PortObject-2 http://cybox.mitre.org/XMLSchema/objects/Port/2.1/Port_Object.xsd
+	http://cybox.mitre.org/objects#ProcessObject-2 http://cybox.mitre.org/XMLSchema/objects/Process/2.1/Process_Object.xsd
+	http://cybox.mitre.org/objects#URIObject-2 http://cybox.mitre.org/XMLSchema/objects/URI/2.1/URI_Object.xsd
+	http://cybox.mitre.org/objects#WinProcessObject-2 http://cybox.mitre.org/XMLSchema/objects/Win_Process/2.1/Win_Process_Object.xsd
+	http://cybox.mitre.org/objects#WinServiceObject-2 http://cybox.mitre.org/XMLSchema/objects/Win_Service/2.1/Win_Service_Object.xsd
+	http://data-marking.mitre.org/Marking-1 http://stix.mitre.org/XMLSchema/data_marking/1.1.1/data_marking.xsd
+	http://data-marking.mitre.org/extensions/MarkingStructure#TLP-1 http://stix.mitre.org/XMLSchema/extensions/marking/tlp/1.1.1/tlp_marking.xsd
+	http://stix.mitre.org/Campaign-1 http://stix.mitre.org/XMLSchema/campaign/1.1.1/campaign.xsd
+	http://stix.mitre.org/Indicator-2 http://stix.mitre.org/XMLSchema/indicator/2.1.1/indicator.xsd
+	http://stix.mitre.org/ThreatActor-1 http://stix.mitre.org/XMLSchema/threat_actor/1.1.1/threat_actor.xsd
+	http://stix.mitre.org/common-1 http://stix.mitre.org/XMLSchema/common/1.1.1/stix_common.xsd
+	http://stix.mitre.org/default_vocabularies-1 http://stix.mitre.org/XMLSchema/default_vocabularies/1.1.1/stix_default_vocabularies.xsd
+	http://stix.mitre.org/stix-1 http://stix.mitre.org/XMLSchema/core/1.1.1/stix_core.xsd" id="my_organization:package-80528ef0-4cdb-7ad5-0799-a385a6a89616" version="1.1.1" timestamp="2014-10-14T07:27:23.082236+00:00">
+    <stix:STIX_Header>
+        <stix:Title>Test Packate</stix:Title>
+        <stix:Description>Use this package to test output after upgrade</stix:Description>
+        <stix:Handling>
+            <marking:Marking>
+                <marking:Controlled_Structure>//node()</marking:Controlled_Structure>
+                <marking:Marking_Structure xsi:type='tlpMarking:TLPMarkingStructureType' color="WHITE"/>
+            </marking:Marking>
+        </stix:Handling>
+        <stix:Information_Source>
+            <stixCommon:Time>
+                <cyboxCommon:Produced_Time>2014-10-14T09:27:23.096235+02:00</cyboxCommon:Produced_Time>
+            </stixCommon:Time>
+            <stixCommon:Tools>
+                <cyboxCommon:Tool>
+                    <cyboxCommon:Name>Mantis Authoring GUI</cyboxCommon:Name>
+                    <cyboxCommon:Vendor>Siemens CERT</cyboxCommon:Vendor>
+                </cyboxCommon:Tool>
+            </stixCommon:Tools>
+        </stix:Information_Source>
+    </stix:STIX_Header>
+    <stix:Observables cybox_major_version="2" cybox_minor_version="1" cybox_update_version="0">
+        <cybox:Observable id="my_organization:Observable-2c7840aa-1252-9245-889a-e4ffeef1762f">
+            <cybox:Title>URI</cybox:Title>
+            <cybox:Description>URI Description</cybox:Description>
+            <cybox:Object id="my_organization:URI-2c7840aa-1252-9245-889a-e4ffeef1762f">
+                <cybox:Properties xsi:type="URIObj:URIObjectType" type="URL">
+                    <URIObj:Value>http://another.evil.url.com/bla</URIObj:Value>
+                </cybox:Properties>
+            </cybox:Object>
+        </cybox:Observable>
+        <cybox:Observable id="my_organization:Observable-6e150676-e69c-99c3-e053-d94ff47e4c13-01888">
+            <cybox:Title>Bulk Object</cybox:Title>
+            <cybox:Description>Bulk Description</cybox:Description>
+            <cybox:Object id="my_organization:Address-6e150676-e69c-99c3-e053-d94ff47e4c13-01888">
+                <cybox:Properties xsi:type="AddressObj:AddressObjectType">
+                    <AddressObj:Address_Value>127.0.0.1</AddressObj:Address_Value>
+                </cybox:Properties>
+            </cybox:Object>
+        </cybox:Observable>
+        <cybox:Observable id="my_organization:Observable-dac6f290-73b5-b61b-8aa4-35f6fba61ddd">
+            <cybox:Title>Port</cybox:Title>
+            <cybox:Description>Port Descr</cybox:Description>
+            <cybox:Object id="my_organization:Port-dac6f290-73b5-b61b-8aa4-35f6fba61ddd">
+                <cybox:Properties xsi:type="PortObj:PortObjectType">
+                    <PortObj:Port_Value>80</PortObj:Port_Value>
+                    <PortObj:Layer4_Protocol>tcp</PortObj:Layer4_Protocol>
+                </cybox:Properties>
+            </cybox:Object>
+        </cybox:Observable>
+        <cybox:Observable id="my_organization:Observable-6e150676-e69c-99c3-e053-d94ff47e4c13-01890">
+            <cybox:Title>Bulk Object</cybox:Title>
+            <cybox:Description>Bulk Description</cybox:Description>
+            <cybox:Object id="my_organization:URI-6e150676-e69c-99c3-e053-d94ff47e4c13-01890">
+                <cybox:Properties xsi:type="URIObj:URIObjectType">
+                    <URIObj:Value>2.bulk.com</URIObj:Value>
+                </cybox:Properties>
+            </cybox:Object>
+        </cybox:Observable>
+        <cybox:Observable id="my_organization:Observable-0f4455a1-73e5-b17e-4f0b-3cfd276272bb">
+            <cybox:Title>IP Address</cybox:Title>
+            <cybox:Description>IP Descr</cybox:Description>
+            <cybox:Object id="my_organization:Address-0f4455a1-73e5-b17e-4f0b-3cfd276272bb">
+                <cybox:Properties xsi:type="AddressObj:AddressObjectType" category="ipv4-addr">
+                    <AddressObj:Address_Value condition="Equals">127.0.0.1</AddressObj:Address_Value>
+                </cybox:Properties>
+            </cybox:Object>
+        </cybox:Observable>
+        <cybox:Observable id="my_organization:Observable-733880b0-66d0-30b2-90e0-aac36990aa58-09273">
+            <cybox:Title>Email</cybox:Title>
+            <cybox:Description>Email Description</cybox:Description>
+            <cybox:Object id="my_organization:URI-733880b0-66d0-30b2-90e0-aac36990aa58-09273">
+                <cybox:Properties xsi:type="URIObj:URIObjectType">
+                    <URIObj:Value>http://very.evil.link.com/blah</URIObj:Value>
+                </cybox:Properties>
+            </cybox:Object>
+        </cybox:Observable>
+        <cybox:Observable id="my_organization:Observable-086a3391-8441-0d0e-b367-4d6456f27d2a">
+            <cybox:Title>Win Service</cybox:Title>
+            <cybox:Description>Service Description</cybox:Description>
+            <cybox:Object id="my_organization:WinService-086a3391-8441-0d0e-b367-4d6456f27d2a">
+                <cybox:Properties xsi:type="WinServiceObj:WindowsServiceObjectType">
+                    <WinServiceObj:Display_Name>display name</WinServiceObj:Display_Name>
+                    <WinServiceObj:Service_DLL>service dll</WinServiceObj:Service_DLL>
+                    <WinServiceObj:Startup_Command_Line>cmd.exe start this up</WinServiceObj:Startup_Command_Line>
+                </cybox:Properties>
+            </cybox:Object>
+        </cybox:Observable>
+        <cybox:Observable id="my_organization:Observable-e3432839-032f-82e3-24ce-790c4327c16d">
+            <cybox:Title>File</cybox:Title>
+            <cybox:Description>File Description</cybox:Description>
+            <cybox:Object id="my_organization:File-e3432839-032f-82e3-24ce-790c4327c16d">
+                <cybox:Properties xsi:type="FileObj:FileObjectType">
+                    <FileObj:File_Name>evil_file.exe</FileObj:File_Name>
+                    <FileObj:File_Path>bla/evil_file.exe</FileObj:File_Path>
+                    <FileObj:File_Extension>exe</FileObj:File_Extension>
+                    <FileObj:Size_In_Bytes>4711</FileObj:Size_In_Bytes>
+                    <FileObj:Hashes>
+                        <cyboxCommon:Hash>
+                            <cyboxCommon:Type xsi:type="cyboxVocabs:HashNameVocab-1.0">MD5</cyboxCommon:Type>
+                            <cyboxCommon:Simple_Hash_Value condition="Equals">md5md5md5</cyboxCommon:Simple_Hash_Value>
+                        </cyboxCommon:Hash>
+                        <cyboxCommon:Hash>
+                            <cyboxCommon:Type xsi:type="cyboxVocabs:HashNameVocab-1.0">SHA1</cyboxCommon:Type>
+                            <cyboxCommon:Simple_Hash_Value condition="Equals">sha1sha1sha1</cyboxCommon:Simple_Hash_Value>
+                        </cyboxCommon:Hash>
+                        <cyboxCommon:Hash>
+                            <cyboxCommon:Type xsi:type="cyboxVocabs:HashNameVocab-1.0">SHA256</cyboxCommon:Type>
+                            <cyboxCommon:Simple_Hash_Value condition="Equals">sha256sha256sha256</cyboxCommon:Simple_Hash_Value>
+                        </cyboxCommon:Hash>
+                    </FileObj:Hashes>
+                </cybox:Properties>
+                <cybox:Related_Objects>
+                    <cybox:Related_Object idref="my_organization:Address-0f4455a1-73e5-b17e-4f0b-3cfd276272bb">
+                        <cybox:Relationship xsi:type="cyboxVocabs:ObjectRelationshipVocab-1.1">Connected_To</cybox:Relationship>
+                    </cybox:Related_Object>
+                    <cybox:Related_Object idref="my_organization:Address-6e150676-e69c-99c3-e053-d94ff47e4c13-01888">
+                        <cybox:Relationship xsi:type="cyboxVocabs:ObjectRelationshipVocab-1.1">Connected_To</cybox:Relationship>
+                    </cybox:Related_Object>
+                    <cybox:Related_Object idref="my_organization:URI-6e150676-e69c-99c3-e053-d94ff47e4c13-01890">
+                        <cybox:Relationship xsi:type="cyboxVocabs:ObjectRelationshipVocab-1.1">Connected_To</cybox:Relationship>
+                    </cybox:Related_Object>
+                    <cybox:Related_Object idref="my_organization:URI-6e150676-e69c-99c3-e053-d94ff47e4c13-01889">
+                        <cybox:Relationship xsi:type="cyboxVocabs:ObjectRelationshipVocab-1.1">Connected_To</cybox:Relationship>
+                    </cybox:Related_Object>
+                    <cybox:Related_Object idref="my_organization:URI-6e150676-e69c-99c3-e053-d94ff47e4c13-01891">
+                        <cybox:Relationship xsi:type="cyboxVocabs:ObjectRelationshipVocab-1.1">Connected_To</cybox:Relationship>
+                    </cybox:Related_Object>
+                </cybox:Related_Objects>
+            </cybox:Object>
+        </cybox:Observable>
+        <cybox:Observable id="my_organization:Observable-7f2228ae-fbd8-1258-1818-8240b922f933">
+            <cybox:Title>HTTP Session</cybox:Title>
+            <cybox:Description>HTTP Session Description</cybox:Description>
+            <cybox:Object id="my_organization:HTTPSession-7f2228ae-fbd8-1258-1818-8240b922f933">
+                <cybox:Properties xsi:type="HTTPSessionObj:HTTPSessionObjectType">
+                    <HTTPSessionObj:HTTP_Request_Response>
+                        <HTTPSessionObj:HTTP_Client_Request>
+                            <HTTPSessionObj:HTTP_Request_Line>
+                                <HTTPSessionObj:HTTP_Method>GET</HTTPSessionObj:HTTP_Method>
+                                <HTTPSessionObj:Value>path</HTTPSessionObj:Value>
+                            </HTTPSessionObj:HTTP_Request_Line>
+                            <HTTPSessionObj:HTTP_Request_Header>
+                                <HTTPSessionObj:Parsed_Header>
+                                    <HTTPSessionObj:Host>
+                                        <HTTPSessionObj:Domain_Name xsi:type="URIObj:URIObjectType">
+                                            <URIObj:Value>host</URIObj:Value>
+                                        </HTTPSessionObj:Domain_Name>
+                                        <HTTPSessionObj:Port xsi:type="PortObj:PortObjectType">
+                                            <PortObj:Port_Value>80</PortObj:Port_Value>
+                                        </HTTPSessionObj:Port>
+                                    </HTTPSessionObj:Host>
+                                    <HTTPSessionObj:User_Agent>UA Agent</HTTPSessionObj:User_Agent>
+                                </HTTPSessionObj:Parsed_Header>
+                            </HTTPSessionObj:HTTP_Request_Header>
+                        </HTTPSessionObj:HTTP_Client_Request>
+                    </HTTPSessionObj:HTTP_Request_Response>
+                </cybox:Properties>
+            </cybox:Object>
+        </cybox:Observable>
+        <cybox:Observable id="my_organization:Observable-6e150676-e69c-99c3-e053-d94ff47e4c13-01889">
+            <cybox:Title>Bulk Object</cybox:Title>
+            <cybox:Description>Bulk Description</cybox:Description>
+            <cybox:Object id="my_organization:URI-6e150676-e69c-99c3-e053-d94ff47e4c13-01889">
+                <cybox:Properties xsi:type="URIObj:URIObjectType">
+                    <URIObj:Value>1.bulk.com</URIObj:Value>
+                </cybox:Properties>
+            </cybox:Object>
+        </cybox:Observable>
+        <cybox:Observable id="my_organization:Observable-396b4d89-41a3-0e75-f27d-70603ed7414c">
+            <cybox:Title>Artifact</cybox:Title>
+            <cybox:Description>Artifact Description</cybox:Description>
+            <cybox:Object id="my_organization:Artifact-396b4d89-41a3-0e75-f27d-70603ed7414c">
+                <cybox:Properties xsi:type="ArtifactObj:ArtifactObjectType">
+                    <ArtifactObj:Raw_Artifact><![CDATA[this is an artifact]]></ArtifactObj:Raw_Artifact>
+                </cybox:Properties>
+            </cybox:Object>
+        </cybox:Observable>
+        <cybox:Observable id="my_organization:Observable-733880b0-66d0-30b2-90e0-aac36990aa58">
+            <cybox:Title>Email</cybox:Title>
+            <cybox:Description>Email Description</cybox:Description>
+            <cybox:Object id="my_organization:EmailMessage-733880b0-66d0-30b2-90e0-aac36990aa58">
+                <cybox:Properties xsi:type="EmailMessageObj:EmailMessageObjectType">
+                    <EmailMessageObj:Header>
+                        <EmailMessageObj:To>
+                            <EmailMessageObj:Recipient xsi:type="AddressObj:AddressObjectType" category="e-mail">
+                                <AddressObj:Address_Value>poor@recipient.blah</AddressObj:Address_Value>
+                            </EmailMessageObj:Recipient>
+                            <EmailMessageObj:Recipient xsi:type="AddressObj:AddressObjectType" category="e-mail">
+                                <AddressObj:Address_Value>another@victimc.om</AddressObj:Address_Value>
+                            </EmailMessageObj:Recipient>
+                        </EmailMessageObj:To>
+                        <EmailMessageObj:From xsi:type="AddressObj:AddressObjectType" category="e-mail">
+                            <AddressObj:Address_Value>evil@sender.org</AddressObj:Address_Value>
+                        </EmailMessageObj:From>
+                        <EmailMessageObj:Subject>I 0wn you!</EmailMessageObj:Subject>
+                        <EmailMessageObj:In_Reply_To>message-id</EmailMessageObj:In_Reply_To>
+                    </EmailMessageObj:Header>
+                    <EmailMessageObj:Links>
+                        <EmailMessageObj:Link object_reference="my_organization:URI-733880b0-66d0-30b2-90e0-aac36990aa58-09273"/>
+                    </EmailMessageObj:Links>
+                </cybox:Properties>
+                <cybox:Related_Objects>
+                    <cybox:Related_Object idref="my_organization:Artifact-396b4d89-41a3-0e75-f27d-70603ed7414c">
+                        <cybox:Relationship xsi:type="cyboxVocabs:ObjectRelationshipVocab-1.1">Contains</cybox:Relationship>
+                    </cybox:Related_Object>
+                    <cybox:Related_Object idref="my_organization:File-e3432839-032f-82e3-24ce-790c4327c16d">
+                        <cybox:Relationship xsi:type="cyboxVocabs:ObjectRelationshipVocab-1.1">Contains</cybox:Relationship>
+                    </cybox:Related_Object>
+                </cybox:Related_Objects>
+            </cybox:Object>
+        </cybox:Observable>
+        <cybox:Observable id="my_organization:Observable-6e150676-e69c-99c3-e053-d94ff47e4c13-01891">
+            <cybox:Title>Bulk Object</cybox:Title>
+            <cybox:Description>Bulk Description</cybox:Description>
+            <cybox:Object id="my_organization:URI-6e150676-e69c-99c3-e053-d94ff47e4c13-01891">
+                <cybox:Properties xsi:type="URIObj:URIObjectType">
+                    <URIObj:Value>3.bulk.com</URIObj:Value>
+                </cybox:Properties>
+            </cybox:Object>
+        </cybox:Observable>
+    </stix:Observables>
+    <stix:Indicators>
+        <stix:Indicator id="my_organization:Indicator-14ae8f77-eb0a-3cdc-f0be-be7dd8e630bb" timestamp="2014-10-14T07:27:23.080073+00:00" xsi:type='indicator:IndicatorType'>
+            <indicator:Title>File Indicator</indicator:Title>
+            <indicator:Description>File-Indicator Description</indicator:Description>
+            <indicator:Observable id="my_organization:Observable-2ffb7e95-d228-4b91-a9ea-f6c477ad97f3">
+                <cybox:Observable_Composition operator="OR">
+                    <cybox:Observable idref="my_organization:Observable-396b4d89-41a3-0e75-f27d-70603ed7414c">
+                    </cybox:Observable>
+                    <cybox:Observable idref="my_organization:Observable-e3432839-032f-82e3-24ce-790c4327c16d">
+                    </cybox:Observable>
+                </cybox:Observable_Composition>
+            </indicator:Observable>
+            <indicator:Confidence timestamp="2014-10-14T07:27:23.080095+00:00">
+                <stixCommon:Value xsi:type="stixVocabs:HighMediumLowVocab-1.0">High</stixCommon:Value>
+            </indicator:Confidence>
+        </stix:Indicator>
+        <stix:Indicator id="my_organization:Indicator-d21c5704-6ac8-558c-e2de-d183e5067fae" timestamp="2014-10-14T07:27:23.080703+00:00" xsi:type='indicator:IndicatorType'>
+            <indicator:Title>Host-based Indicator</indicator:Title>
+            <indicator:Description>Host-based Indicator Description</indicator:Description>
+            <indicator:Observable idref="my_organization:Observable-086a3391-8441-0d0e-b367-4d6456f27d2a">
+            </indicator:Observable>
+            <indicator:Confidence timestamp="2014-10-14T07:27:23.080753+00:00">
+                <stixCommon:Value xsi:type="stixVocabs:HighMediumLowVocab-1.0">High</stixCommon:Value>
+            </indicator:Confidence>
+        </stix:Indicator>
+        <stix:Indicator id="my_organization:Indicator-7ffed050-3769-0b03-bc02-91354c1eeb9c" timestamp="2014-10-14T07:27:23.081298+00:00" xsi:type='indicator:IndicatorType'>
+            <indicator:Title>Email Indicator</indicator:Title>
+            <indicator:Description>Email Indicator Description</indicator:Description>
+            <indicator:Observable idref="my_organization:Observable-733880b0-66d0-30b2-90e0-aac36990aa58">
+            </indicator:Observable>
+            <indicator:Confidence timestamp="2014-10-14T07:27:23.081313+00:00">
+                <stixCommon:Value xsi:type="stixVocabs:HighMediumLowVocab-1.0">High</stixCommon:Value>
+            </indicator:Confidence>
+        </stix:Indicator>
+        <stix:Indicator id="my_organization:Indicator-893bc960-3bc6-bfe5-b632-bc18595c09eb" timestamp="2014-10-14T07:27:23.081568+00:00" xsi:type='indicator:IndicatorType'>
+            <indicator:Title>Network Indicators</indicator:Title>
+            <indicator:Description>Network Indicator Description</indicator:Description>
+            <indicator:Observable id="my_organization:Observable-4899bd6d-8144-4b94-aab7-6755c514e195">
+                <cybox:Observable_Composition operator="OR">
+                    <cybox:Observable idref="my_organization:Observable-7f2228ae-fbd8-1258-1818-8240b922f933">
+                    </cybox:Observable>
+                    <cybox:Observable idref="my_organization:Observable-0f4455a1-73e5-b17e-4f0b-3cfd276272bb">
+                    </cybox:Observable>
+                    <cybox:Observable idref="my_organization:Observable-2c7840aa-1252-9245-889a-e4ffeef1762f">
+                    </cybox:Observable>
+                    <cybox:Observable idref="my_organization:Observable-6e150676-e69c-99c3-e053-d94ff47e4c13-01888">
+                    </cybox:Observable>
+                    <cybox:Observable idref="my_organization:Observable-6e150676-e69c-99c3-e053-d94ff47e4c13-01889">
+                    </cybox:Observable>
+                    <cybox:Observable idref="my_organization:Observable-6e150676-e69c-99c3-e053-d94ff47e4c13-01890">
+                    </cybox:Observable>
+                    <cybox:Observable idref="my_organization:Observable-6e150676-e69c-99c3-e053-d94ff47e4c13-01891">
+                    </cybox:Observable>
+                    <cybox:Observable idref="my_organization:Observable-dac6f290-73b5-b61b-8aa4-35f6fba61ddd">
+                    </cybox:Observable>
+                </cybox:Observable_Composition>
+            </indicator:Observable>
+            <indicator:Confidence timestamp="2014-10-14T07:27:23.081580+00:00">
+                <stixCommon:Value xsi:type="stixVocabs:HighMediumLowVocab-1.0">High</stixCommon:Value>
+            </indicator:Confidence>
+        </stix:Indicator>
+    </stix:Indicators>
+    <stix:Campaigns>
+        <stix:Campaign id="my_organization:campaign-80528ef0-4cdb-7ad5-0799-a385a6a89616" timestamp="2014-10-14T07:27:23.079492+00:00" xsi:type='campaign:CampaignType'>
+            <campaign:Title>Campaign Title</campaign:Title>
+            <campaign:Description>Campaign Description</campaign:Description>
+            <campaign:Names>
+                <campaign:Name>campaign_name</campaign:Name>
+            </campaign:Names>
+            <campaign:Status>Unknown</campaign:Status>
+            <campaign:Attribution>
+                <campaign:Attributed_Threat_Actor>
+                    <stixCommon:Threat_Actor id="my_organization:threatactor-b40208d9-1892-4b47-8645-de59ee506190" xsi:type='ta:ThreatActorType'/>
+                </campaign:Attributed_Threat_Actor>
+            </campaign:Attribution>
+        </stix:Campaign>
+    </stix:Campaigns>
+    <stix:Threat_Actors>
+        <stix:Threat_Actor id="my_organization:threatactor-80528ef0-4cdb-7ad5-0799-a385a6a89616" timestamp="2014-10-14T07:27:23.079712+00:00" xsi:type='ta:ThreatActorType'>
+            <ta:Title>Threat-Actor Title</ta:Title>
+            <ta:Description>Threat-Actor Description</ta:Description>
+            <ta:Identity id="my_organization:threatactor-id-0-80528ef0-4cdb-7ad5-0799-a385a6a89616">
+                <stixCommon:Name>identity_name</stixCommon:Name>
+                <stixCommon:Related_Identities>
+                    <stixCommon:Related_Identity>
+                        <stixCommon:Identity id="my_organization:threatactor-id-1-80528ef0-4cdb-7ad5-0799-a385a6a89616">
+                            <stixCommon:Name>identity_alias1</stixCommon:Name>
+                        </stixCommon:Identity>
+                    </stixCommon:Related_Identity>
+                    <stixCommon:Related_Identity>
+                        <stixCommon:Identity id="my_organization:threatactor-id-2-80528ef0-4cdb-7ad5-0799-a385a6a89616">
+                            <stixCommon:Name>identity_alials2</stixCommon:Name>
+                        </stixCommon:Identity>
+                    </stixCommon:Related_Identity>
+                </stixCommon:Related_Identities>
+            </ta:Identity>
+        </stix:Threat_Actor>
+    </stix:Threat_Actors>
+</stix:STIX_Package>
+

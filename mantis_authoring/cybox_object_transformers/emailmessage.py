@@ -7,6 +7,7 @@ from cybox.common import String
 from .__object_base__ import transformer_object, ObjectFormTemplate
 from django import forms
 
+from django.utils.dateparse import parse_datetime
 
 class Base(transformer_object):
     # We factor out helper functions that might be used
@@ -32,7 +33,7 @@ class Base(transformer_object):
             cybox_email_header.in_reply_to = String(properties['in_reply_to'])
         """ send date """
         if properties['send_date']:
-            cybox_email_header.date = DateTime(properties['send_date'])
+            cybox_email_header.date = parse_datetime(properties['send_date'])
         return cybox_email_header
 
 
