@@ -220,7 +220,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 		stix_base = instance.get_json();
 		$.post('transform', {'jsn':JSON.stringify(stix_base), 'submit_name' : guid_gen(), 'action' : 'generate'}, function(data){
 		    if(data.status){
-			var dlg = $('<div id="dda-show-stix-dlg" title="STIX Package Output"><div id="dda-show-stix-edit"></div></div>');
+			var dlg = $('<div id="dda-show-stix-dlg" title="STIX Package Output' + data.malformed_xml_warning +'"><div id="dda-show-stix-edit"></div></div>');
 			dlg.dialog({
 			    width: $(window).width()-30,
 			    height: $(window).height()-30,

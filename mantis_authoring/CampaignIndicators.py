@@ -37,6 +37,8 @@ from django.templatetags.static import static
 from django.views.generic import View
 from django.views.generic.edit import FormView
 from django.http import HttpResponse
+from django.utils.html import conditional_escape
+
 
 import cybox.utils
 from cybox.core import Observable, Observables, Object
@@ -71,10 +73,20 @@ from dingos_authoring.view_classes import BasicProcessingView, AuthoringMethodMi
 from dingos_authoring.models import AuthoredData
 from .view_classes import BasicSTIXPackageTemplateView
 
-
+from dingos.core.utilities import dict_map
 
 
 FORM_VIEW_NAME = 'url.mantis_authoring.transformers.stix.campaing_indicators'
+
+def escape_descriptions(path,v):
+    if 'description' in path[-1]:
+        if isinstance(v,basestring):
+            return conditional_escape(v)
+        else:
+            return v
+    else:
+        return v
+
 
 class FormView(BasicSTIXPackageTemplateView):
 
@@ -288,6 +300,26 @@ class stixTransformer:
         if not self.jsn:
             return None
 
+        # Because the cybox/stix description-type elements
+        # are so versatile (they can contain also html),
+        # no automated escaping is carried out for these fields.
+        # We therefore do the escaping of description-fields here:
+
+        dict_map(escape_descriptions,self.jsn)
+
+        #for section_key in self.jsn:
+        #    section = self.jsn[section_key]
+        #    if isinstance(section,dict):
+        #        for key in section:
+        #            if 'description' in key:
+        #                section[key] = conditional_escape(section[key])
+        #    elif isinstance(section,list):
+        #        for item in section:
+        #            if isinstance(item,dict):
+        #                for key in item:
+        #                    if 'description' in key:
+        #                        item[key] = conditional_escape(item[key])
+
         # Some defaults
         self.stix_header = {}
         self.stix_indicators = []
@@ -369,7 +401,7 @@ class stixTransformer:
                 related_ta1.idref= self.gen_slugged_id(tac.idref)
                 related_ta1.timestamp = None
                 related_ta.append(related_ta1)
-                
+
                 self.campaign.attribution.append(related_ta)
 
 
