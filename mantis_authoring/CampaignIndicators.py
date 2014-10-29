@@ -252,6 +252,8 @@ class stixTransformer:
                     ns_slug = IdentifierNameSpace.objects.get(uri=ns_uri).name
                 except ObjectDoesNotExist:
                     ns_slug = "authoring"
+                if not ns_slug:
+                    ns_slug = "authoring"
 
                 if ns_slug in self.namespace_map.values():
                     counter = 0
@@ -259,7 +261,7 @@ class stixTransformer:
                         counter +=1
                     ns_slug = "%s%d" % (ns_slug,counter)
                 self.namespace_map[ns_uri] = ns_slug
-                ret = "%s:%s" % (ns_slug,ns_uri)
+                ret = "%s:%s" % (ns_slug,uid)
         else:
             ret = id_string
 
@@ -392,17 +394,17 @@ class stixTransformer:
 
         if threatactor.get('object_type') == 'ThreatActorReference':
             tac = ThreatActor()
+            print threatactor.get('object_id', '')
             tac.idref = self.gen_slugged_id(threatactor.get('object_id', ''))
             tac.timestamp=None
             tac.id_ = None
             if self.campaign and self.campaign.id_:
-                related_ta = AssociatedActors()
                 related_ta1 = ThreatActor()
+
                 related_ta1.idref= self.gen_slugged_id(tac.idref)
                 related_ta1.timestamp = None
-                related_ta.append(related_ta1)
 
-                self.campaign.attribution.append(related_ta)
+                self.campaign.attribution.append(related_ta1)
 
 
             self.threatactor = tac
@@ -437,9 +439,8 @@ class stixTransformer:
 
             if self.campaign and self.campaign.id_:
                 related_ta = ThreatActor()
-                related_ta.idref= self.gen_slugged_id(tac.idref)
+                related_ta.idref= self.gen_slugged_id(tac_id)
                 related_ta.timestamp = None
-
                 self.campaign.attribution.append(related_ta)
 
 
@@ -786,6 +787,7 @@ class stixTransformer:
         stix_package.stix_header = stix_header
         if self.campaign:
             stix_package.campaigns.append(self.campaign)
+        print "Namespace map is %s " % self.namespace_map
         self.stix_package = stix_package.to_xml(ns_dict=self.namespace_map)
         return self.stix_package
 
