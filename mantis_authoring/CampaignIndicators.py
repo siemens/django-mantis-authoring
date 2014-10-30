@@ -788,7 +788,8 @@ class stixTransformer:
         if self.campaign:
             stix_package.campaigns.append(self.campaign)
         print "Namespace map is %s " % self.namespace_map
-        self.stix_package = stix_package.to_xml(ns_dict=self.namespace_map)
+        self.stix_package = stix_package.to_xml(ns_dict=self.namespace_map,
+                                                auto_namespace=stix_package.ENRICH_NS_DICT)
         return self.stix_package
 
 
