@@ -36,11 +36,11 @@ setup(
     ],
     include_package_data=True,
     install_requires=[
-        'django-dingos-authoring>=0.3.0',
+        'django-dingos-authoring>=0.3.0,<0.4.0',
         'pytz>=2013.9',
         'lxml>=3.2.1',
         'querystring-parser>=1.2.0',
-        'django-mantis-stix-importer>=0.3.0'
+        'django-mantis-stix-importer>=0.3.0,<0.4.0'
     ],
     license="GPLv2+",
     zip_safe=False,
