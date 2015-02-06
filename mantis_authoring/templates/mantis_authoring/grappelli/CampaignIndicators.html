@@ -18,6 +18,16 @@ this program; if not, write to the Free Software Foundation, Inc., 51
 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 {% endcomment %}
 
+{% load staticfiles %}
+
+{% block javascripts %}
+{{ block.super }}
+<script>
+  var data_main = '{% static 'mantis_authoring/js/app/CampaignIndicators/' %}';
+</script>
+<script src="{% static 'mantis_authoring/js/CampaignIndicators.js' %}"></script>
+{% endblock javascripts %}
+
 
 {% block content %}
 <div id="dda-messages">
@@ -27,218 +37,217 @@ Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 <div id="dda-main-container" style="display:none;">
 
-<div id="dda-container-tabs">
-  <ul>
-    <li><a href="#dda-tab-stix">STIX Package</a></li>
-    <li><a href="#dda-tab-campaign">Campaign Info</a></li>
-    <li><a href="#dda-tab-indicator">Indicator Pool</a></li>
-    <li><a href="#dda-tab-test-mechanisms">IOC</a></li>
-    <li><a href="#dda-tab-observables">Observable Pool</a></li>
-    <li><a href="#dda-tab-observable-relations">Observable Relations</a></li>
-  </ul>
+  <div id="dda-container-tabs">
+    <ul>
+      <li><a href="#dda-tab-stix">STIX Package</a></li>
+      <li><a href="#dda-tab-campaign">Campaign Info</a></li>
+      <li><a href="#dda-tab-indicator">Indicator Pool</a></li>
+      <li><a href="#dda-tab-test-mechanisms">IOC</a></li>
+      <li><a href="#dda-tab-observables">Observable Pool</a></li>
+      <li><a href="#dda-tab-observable-relations">Observable Relations</a></li>
+    </ul>
 
 
-  <!-- Object Package Tab -->
-  <div id="dda-tab-stix" class="l-2cr-fluid l-d-12"> 
-    <div class="c-1">
-      <div class="grp-module">
-        <h2>Package Meta</h2>
-        <div class="grp-row" id="dda-stix-meta">
-	  <input type="text" name="stix_header_title" placeholder="Title">
-	  <input type="hidden" name="stix_package_id">
-	  <textarea rows="3" type="text" name="stix_header_description" placeholder="Description"></textarea>
-	  <select name="stix_header_tlp"><option value="WHITE">White</option><option value="GREEN">Green</option><option value="AMBER">Amber</option><option value="RED">Red</option></select>
-	  <hr>
-	  <div class="pull-left">
-	    <button id="dda-stix-save" class="pull-left">Save Draft</button>
-          <button id="dda-stix-save-and-release">Save & Release</button><br/>
-	    <button id="dda-stix-load" class="pull-left">Load Draft</button>
-	  </div>
-	  <div class="pull-right">
-	    <button id="dda-stix-import">Import to MANTIS</button><br/>
+    <!-- Object Package Tab -->
+    <div id="dda-tab-stix" class="l-2cr-fluid l-d-12">
+      <div class="c-1">
+        <div class="grp-module">
+          <h2>Package Meta</h2>
+          <div class="grp-row" id="dda-stix-meta">
+            <input type="text" name="stix_header_title" placeholder="Title">
+            <input type="hidden" name="stix_package_id">
+            <textarea rows="3" type="text" name="stix_header_description" placeholder="Description"></textarea>
+            <select name="stix_header_tlp"><option value="WHITE">White</option><option value="GREEN">Green</option><option value="AMBER">Amber</option><option value="RED">Red</option></select>
+            <hr>
+            <div class="pull-left">
+              <button id="dda-stix-save" class="pull-left">Save Draft</button>
+              <button id="dda-stix-save-and-release">Save & Release</button><br/>
+              <button id="dda-stix-load" class="pull-left">Load Draft</button>
+            </div>
+            <div class="pull-right">
+              <button id="dda-stix-import">Import to MANTIS</button><br/>
 
-	  </div>
-        </div>
-      </div>
-
-      <div class="grp-module">
-        <h2>Observables</h2>
-	<div class="grp-row" id="dda-observable-pool"></div>
-      </div>
-
-      <div class="grp-module">
-        <h2>Test Mechanisms</h2>
-	<div class="grp-row" id="dda-test-mechanisms-pool"></div>
-      </div>
-    </div>
-    <div class="c-2">
-      <div class="grp-module">
-        <h2>Package Contents</h2>
-        <div id="dda-package-indicators" class="grp-row">
-        </div>
-      </div>
-    </div>
-
-    <div id="dda-gen-output" class="grp-module" style="display:none;">
-      <h2>Package Output</h2>
-      <div class="grp-row">
-	<div id="dda-gen-output-content" style="width:100%;height:100%;"></div>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- Campaign Info Tab -->
-  <div id="dda-tab-campaign" class="l-2cr-fluid l-d-12"> 
-    <div class="grp-module">
-      <h2 class="clearfix">Campaign Information</h2>
-      <div class="grp-row" id="dda-campaign-container"></div>
-    </div>
-  </div>
-
-
-  <!-- Indicator Tab -->
-  <div id="dda-tab-indicator" class="l-2cr-fluid l-d-12"> 
-    <div class="grp-module">
-      <h2 class="clearfix">
-	Indicator Configuration
-	<button id="dda-indicator-add-btn" class="pull-right">Add Indicator</button>
-	<ul id="dda-indicator-add-btn-menu" style="display:none;"></ul>
-      </h2>
-      <div class="grp-row" id="dda-indicator-pool-list"></div>
-    </div>
-  </div>
-
-
-  <!-- Test Mechanisms Tab -->
-  <div id="dda-tab-test-mechanisms" class="l-2cr-fluid l-d-12"> 
-    <div class="c-1">
-      <div class="grp-module">
-        <h2>File Dropzone</h2>
-        <form class="grp-row dropper" id="dda-test-mechanism-filedrop" action="{% url 'url.mantis_authoring.upload_file' %}"method="post" enctype='multipart/form-data' target="dda-test-mechanism_upload-target">
-	  <input type="hidden" name="dda_dropzone_type_allow" value="ioc,yara,snort"/>
-	  {% csrf_token %}
-          <iframe name="dda-test-mechanism_upload-target" src="" onLoad="" style='width:0;height:0;border:0px solid #fff'></iframe>
-        </form>
-      </div>
-    </div>
-    <div class="c-2">
-      <div class="grp-module">
-        <h2>Test Mechanisms</h2>
-        <div id="dda-test-mechanisms-pool-list" class="grp-row">
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- Observable Pool Tab -->
-  <div id="dda-tab-observables" class="l-2cr-fluid l-d-12"> 
-    <div class="c-1">
-      <div class="grp-module">
-        <h2>File Dropzone</h2>
-        <form class="grp-row dropper" id="dda-observable-filedrop" action="{% url 'url.mantis_authoring.upload_file' %}"method="post" enctype='multipart/form-data' target="dda-observable_upload-target">
-	  <input type="hidden" name="dda_dropzone_type_allow" value=""/>
-	  {% csrf_token %}
-          <iframe name="dda-observable_upload-target" src="" onLoad="" style='width:0;height:0;border:0px solid #fff'></iframe>
-        </form>
-      </div>
-      <div class="grp-module">
-        <h2>Observable Templates</h2>
-        <div class="grp-row">
-	  <div class="grp-row" id="dda-observable-pool-elements">
+            </div>
           </div>
-	</div>
+        </div>
+
+        <div class="grp-module">
+          <h2>Observables</h2>
+          <div class="grp-row" id="dda-observable-pool"></div>
+        </div>
+
+        <div class="grp-module">
+          <h2>Test Mechanisms</h2>
+          <div class="grp-row" id="dda-test-mechanisms-pool"></div>
+        </div>
+      </div>
+      <div class="c-2">
+        <div class="grp-module">
+          <h2>Package Contents</h2>
+          <div id="dda-package-indicators" class="grp-row">
+          </div>
+        </div>
+      </div>
+
+      <div id="dda-gen-output" class="grp-module" style="display:none;">
+        <h2>Package Output</h2>
+        <div class="grp-row">
+          <div id="dda-gen-output-content" style="width:100%;height:100%;"></div>
+        </div>
       </div>
     </div>
-    <div class="c-2">
+
+
+    <!-- Campaign Info Tab -->
+    <div id="dda-tab-campaign" class="l-2cr-fluid l-d-12">
       <div class="grp-module">
-        <h2 id="dda-template-head" class="clearfix">Pool <button id="dda-template-head-toogle" class="pull-right">Toggle All</button> </h2>
-        <div class="grp-row" id="dda-observable-pool-list"></div>
+        <h2 class="clearfix">Campaign Information</h2>
+        <div class="grp-row" id="dda-campaign-container"></div>
+      </div>
+    </div>
+
+
+    <!-- Indicator Tab -->
+    <div id="dda-tab-indicator" class="l-2cr-fluid l-d-12">
+      <div class="grp-module">
+        <h2 class="clearfix">
+          Indicator Configuration
+          <button id="dda-indicator-add-btn" class="pull-right">Add Indicator</button>
+          <ul id="dda-indicator-add-btn-menu" style="display:none;"></ul>
+        </h2>
+        <div class="grp-row" id="dda-indicator-pool-list"></div>
+      </div>
+    </div>
+
+
+    <!-- Test Mechanisms Tab -->
+    <div id="dda-tab-test-mechanisms" class="l-2cr-fluid l-d-12">
+      <div class="c-1">
+        <div class="grp-module">
+          <h2>File Dropzone</h2>
+          <form class="grp-row dropper" id="dda-test-mechanism-filedrop" action="{% url 'url.mantis_authoring.upload_file' %}"method="post" enctype='multipart/form-data' target="dda-test-mechanism_upload-target">
+            <input type="hidden" name="dda_dropzone_type_allow" value="ioc,yara,snort"/>
+            {% csrf_token %}
+            <iframe name="dda-test-mechanism_upload-target" src="" onLoad="" style='width:0;height:0;border:0px solid #fff'></iframe>
+          </form>
+        </div>
+      </div>
+      <div class="c-2">
+        <div class="grp-module">
+          <h2>Test Mechanisms</h2>
+          <div id="dda-test-mechanisms-pool-list" class="grp-row">
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Observable Pool Tab -->
+    <div id="dda-tab-observables" class="l-2cr-fluid l-d-12">
+      <div class="c-1">
+        <div class="grp-module">
+          <h2>File Dropzone</h2>
+          <form class="grp-row dropper" id="dda-observable-filedrop" action="{% url 'url.mantis_authoring.upload_file' %}"method="post" enctype='multipart/form-data' target="dda-observable_upload-target">
+            <input type="hidden" name="dda_dropzone_type_allow" value=""/>
+            {% csrf_token %}
+            <iframe name="dda-observable_upload-target" src="" onLoad="" style='width:0;height:0;border:0px solid #fff'></iframe>
+          </form>
+        </div>
+        <div class="grp-module">
+          <h2>Observable Templates</h2>
+          <div class="grp-row">
+            <div class="grp-row" id="dda-observable-pool-elements">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="c-2">
+        <div class="grp-module">
+          <h2 id="dda-template-head" class="clearfix">Pool <button id="dda-template-head-toogle" class="pull-right">Toggle All</button> </h2>
+          <div class="grp-row" id="dda-observable-pool-list"></div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Object Relations Tab -->
+    <div id="dda-tab-observable-relations" class="l-2cr-fluid l-d-12">
+      <div class="c-1">
+        <div class="grp-module">
+          <h2>Relation Type</h2>
+          <div class="grp-row" id="dda-relation-list">
+            {% for rel in relations %}
+            {% if forloop.first %}
+            <div class="dda-add-element dda-rel-selected"><input type="radio"  name="dda-selected-relation" value="{{ rel.value}}" style="display:none;" checked="true"><h3>{{ rel.label }}</h3><p>{{ rel.description }}</p></div>
+            {% else %}
+            <div class="dda-add-element"><input type="radio"  name="dda-selected-relation" value="{{ rel.value}}" style="display:none;"><h3>{{ rel.label }}</h3><p>{{ rel.description }}</p></div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="c-2">
+        <div id="relation-pane"></div>
+        <div class="grp-module">
+          <h2>Object Properties</h2>
+          <div id="dda-relation-object-details" class="grp-row"></div>
+        </div>
       </div>
     </div>
   </div>
 
 
-  <!-- Object Relations Tab -->
-  <div id="dda-tab-observable-relations" class="l-2cr-fluid l-d-12"> 
-    <div class="c-1">
-      <div class="grp-module">
-        <h2>Relation Type</h2>
-        <div class="grp-row" id="dda-relation-list">
-	  {% for rel in relations %}
-	     {% if forloop.first %} 
-<div class="dda-add-element dda-rel-selected"><input type="radio"  name="dda-selected-relation" value="{{ rel.value}}" style="display:none;" checked="true"><h3>{{ rel.label }}</h3><p>{{ rel.description }}</p></div>
-	     {% else %}
-<div class="dda-add-element"><input type="radio"  name="dda-selected-relation" value="{{ rel.value}}" style="display:none;"><h3>{{ rel.label }}</h3><p>{{ rel.description }}</p></div>
-	     {% endif %}	  
-	  {% endfor %}
-	</div>
-      </div>
+  <div id="dda-campaign-template-pool" style="display:none;">
+    {% for campaignForm in campaignForms %}
+    <div class="dda-campaign-template" id="dda-campaign-template_{{ campaignForm.object_type.value }}">
+      <table>
+        {{ campaignForm.as_table }}
+      </table>
     </div>
-    <div class="c-2">
-      <div id="relation-pane"></div>
-      <div class="grp-module">
-	<h2>Object Properties</h2>
-	<div id="dda-relation-object-details" class="grp-row"></div>
-      </div>
-    </div>
+    {% endfor %}
   </div>
-</div>
+
+  <div id="dda-threatactor-template-pool" style="display:none;">
+    {% for threatActorForm in threatActorForms %}
+    <div class="dda-threatactor-template" id="dda-threatactor-template_{{ threatActorForm.object_type.value }}">
+      <table>
+        {{ threatActorForm.as_table }}
+      </table>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div id="dda-observable-template-pool" style="display:none;">
+    {% for observableForm in observableForms %}
+    <div class="dda-observable-template" id="dda-observable-template_{{ observableForm.object_type.value }}_{{ observableForm.object_subtype.value }}">
+      <table>
+        {{ observableForm.as_table }}
+      </table>
+    </div>
+    {% endfor %}
+  </div>
 
 
-<div id="dda-campaign-template-pool" style="display:none;"> 
- {% for campaignForm in campaignForms %}
- <div class="dda-campaign-template" id="dda-campaign-template_{{ campaignForm.object_type.value }}">
-   <table>
-     {{ campaignForm.as_table }} 
-   </table>
- </div>
- {% endfor %} 
-</div>
-
-<div id="dda-threatactor-template-pool" style="display:none;"> 
- {% for threatActorForm in threatActorForms %}
- <div class="dda-threatactor-template" id="dda-threatactor-template_{{ threatActorForm.object_type.value }}">
-   <table>
-     {{ threatActorForm.as_table }} 
-   </table>
- </div>
- {% endfor %} 
-</div>
-
-<div id="dda-observable-template-pool" style="display:none;"> 
- {% for observableForm in observableForms %}
- <div class="dda-observable-template" id="dda-observable-template_{{ observableForm.object_type.value }}_{{ observableForm.object_subtype.value }}">
-   <table>
-     {{ observableForm.as_table }} 
-   </table>
- </div>
- {% endfor %} 
-</div>
+  <div id="dda-indicator-template-pool" style="display:none;">
+    {% for indicatorForm in indicatorForms %}
+    <div class="dda-indicator-template"  id="dda-indicator-template_{{ indicatorForm.object_type.value }}">
+      <table>
+        {{ indicatorForm.as_table }}
+      </table>
+    </div>
+    {% endfor %}
+  </div>
 
 
-<div id="dda-indicator-template-pool" style="display:none;"> 
- {% for indicatorForm in indicatorForms %}
- <div class="dda-indicator-template"  id="dda-indicator-template_{{ indicatorForm.object_type.value }}">
-   <table>
-     {{ indicatorForm.as_table }} 
-   </table>
- </div>
- {% endfor %} 
-</div>
-
-
-<div id="dda-test-mechanisms-template-pool" style="display:none;"> 
- {% for testMechanismForm in testMechanismForms %}
- <div class="dda-test-mechanism-template"  id="dda-test-mechanism-template_{{ testMechanismForm.object_type.value }}_{{ testMechanismForm.object_subtype.value }}">
-   <table>
-     {{ testMechanismForm.as_table }} 
-   </table>
- </div>
- {% endfor %} 
-</div>
+  <div id="dda-test-mechanisms-template-pool" style="display:none;">
+    {% for testMechanismForm in testMechanismForms %}
+    <div class="dda-test-mechanism-template"  id="dda-test-mechanism-template_{{ testMechanismForm.object_type.value }}_{{ testMechanismForm.object_subtype.value }}">
+      <table>
+        {{ testMechanismForm.as_table }}
+      </table>
+    </div>
+    {% endfor %}
+  </div>
 
 </div>
 {% endblock content %}
-

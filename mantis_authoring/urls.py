@@ -19,12 +19,17 @@ from django.conf.urls import url
 
 from . import views
 
-import CampaignIndicators
+import CampaignIndicators, InvestigationIndicators
 
 urlpatterns = [
+    # 'New Report' Authoring
     url(r'^Templates/CampaignIndicators/$', CampaignIndicators.FormView.as_view(), name=CampaignIndicators.FORM_VIEW_NAME),
     url(r'^Templates/CampaignIndicators/transform$', CampaignIndicators.ProcessingView.as_view()),
     url(r'^Templates/CampaignIndicators/upload$', CampaignIndicators.UploadFile.as_view(), name="url.mantis_authoring.upload_file"),
+
+    # 'New Investigation' Authoring
+    url(r'^Templates/InvestigationIndicators/$', InvestigationIndicators.FormView.as_view(), name=InvestigationIndicators.FORM_VIEW_NAME),
+    
 
     url(r'/ref$', views.GetAuthoringObjectReference.as_view(), name="url.mantis_authoring.ref"),
 

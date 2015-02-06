@@ -76,7 +76,7 @@ from .view_classes import BasicSTIXPackageTemplateView
 from dingos.core.utilities import dict_map
 
 
-FORM_VIEW_NAME = 'url.mantis_authoring.transformers.stix.campaign_indicators'
+FORM_VIEW_NAME = 'url.mantis_authoring.transformers.stix.investigation_indicators'
 
 def escape_descriptions(path,v):
     if 'description' in path[-1]:
@@ -90,15 +90,14 @@ def escape_descriptions(path,v):
 
 class FormView(BasicSTIXPackageTemplateView):
 
-    template_name = 'mantis_authoring/%s/CampaignIndicators.html' % DINGOS_TEMPLATE_FAMILY
+    template_name = 'mantis_authoring/%s/InvestigationIndicators.html' % DINGOS_TEMPLATE_FAMILY
 
-    title = 'Campaign Indicator'
+    title = 'Investigation Indicator'
 
     """
     Classes describe front-end elements. Element properties then show up in the resulting JSON as properties.
     Properties with a leading 'I_' will not be converted to JSON
     """
-
 
 
     class StixThreatActor(forms.Form):
@@ -127,88 +126,6 @@ class FormView(BasicSTIXPackageTemplateView):
         object_id =  forms.CharField(initial='', widget=forms.HiddenInput)
         label =  forms.CharField(initial='', widget=forms.HiddenInput)
 
-    class StixCampaign(forms.Form):
-        STATUS_TYPES = (
-            ('Success', 'Success'),
-            ('Fail', 'Fail'),
-            ('Error', 'Error'),
-            ('Complete/Finish', 'Complete/Finish'),
-            ('Pending', 'Pending'),
-            ('Ongoing', 'Ongoing'),
-            ('Unknown', 'Unknown')
-        )
-        CONFIDENCE_TYPES = (
-            ('High', 'High'),
-            ('Medium', 'Medium'),
-            ('Low', 'Low'),
-            ('None', 'None'),
-            ('Unknown', 'Unknown')
-        )
-        object_type = forms.CharField(initial="Campaign", widget=forms.HiddenInput)
-        I_object_display_name = forms.CharField(initial="Campaign", widget=forms.HiddenInput)
-        I_icon =  forms.CharField(initial=get_StixIcon('Campaign', 'stix.mitre.org'), widget=forms.HiddenInput)
-        name = forms.CharField(max_length=1024, help_text="*required", required=True)
-        title = forms.CharField(max_length=1024)
-        description = forms.CharField(widget=forms.Textarea, required=False)
-        status = forms.ChoiceField(choices=STATUS_TYPES, required=False, initial="Unknown")
-        #activity_timestamp_from = forms.CharField(max_length=1024)
-        #activity_timestamp_to = forms.CharField(max_length=1024)
-        #confidence = forms.ChoiceField(choices=CONFIDENCE_TYPES, required=False, initial="med")
-
-    class StixCampaignReference(forms.Form):
-        object_type = forms.CharField(initial="CampaignReference", widget=forms.HiddenInput)
-        I_object_display_name = forms.CharField(initial="Campaign Reference", widget=forms.HiddenInput)
-        I_icon =  forms.CharField(initial=get_StixIcon('Campaign', 'stix.mitre.org'), widget=forms.HiddenInput)
-        object_id =  forms.CharField(initial='', widget=forms.HiddenInput)
-        label =  forms.CharField(initial='', widget=forms.HiddenInput)
-
-    class StixIndicator(forms.Form):
-        CONFIDENCE_TYPES = (
-            ('High', 'High'),
-            ('Medium', 'Medium'),
-            ('Low', 'Low'),
-            ('None', 'None'),
-            ('Unknown', 'Unknown')
-        )
-
-        OPERATOR_TYPES = (
-            ('OR', 'OR'),
-            ('AND', 'AND'),
-        )
-        object_type = forms.CharField(initial="Indicator", widget=forms.HiddenInput)
-        I_object_display_name = forms.CharField(initial="Indicator", widget=forms.HiddenInput)
-        I_icon =  forms.CharField(initial=get_StixIcon('Indicator', 'stix.mitre.org'), widget=forms.HiddenInput)
-        indicator_title = forms.CharField(max_length=1024)
-        indicator_description = forms.CharField(widget=forms.Textarea, required=False)
-        indicator_confidence = forms.ChoiceField(choices=CONFIDENCE_TYPES, required=False, initial="med")
-        indicator_operator = forms.ChoiceField(choices=OPERATOR_TYPES, required=False, initial="OR",
-                                               help_text="Chose 'OR' if any of the observables in the indicator by themselves are indicative of an attack; "
-                                                         "chose 'AND' if the observables in this indicator must be present 'together'.")
-
-    class TestMechanismIOC(forms.Form):
-        object_type = forms.CharField(initial="Test_Mechanism", widget=forms.HiddenInput)
-        object_subtype = forms.CharField(initial="IOC", widget=forms.HiddenInput)
-        I_icon =  forms.CharField(initial=static(''), widget=forms.HiddenInput)
-        ioc_xml = forms.CharField(initial="", widget=forms.HiddenInput)
-        ioc_title = forms.CharField(max_length=1024)
-        ioc_description = forms.CharField(widget=forms.Textarea, required=False)
-
-    class TestMechanismYara(forms.Form):
-        object_type = forms.CharField(initial="Test_Mechanism", widget=forms.HiddenInput)
-        object_subtype = forms.CharField(initial="YARA", widget=forms.HiddenInput)
-        I_icon =  forms.CharField(initial=static(''), widget=forms.HiddenInput)
-        yara_rules = forms.CharField(initial="", widget=forms.HiddenInput)
-        yara_title = forms.CharField(max_length=1024)
-        yara_description = forms.CharField(widget=forms.Textarea, required=False)
-
-    class TestMechanismSnort(forms.Form):
-        object_type = forms.CharField(initial="Test_Mechanism", widget=forms.HiddenInput)
-        object_subtype = forms.CharField(initial="SNORT", widget=forms.HiddenInput)
-        I_icon =  forms.CharField(initial=static(''), widget=forms.HiddenInput)
-        snort_rules = forms.CharField(initial="", widget=forms.HiddenInput)
-        snort_title = forms.CharField(max_length=1024)
-        snort_description = forms.CharField(widget=forms.Textarea, required=False)
-
 
 
     """
@@ -216,17 +133,8 @@ class FormView(BasicSTIXPackageTemplateView):
     """
     def get_context_data(self, **kwargs):
         context = super(FormView, self).get_context_data(**kwargs)
-
-        indicatorForms = [self.StixIndicator]
-        campaignForms = [self.StixCampaign, self.StixCampaignReference]
         threatActorForms = [self.StixThreatActor, self.StixThreatActorReference]
-        testMechanismForms = [self.TestMechanismIOC, self.TestMechanismSnort]
-
-        context['indicatorForms'] = indicatorForms
-        context['campaignForms'] = campaignForms
         context['threatActorForms'] = threatActorForms
-        context['testMechanismForms'] = testMechanismForms
-
         return context
 
 

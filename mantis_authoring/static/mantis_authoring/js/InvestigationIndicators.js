@@ -23,24 +23,15 @@
     define('jquery', [], function() { return $; });
     require(['BaseClass',
              'ObservablesTab',
-             'TestMechanismsTab',
-             'IndicatorsTab',
-             'CampaignsTab',
              'ThreatActorsTab',
-             'ObjectRelationsTab'],
-            function(BaseClass, ObservablesTab, TestMechanismsTab, IndicatorsTab, CampaignsTab, ThreatActorsTab, ObjectRelationsTab){
+            ],
+            function(BaseClass, ObservablesTab, ThreatActorsTab){
 
                 // Extend our builder prototype base class with the loaded parts
                 var builderPrototype = $.extend(BaseClass,
                                                 ObservablesTab,
-                                                TestMechanismsTab,
-                                                IndicatorsTab,
-                                                CampaignsTab,
-                                                ThreatActorsTab,
-                                                ObjectRelationsTab
+                                                ThreatActorsTab
                                                );
-
-
 
 
                 // Factory function to create a new builder object

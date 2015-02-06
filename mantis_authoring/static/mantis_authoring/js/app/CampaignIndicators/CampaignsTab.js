@@ -134,7 +134,7 @@ define(['jquery', 'datetimepicker'],function($){
 
 	
 	/**
-	 * Bind the campaing/threat actor autocompleter to the elements
+	 * Bind the campaign/threat actor autocompleter to the elements
 	 */
 	cam_bind_reference_completer: function(){
 	    var instance = this,

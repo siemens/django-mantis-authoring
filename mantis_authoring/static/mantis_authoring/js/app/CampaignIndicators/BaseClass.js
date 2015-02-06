@@ -217,7 +217,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 
 	    // Add the show-stix button
 	    var show_stix_btn = $('<button>Show STIX</button>').button().click(function(){
-		stix_base = instance.get_json();
+		var stix_base = instance.get_json();
 		$.post('transform', {'jsn':JSON.stringify(stix_base), 'submit_name' : guid_gen(), 'action' : 'generate'}, function(data){
 		    if(data.status){
 			var dlg = $('<div id="dda-show-stix-dlg" title="STIX Package Output' + data.malformed_xml_warning +'"><div id="dda-show-stix-edit"></div></div>');
@@ -258,7 +258,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 
 	    // Add various buttons to the tab's content
 	    var get_jsn_btn = $('<button>Show JSON</button>').button().click(function(){
-		result = JSON.stringify(instance.get_json(), null, "    ");
+		var result = JSON.stringify(instance.get_json(), null, "    ");
 		var dlg = $('<div id="dda-show-json-dlg" title="JSON"><div id="dda-show-json-edit"></div></div>');
 		dlg.dialog({
 		    width: 600, height: 750, modal: true,
@@ -282,7 +282,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 	    $('#dda-stix-meta').after(get_jsn_btn);
 
 	    var import_jsn_btn = $('<button>Import JSON</button>').button().click(function(){
-		result = JSON.stringify(instance.get_json(), null, "    ");
+		var result = JSON.stringify(instance.get_json(), null, "    ");
 		var dlg = $('<div id="dda-import-json-dlg" title="JSON"><div id="dda-import-json-edit"></div></div>');
 		dlg.dialog({
 		    width: 600, height: 750, modal: true,
@@ -449,7 +449,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 	    // Iterate over the registred indicators
 	    $.each(instance.indicator_registry, function(indicator_guid, indicator_element){
 
-		title = $('#id_indicator_title', indicator_element.element).val();
+		var title = $('#id_indicator_title', indicator_element.element).val();
 		if(title=='')
 		    title = 'Indicator: ' + indicator_element.object_id
 
@@ -532,7 +532,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 	    // Register the import-to-mantis button handler
 
         $('#dda-stix-import').off('click').on('click', function(){
-            stix_base = instance.get_json();
+            var stix_base = instance.get_json();
             var _save_fcn = function(){
                 $.post('transform',
                     {'jsn':JSON.stringify(stix_base), 'submit_name' : instance.load_name, 'id': instance.load_uuid, 'action': 'import'},
@@ -559,7 +559,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                     modal: true
                 });
                 var ok_btn = $('<button>Ok</button>').button().addClass('pull-right').click(function(){
-                    pkg_name = $.trim(dlg.find('input').first().val());
+                    var pkg_name = $.trim(dlg.find('input').first().val());
                     if(pkg_name != ''){
                         instance.load_name = pkg_name;
                         instance.load_uuid = guid_gen();
@@ -583,7 +583,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 
         // Save and release draft button
         $('#dda-stix-save-and-release').off('click').on('click', function(){
-            stix_base = instance.get_json();
+            var stix_base = instance.get_json();
 
             var _save_fcn = function(){
                 $.post('transform',
@@ -611,7 +611,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                     modal: true
                 });
                 var ok_btn = $('<button>Ok</button>').button().addClass('pull-right').click(function(){
-                    pkg_name = $.trim(dlg.find('input').first().val());
+                    var pkg_name = $.trim(dlg.find('input').first().val());
                     if(pkg_name != ''){
                         instance.load_name = pkg_name;
                         instance.load_uuid = guid_gen();
@@ -634,7 +634,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 
         // Save draft button
             $('#dda-stix-save').off('click').on('click', function(){
-		stix_base = instance.get_json();
+		var stix_base = instance.get_json();
 		var _save_fcn = function(){
 		    $.post('transform',
 			   {'jsn':JSON.stringify(stix_base), 'submit_name' : instance.load_name, 'id': instance.load_uuid, 'action': 'save'},
@@ -660,7 +660,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 		    	modal: true
 		    });
 		    var ok_btn = $('<button>Ok</button>').button().addClass('pull-right').click(function(){
-			pkg_name = $.trim(dlg.find('input').first().val());
+			var pkg_name = $.trim(dlg.find('input').first().val());
 			if(pkg_name != ''){
 			    instance.load_name = pkg_name;
 			    instance.load_uuid = guid_gen();
@@ -776,7 +776,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 		stix_base.test_mechanisms.push(tmp);
 	    });
 
-	    // Include the campaing information
+	    // Include the campaign information
 	    stix_base.campaign = form2js(
 		$('.dda-campaign-template', '#dda-campaign-container').find('input, select, textarea').not('[name^="I_"]').get(), 
 		undefined, false);
@@ -859,6 +859,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 
 	    // Restore the campaign information
 	    if(jsn.campaign!=undefined){
+                var itm = {};
 		if(jsn.campaign.object_type=='CampaignReference'){
 		    itm = {
 			id: jsn.campaign.object_id,
