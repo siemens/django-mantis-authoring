@@ -369,7 +369,8 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 		'observable_title': $(obs.element).find('[name="dda-observable-title"]').val(),
 		'observable_description': $(obs.element).find('[name="dda-observable-description"]').val(),
 		'related_observables': {},
-		'observable_properties': $(obs.element).find('.dda-pool-element').find('input, select, textarea').not('[name^="I_"]').serializeObject()
+		'observable_properties': $(obs.element).find('.dda-pool-element').find('input, select, textarea').not('[name^="I_"]').serializeObject(),
+                'actions': obs.actions
 	    }
 
 	    $.each(obs.relations, function(i,v){

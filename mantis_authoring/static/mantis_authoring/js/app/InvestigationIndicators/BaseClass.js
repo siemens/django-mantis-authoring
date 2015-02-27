@@ -48,71 +48,71 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                 if(response.action=='ask'){
                     // Query user for action
                     var dlg = $('<div class="dda-obs-find_similar-dlg" title="Choose the file parsing mechanism">Please wait...</div>'),
-                    ask_content_tmpl = dust.compile('<ol style="max-height: 500px;"> \
-                                        <p>{action_msg}</p> \
-                                     {#data} \
-                                     <li class="ui-widget-content" data-id="{$idx}"> \
-                                     <div class="dda-add-element"> \
-                                     <h3>{title}</h3> \
-                                     <p>{details}</p> \
-                                     </div> \
-                                     </li> \
-                                     {/data} \
-                                     </ol> \
-                                     <div class="pull-right"> \
-                                     <button class="ok">Ok</button> \
-                                     <button class="cancel">Cancel</button> \
-                                     </div> \
-                                       ', 'ask_file_type_content');
+                        ask_content_tmpl = dust.compile('<ol style="max-height: 500px;"> \
+                                                        <p>{action_msg}</p> \
+                                                        {#data} \
+                                                        <li class="ui-widget-content" data-id="{$idx}"> \
+                                                        <div class="dda-add-element"> \
+                                                        <h3>{title}</h3> \
+                                                        <p>{details}</p> \
+                                                        </div> \
+                                                        </li> \
+                                                        {/data} \
+                                                        </ol> \
+                                                        <div class="pull-right"> \
+                                                        <button class="ok">Ok</button> \
+                                                        <button class="cancel">Cancel</button> \
+                                                        </div> \
+                                                        ', 'ask_file_type_content');
 
                     dlg.dialog({
-                     width: 600, modal: true,
-                     position: ['center', 'center']
+                        width: 600, modal: true,
+                        position: ['center', 'center']
                     });
                     dust.loadSource(ask_content_tmpl);
                     dust.render('ask_file_type_content', response, function(err, out){
-                     out = $(out);
-                     out.selectable();
-                     dlg.html(out);
-                     $('button', dlg).button();
-                     $('button.ok', dlg).click(function(){
-                         var sel = $('.ui-selected', dlg);
-                         if(sel.length){
-                             var rd = response.data[sel.data('id')]
-                             $.post(response.action_url, rd, function(response1){
-                                 window._handle_file_upload_response(response1);
-                                 dlg.dialog('destroy');
-                             });
+                        out = $(out);
+                        out.selectable();
+                        dlg.html(out);
+                        $('button', dlg).button();
+                        $('button.ok', dlg).click(function(){
+                            var sel = $('.ui-selected', dlg);
+                            if(sel.length){
+                                var rd = response.data[sel.data('id')]
+                                $.post(response.action_url, rd, function(response1){
+                                    window._handle_file_upload_response(response1);
+                                    dlg.dialog('destroy');
+                                });
 
-                         }
-                     });
-                     $('button.cancel', dlg).click(function(){
-                         dlg.dialog('destroy');
-                     });
-                     dlg.dialog("option", "position", ['center', 'center'] );
+                            }
+                        });
+                        $('button.cancel', dlg).click(function(){
+                            dlg.dialog('destroy');
+                        });
+                        dlg.dialog("option", "position", ['center', 'center'] );
                     });
 
                 }else if(response.action=='create'){
                     // Create objects
                     $.each(response.data, function(i,v){
-                     if(v.object_class=='observable'){
-                         var el = instance.obs_pool_add_elem('dda-observable-template_' + v.object_type + '_' + v.object_subtype, v.object_id);
-                         if(!el) return true;
-                         $.each(v.properties, function(i1,v1){
-                             $('[name="'+i1+'"]', el.element).val(v1);
-                         });
-                         instance.obs_elem_validate(el.observable_id); // this also triggers name generation
-                         log_message('Created '+ v.object_type +' ('+ v.object_subtype +') object: ' + el.observable_id, 'success', 5000);
-                     }else if(v.object_class=='testmechanism'){
-                         var el = instance.tes_pool_add_elem('dda-test-mechanism-template_' + v.object_type + '_' + v.object_subtype, v.object_id);
+                        if(v.object_class=='observable'){
+                            var el = instance.obs_pool_add_elem('dda-observable-template_' + v.object_type + '_' + v.object_subtype, v.object_id);
+                            if(!el) return true;
+                            $.each(v.properties, function(i1,v1){
+                                $('[name="'+i1+'"]', el.element).val(v1);
+                            });
+                            instance.obs_elem_validate(el.observable_id); // this also triggers name generation
+                            log_message('Created '+ v.object_type +' ('+ v.object_subtype +') object: ' + el.observable_id, 'success', 5000);
+                        }else if(v.object_class=='testmechanism'){
+                            var el = instance.tes_pool_add_elem('dda-test-mechanism-template_' + v.object_type + '_' + v.object_subtype, v.object_id);
 
-                         if(!el) return true;
-                         $.each(v.properties, function(i1,v1){
-                             $('[name="'+i1+'"]', el.element).val(v1);
-                         });
-                         log_message('Created '+ v.object_subtype +' ('+ v.object_type +') object: ' + el.object_id, 'success', 5000);
-                     }
-                     //TODO: treat other types
+                            if(!el) return true;
+                            $.each(v.properties, function(i1,v1){
+                                $('[name="'+i1+'"]', el.element).val(v1);
+                            });
+                            log_message('Created '+ v.object_subtype +' ('+ v.object_type +') object: ' + el.object_id, 'success', 5000);
+                        }
+                        //TODO: treat other types
                     });
 
                 }
@@ -185,7 +185,8 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
             // Add functionality to the 'Add Action' button
             instance.action_add_btn.click(function(){
                 var a_name = instance.action_name.val(),
-                    a_description = instance.action_description.val();
+                    a_description = instance.action_description.val(),
+                    a_guid = "{" + instance.namespace_uri + '}action-' + guid_gen();
                 if($.trim(a_name)=='') return;
                 // already in the registry?
                 var a_regged = false
@@ -196,7 +197,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                     }
                 });
                 if(!a_regged){
-                    instance.action_registry[a_name] = {'name': a_name, 'description': a_description};
+                    instance.action_registry[a_guid] = {'name': a_name, 'description': a_description, 'guid': a_guid};
                     instance.refresh_investigation_tab();
                 };
 
@@ -205,7 +206,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
             });
 
 
-            
+
 
             // Add various buttons to the tab's content
             var get_jsn_btn = $('<button>Show JSON</button>').button().click(function(){
@@ -279,14 +280,21 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
         refresh_investigation_tab: function(){
             var instance = this,
                 pool_elem_tmpl = dust.compile('<div class="dda-add-element clearfix" data-id="{id}" data-type="{type}"> \
-                                                <h3>{title}</h3> \
+                                              <h3>{title}</h3> \
+                                              <p>{description}</p> \
+                                              <div class="dda-observable-action_dropzone" data-id={id}> \
+                                              <ul> \
+                                              {#actions} \
+                                              <li><i class="ui-icon ui-icon-close pull-left" data-id="{id}"></i><span>{name} {?desc}- {desc}{/desc}</span></li> \
+                                              {/actions} \
+                                              </ul> \
+                                              </div> \
+                                              </div>', 'pool_elem'),
+                pool_action_tmpl = dust.compile('<div class="dda-add-element clearfix" data-id={id}> \
+                                                <i class="ui-icon ui-icon-close pull-right"></i> \
+                                                <h3>{name}</h3> \
                                                 <p>{description}</p> \
-                                               </div>', 'pool_elem'),
-                pool_action_tmpl = dust.compile('<div class="dda-add-element clearfix"> \
-                                                  <i class="ui-icon ui-icon-close pull-right"></i> \
-                                                  <h3>{name}</h3> \
-                                                  <p>{description}</p> \
-                                                 </div>', 'action_elem');
+                                                </div>', 'action_elem');
             dust.loadSource(pool_elem_tmpl);
             dust.loadSource(pool_action_tmpl);
 
@@ -298,10 +306,30 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                     'id': i,
                     'type': 'observable',
                     'title': $('#id_I_object_display_name', $('#'+v.template)).val(),
-                    'description': instance.get_obs_elem_desc_name(v, i)
+                    'description': instance.get_obs_elem_desc_name(v, i),
+                    'actions': []
+                };
+                if(v.actions!=undefined){
+                    $.each(v.actions, function(i1,v1){
+                        elem_data.actions.push({
+                            'id': instance.action_registry[v1].guid,
+                            'name': instance.action_registry[v1].name,
+                            'desc': instance.action_registry[v1].description
+                        });
+                    });
                 };
                 dust.render('pool_elem', elem_data, function(err, out){
                     out = $(out);
+                    $('.ui-icon-close', out).click(function(){
+                        var aid = $(this).data('id');
+                        var oid = $(this).parents('.dda-observable-action_dropzone').first().data('id');
+                        var aidx = instance.observable_registry[oid].actions.indexOf(aid);
+                        if (aidx > -1) {
+                            instance.observable_registry[oid].actions.splice(aidx, 1);
+                        }
+                        $(this).parent('li').remove();
+                        console.log(instance.observable_registry);
+                    });
                     instance.investigation_observables.append(out);
                 });
             });
@@ -312,17 +340,69 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
             $.each(instance.action_registry, function(i,v){
                 var elem_data = {
                     'name': v['name'],
-                    'description': v['description']
+                    'description': v['description'],
+                    'id': v['guid']
                 };
                 dust.render('action_elem', elem_data, function(err, out){
                     out = $(out);
+                    out.draggable({
+                        "helper": "clone",
+                        "zIndex": 300,
+                        "refreshPositions": true,
+                        "start": function(event, ui) {
+                            $(".dda-observable-action_dropzone").addClass("dda-dropzone-highlight");
+                        },
+                        "stop": function(event, ui) {
+                            $(".dda-observable-action_dropzone").removeClass("dda-dropzone-highlight");
+                        }
+                    });
                     $('.ui-icon-close', out).click(function(){
-                        delete instance.action_registry[v['name']];
+                        delete instance.action_registry[v['guid']];
                         $(this).parent('div').remove();
                     });
                     instance.action_container.append(out);
                 });
             });
+
+
+            // Register droppable event on the observables
+            instance.investigation_observables.find('.dda-observable-action_dropzone').droppable({
+                "tolerance": "touch",
+                "drop": function( event, ui ) {
+                    if(!ui.draggable.hasClass('dda-add-element'))
+                        return;
+                    var draggable = $(ui.draggable);
+                    
+                    var action_id = $(draggable).data('id');
+                    var observable_id = $(this).data('id');
+
+                    if(instance.observable_registry[observable_id].actions == undefined) instance.observable_registry[observable_id].actions=[];
+                    if(instance.observable_registry[observable_id].actions.indexOf(action_id) == -1){
+                        instance.observable_registry[observable_id].actions.push(action_id);
+                    };
+                    // if(!indicator_id){ //if we drop on a non-indicator, we generate one
+                    //     indicator_id = instance.ind_pool_add_elem();
+                    // }
+                    // if(object_type=='observable'){
+                    //     instance.indicator_registry[indicator_id].observables.push(object_id);
+                    //     instance.indicator_registry[indicator_id].observables=uniqueArray(instance.indicator_registry[indicator_id].observables);
+                    // }else if(object_type=='test_mechanism'){
+                    //     instance.indicator_registry[indicator_id].test_mechanisms.push(object_id);
+                    //     instance.indicator_registry[indicator_id].test_mechanisms=uniqueArray(instance.indicator_registry[indicator_id].test_mechanisms);
+                    // }
+                    instance.refresh_investigation_tab();
+                },
+                "over": function (event, ui ) {
+                    if(ui.draggable.hasClass('dda-add-element'))
+                        $(event.target).addClass("dda-dropzone-hover");
+                },
+                "out": function (event, ui) {
+                    $(event.target).removeClass("dda-dropzone-hover");
+                }
+            });
+
+
+
 
 
 
@@ -365,35 +445,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 
             //          });
 
-            //          instance.package_indicators.find('.dda-package-indicators_dropzone').droppable({
-            //                 "tolerance": "touch",
-            //                 "drop": function( event, ui ) {
-            //                  if(!ui.draggable.hasClass('dda-add-element'))
-            //                      return;
-            //                  var draggable = $(ui.draggable);
-            //                  var object_id = $(draggable).data('id');
-            //                  var object_type = $(draggable).data('type');
-            //                  var indicator_id = $(this).data('id');
-            //                  if(!indicator_id){ //if we drop on a non-indicator, we generate one
-            //                      indicator_id = instance.ind_pool_add_elem();
-            //                  }
-            //                  if(object_type=='observable'){
-            //                      instance.indicator_registry[indicator_id].observables.push(object_id);
-            //                      instance.indicator_registry[indicator_id].observables=uniqueArray(instance.indicator_registry[indicator_id].observables);
-            //                  }else if(object_type=='test_mechanism'){
-            //                      instance.indicator_registry[indicator_id].test_mechanisms.push(object_id);
-            //                      instance.indicator_registry[indicator_id].test_mechanisms=uniqueArray(instance.indicator_registry[indicator_id].test_mechanisms);
-            //                  }
-            //                  instance.refresh_stix_package_tab();
-            //              },
-            //                 "over": function (event, ui ) {
-            //                  if(ui.draggable.hasClass('dda-add-element'))
-            //                      $(event.target).addClass("dda-dropzone-hover");
-            //                 },
-            //                 "out": function (event, ui) {
-            //                  $(event.target).removeClass("dda-dropzone-hover");
-            //                 }
-            //          });
+
 
 
 
@@ -680,7 +732,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
             // Restore actions
             instance.action_registry = {};
             $.each(jsn.actions, function(i,v){
-                instance.action_registry[v['name']] = v;
+                instance.action_registry[v['guid']] = v;
             });
         },
 
