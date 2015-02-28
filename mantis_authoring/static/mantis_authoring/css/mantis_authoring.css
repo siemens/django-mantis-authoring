@@ -271,6 +271,13 @@ button span {
     stroke: #000;
     stroke-width: 2px;
 }
+
+.labelAnchor {
+    fill: #555;
+    font-family: "Arial";
+    font-size: 12px;
+}
+
 .node text, .labelAnchor text {
   pointer-events: none;
 }
@@ -294,13 +301,25 @@ button span {
 
 .link {
   stroke: #999;
-  stroke-width: 2.5px;
+  stroke-width: 1px;
   cursor: crosshair;
   fill: none;
 }
 
 .link_selected {
   stroke: #ff7f0e !important;
+}
+
+.linkLabel {
+    font-size:90%;
+    fill: #aaa;
+}
+
+.labelTextContent {
+    font-weight: bold;
+}
+.labelTextType {
+    font-size:90%;
 }
 
 li.ui-selectee {

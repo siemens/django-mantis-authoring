@@ -394,7 +394,6 @@ class stixTransformer:
 
         if threatactor.get('object_type') == 'ThreatActorReference':
             tac = ThreatActor()
-            print threatactor.get('object_id', '')
             tac.idref = self.gen_slugged_id(threatactor.get('object_id', ''))
             tac.timestamp=None
             tac.id_ = None

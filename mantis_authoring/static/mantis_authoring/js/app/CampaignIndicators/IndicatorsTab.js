@@ -149,7 +149,7 @@ define(['jquery', 'dust'],function($){
 	 */
 	ind_remove_obs: function(ind_guid, obs_guid){
 	    var instance = this,
-	        obs = this.indicator_registry[ind_guid].observables
+	        obs = this.indicator_registry[ind_guid].observables,
 	        obs_new = [];
 
 	    $.each(obs, function(i,v){

@@ -81,7 +81,7 @@ define(['jquery', 'datetimepicker'],function($){
 	 * @param {object} item The autocomplete ui.item
 	 */
 	cam_replace_threat_actor: function(item){
-	    var instance = this;
+	    var instance = this,
 	    	template = instance.tha_pool_elements_templates.filter('#dda-threatactor-template_ThreatActorReference'),
 	        ref = template.clone();
 
@@ -109,7 +109,7 @@ define(['jquery', 'datetimepicker'],function($){
 	 * @param {object} item The autocomplete ui.item
 	 */
 	cam_replace_campaign: function(item){
-	    var instance = this;
+	    var instance = this,
 	    	template = instance.cam_pool_elements_templates.filter('#dda-campaign-template_CampaignReference'),
 	        ref = template.clone();
 

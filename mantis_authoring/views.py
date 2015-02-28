@@ -231,7 +231,7 @@ class GetObjectName(BasicJSONView):
             im = importlib.import_module('mantis_authoring.cybox_object_transformers.' + object_type)
             template_obj = getattr(im,'TEMPLATE_%s' % object_subtype)()
             transform_result = template_obj.process_form(object_element,'dummy','dummy')
-            if isinstance(transform_result,dict):
+            if isinstance(transform_result, dict):
                 result_type = transform_result['type']
                 main_properties_obj = transform_result['main_obj_properties_instance']
                 properties_obj_list = transform_result['obj_properties_instances']
