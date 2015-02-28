@@ -150,7 +150,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                     // Save the report if it changed
                     if(instance.load_name && instance.load_uuid){
                         if(!deepCompare(instance.get_json(), instance._last_save)){
-                            instance.save_json('save', true, function(data, stix_base){
+                            instance.transform_json('save', true, function(data, stix_base){
                                 instance._last_save = stix_base;
                             });
                         }
@@ -224,10 +224,9 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
             // Reset GUI because some browsers keep values in inputs on reload
             instance.reset_gui();
 
-            // Add the show-stix button
-            var show_stix_btn = $('<button>Show STIX</button>').button().click(function(){
-
-                instance.save_json('generate', false, function(data, stix_base){
+            // Show-stix button
+            $('#dda-stix-debug_show_stix').button().click(function(){
+                instance.transform_json('generate', false, function(data, stix_base){
                     var dlg = $('<div id="dda-show-stix-dlg" title="STIX Package Output' + data.malformed_xml_warning +'"><div id="dda-show-stix-edit"></div></div>');
                     dlg.dialog({
                         width: $(window).width()-30,
@@ -255,13 +254,12 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                     editor.setValue(data.xml);
                     editor.moveCursorTo(1,1);
                     editor.selection.clearSelection();
-                });
+                }, true);
                 return false;
             });
-            $('#dda-stix-meta').after(show_stix_btn);
 
-            // Add various buttons to the tab's content
-            var get_jsn_btn = $('<button>Show JSON</button>').button().click(function(){
+            // Show JSON button
+            $('#dda-stix-debug_show_json').button().click(function(){
                 var result = JSON.stringify(instance.get_json(), null, "    ");
                 var dlg = $('<div id="dda-show-json-dlg" title="JSON"><div id="dda-show-json-edit"></div></div>');
                 dlg.dialog({
@@ -283,9 +281,9 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                 editor.moveCursorTo(1,1);
                 editor.selection.clearSelection();
             });
-            $('#dda-stix-meta').after(get_jsn_btn);
 
-            var import_jsn_btn = $('<button>Import JSON</button>').button().click(function(){
+            // Load JSON button
+            $('#dda-stix-debug_load_json').button().click(function(){
                 var result = JSON.stringify(instance.get_json(), null, "    ");
                 var dlg = $('<div id="dda-import-json-dlg" title="JSON"><div id="dda-import-json-edit"></div></div>');
                 dlg.dialog({
@@ -322,7 +320,6 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                     btn
                 );
             });
-            $('#dda-stix-meta').after(import_jsn_btn);
         },
 
         /**
@@ -536,7 +533,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
             // Register the import-to-mantis button handler
             $('#dda-stix-import').off('click').on('click', function(){
                 var _save_fcn = function(){
-                    instance.save_json('import', false, function(data, stix_base){
+                    instance.transform_json('import', false, function(data, stix_base){
                         instance._last_save = stix_base;
                         instance.reset_gui();
                     });
@@ -572,7 +569,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
             // Save and release draft button
             $('#dda-stix-save-and-release').off('click').on('click', function(){
                 var _save_fcn = function(){
-                    instance.save_json('release', false, function(data, stix_base){
+                    instance.transform_json('release', false, function(data, stix_base){
                         instance._last_save = stix_base;
                         instance.reset_gui();
                     });
@@ -609,7 +606,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
             $('#dda-stix-save').off('click').on('click', function(){
                 var stix_base = instance.get_json();
                 var _save_fcn = function(){
-                    instance.save_json('save', false, function(data, stix_base){
+                    instance.transform_json('save', false, function(data, stix_base){
                         instance._last_save = stix_base;
                     });
                 };
@@ -700,19 +697,27 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
 
         /**
          * Does some action with the current document
-         * @param {object} action The action to take on the document. E.g. import, release, save
-         * @param {object} silent be quiet about the result
+         * @param {string} action The action to take on the document. E.g. import, release, save
+         * @param {boolean} silent be quiet about the result
          * @param {object} success_callback(saved_doc) Called on success from backend
+         * @param {boolean} dummy generate dummy id in case not set (e.g. for gererate which creates a stix document without import);
          */
-        save_json: function(action, silent, success_callback){
+        transform_json: function(action, silent, success_callback, dummy){
             var instance = this;
             silent = typeof silent !== 'undefined' ? silent : false;
+            dummy = typeof dummy !== 'undefined' ? dummy : false;
 
-            if(!instance.load_name || !instance.load_uuid) return;
+            var load_name = instance.load_name;
+            var load_uuid = instance.load_uuid;
+
+            if(dummy & !load_name) load_name = 'dummy';
+            if(dummy & !load_uuid) load_uuid = guid_gen();
+
+            if(!load_name || !load_uuid) return;
 
             var stix_base = instance.get_json();
             $.post('transform',
-                   {'jsn': JSON.stringify(stix_base), 'submit_name': instance.load_name, 'id': instance.load_uuid, 'action': action},
+                   {'jsn': JSON.stringify(stix_base), 'submit_name': load_name, 'id': load_uuid, 'action': action},
                    function(data){
                        if(data.status){
                            // Set last-saved json so we have a copy of what's been saved to check against (to detect changes)

@@ -7,12 +7,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
      */
     return {
         namespace_uri: false,
-        action_registry: {}, // Holds the actions currently loaded
         investigation_observables: $('#dda-investigation-observables'),
-        action_container: $('#dda-investigation-action-container'),
-        action_add_btn: $('#dda-investigation-action-add'),
-        action_name: $('#dda-investigation-action-name'),
-        action_description: $('#dda-investigation-action-description'),
         load_name: false,       // Holds the name of the currently loaded template-json
         load_uuid: false,       // Holds the uuid of the currently loaded template-json
         _last_save: false,      // Last saved json for change-detection
@@ -181,35 +176,42 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
             // Reset GUI because some browsers keep values in inputs on reload
             instance.reset_gui();
 
+            // Show-stix button
+            // $('#dda-stix-debug_show_stix').button().click(function(){
+            //     instance.transform_json('generate', false, function(data, stix_base){
+            //         var dlg = $('<div id="dda-show-stix-dlg" title="STIX Package Output' + data.malformed_xml_warning +'"><div id="dda-show-stix-edit"></div></div>');
+            //         dlg.dialog({
+            //             width: $(window).width()-30,
+            //             height: $(window).height()-30,
+            //             modal: true,
+            //             draggable: false,
+            //             resizable: false,
+            //             create: function(event, ui){
+            //                 $('body').css('overflow', 'hidden');
+            //             },
+            //             beforeClose: function( event, ui ) {
+            //                 var editor = ace.edit('dda-show-stix-edit');
+            //                 editor.destroy();
+            //                 $('body').css('overflow', 'auto');
+            //                 $('#dda-show-stix-edit').remove();
+            //             },
+            //             resizeStop: function( event, ui ) {
+            //                 var editor = ace.edit('dda-show-stix-edit');
+            //                 editor.resize();
+            //             }
+            //         });
+            //         var editor = ace.edit('dda-show-stix-edit');
+            //         editor.setReadOnly(true);
+            //         editor.getSession().setMode("ace/mode/xml");
+            //         editor.setValue(data.xml);
+            //         editor.moveCursorTo(1,1);
+            //         editor.selection.clearSelection();
+            //     }, true);
+            //     return false;
+            // });
 
-            // Add functionality to the 'Add Action' button
-            instance.action_add_btn.click(function(){
-                var a_name = instance.action_name.val(),
-                    a_description = instance.action_description.val(),
-                    a_guid = "{" + instance.namespace_uri + '}action-' + guid_gen();
-                if($.trim(a_name)=='') return;
-                // already in the registry?
-                var a_regged = false
-                $.each(instance.action_registry, function(i,v){
-                    if(i==a_name){
-                        a_regged = true;
-                        return false;
-                    }
-                });
-                if(!a_regged){
-                    instance.action_registry[a_guid] = {'name': a_name, 'description': a_description, 'guid': a_guid};
-                    instance.refresh_investigation_tab();
-                };
-
-                instance.action_name.val('');
-                instance.action_description.val('');
-            });
-
-
-
-
-            // Add various buttons to the tab's content
-            var get_jsn_btn = $('<button>Show JSON</button>').button().click(function(){
+            // Show JSON button
+            $('#dda-stix-debug_show_json').button().click(function(){
                 var result = JSON.stringify(instance.get_json(), null, "    ");
                 var dlg = $('<div id="dda-show-json-dlg" title="JSON"><div id="dda-show-json-edit"></div></div>');
                 dlg.dialog({
@@ -231,9 +233,9 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                 editor.moveCursorTo(1,1);
                 editor.selection.clearSelection();
             });
-            $('#dda-investigation-meta').after(get_jsn_btn);
 
-            var import_jsn_btn = $('<button>Import JSON</button>').button().click(function(){
+            // Load JSON button
+            $('#dda-stix-debug_load_json').button().click(function(){
                 result = JSON.stringify(instance.get_json(), null, "    ");
                 var dlg = $('<div id="dda-import-json-dlg" title="JSON"><div id="dda-import-json-edit"></div></div>');
                 dlg.dialog({
@@ -270,7 +272,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                     btn
                 );
             });
-            $('#dda-investigation-meta').after(import_jsn_btn);
+
         },
 
 
@@ -282,22 +284,8 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                 pool_elem_tmpl = dust.compile('<div class="dda-add-element clearfix" data-id="{id}" data-type="{type}"> \
                                               <h3>{title}</h3> \
                                               <p>{description}</p> \
-                                              <div class="dda-observable-action_dropzone" data-id={id}> \
-                                              <ul> \
-                                              {#actions} \
-                                              <li><i class="ui-icon ui-icon-close pull-left" data-id="{id}"></i><span>{name} {?desc}- {desc}{/desc}</span></li> \
-                                              {/actions} \
-                                              </ul> \
-                                              </div> \
-                                              </div>', 'pool_elem'),
-                pool_action_tmpl = dust.compile('<div class="dda-add-element clearfix" data-id={id}> \
-                                                <i class="ui-icon ui-icon-close pull-right"></i> \
-                                                <h3>{name}</h3> \
-                                                <p>{description}</p> \
-                                                </div>', 'action_elem');
+                                              </div>', 'pool_elem');
             dust.loadSource(pool_elem_tmpl);
-            dust.loadSource(pool_action_tmpl);
-
 
             // Display the observables
             instance.investigation_observables.html('');
@@ -306,353 +294,13 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                     'id': i,
                     'type': 'observable',
                     'title': $('#id_I_object_display_name', $('#'+v.template)).val(),
-                    'description': instance.get_obs_elem_desc_name(v, i),
-                    'actions': []
-                };
-                if(v.actions!=undefined){
-                    $.each(v.actions, function(i1,v1){
-                        elem_data.actions.push({
-                            'id': instance.action_registry[v1].guid,
-                            'name': instance.action_registry[v1].name,
-                            'desc': instance.action_registry[v1].description
-                        });
-                    });
+                    'description': instance.get_obs_elem_desc_name(v, i)
                 };
                 dust.render('pool_elem', elem_data, function(err, out){
                     out = $(out);
-                    $('.ui-icon-close', out).click(function(){
-                        var aid = $(this).data('id');
-                        var oid = $(this).parents('.dda-observable-action_dropzone').first().data('id');
-                        var aidx = instance.observable_registry[oid].actions.indexOf(aid);
-                        if (aidx > -1) {
-                            instance.observable_registry[oid].actions.splice(aidx, 1);
-                        }
-                        $(this).parent('li').remove();
-                        console.log(instance.observable_registry);
-                    });
                     instance.investigation_observables.append(out);
                 });
             });
-
-
-            // Display the actions
-            instance.action_container.html('');
-            $.each(instance.action_registry, function(i,v){
-                var elem_data = {
-                    'name': v['name'],
-                    'description': v['description'],
-                    'id': v['guid']
-                };
-                dust.render('action_elem', elem_data, function(err, out){
-                    out = $(out);
-                    out.draggable({
-                        "helper": "clone",
-                        "zIndex": 300,
-                        "refreshPositions": true,
-                        "start": function(event, ui) {
-                            $(".dda-observable-action_dropzone").addClass("dda-dropzone-highlight");
-                        },
-                        "stop": function(event, ui) {
-                            $(".dda-observable-action_dropzone").removeClass("dda-dropzone-highlight");
-                        }
-                    });
-                    $('.ui-icon-close', out).click(function(){
-                        delete instance.action_registry[v['guid']];
-                        $(this).parent('div').remove();
-                    });
-                    instance.action_container.append(out);
-                });
-            });
-
-
-            // Register droppable event on the observables
-            instance.investigation_observables.find('.dda-observable-action_dropzone').droppable({
-                "tolerance": "touch",
-                "drop": function( event, ui ) {
-                    if(!ui.draggable.hasClass('dda-add-element'))
-                        return;
-                    var draggable = $(ui.draggable);
-                    
-                    var action_id = $(draggable).data('id');
-                    var observable_id = $(this).data('id');
-
-                    if(instance.observable_registry[observable_id].actions == undefined) instance.observable_registry[observable_id].actions=[];
-                    if(instance.observable_registry[observable_id].actions.indexOf(action_id) == -1){
-                        instance.observable_registry[observable_id].actions.push(action_id);
-                    };
-                    // if(!indicator_id){ //if we drop on a non-indicator, we generate one
-                    //     indicator_id = instance.ind_pool_add_elem();
-                    // }
-                    // if(object_type=='observable'){
-                    //     instance.indicator_registry[indicator_id].observables.push(object_id);
-                    //     instance.indicator_registry[indicator_id].observables=uniqueArray(instance.indicator_registry[indicator_id].observables);
-                    // }else if(object_type=='test_mechanism'){
-                    //     instance.indicator_registry[indicator_id].test_mechanisms.push(object_id);
-                    //     instance.indicator_registry[indicator_id].test_mechanisms=uniqueArray(instance.indicator_registry[indicator_id].test_mechanisms);
-                    // }
-                    instance.refresh_investigation_tab();
-                },
-                "over": function (event, ui ) {
-                    if(ui.draggable.hasClass('dda-add-element'))
-                        $(event.target).addClass("dda-dropzone-hover");
-                },
-                "out": function (event, ui) {
-                    $(event.target).removeClass("dda-dropzone-hover");
-                }
-            });
-
-
-
-
-
-
-
-
-
-            //              $.each(indicator_element.observables, function(i,v){
-            //                  elem_data.observables.push({
-            //                      'id': v,
-            //                      'desc': instance.get_obs_elem_desc_name(instance.observable_registry[v], v)
-            //                  });
-            //              });
-            //              $.each(indicator_element.test_mechanisms, function(i,v){
-            //                  elem_data.test_mechanisms.push({
-            //                      'id': v,
-            //                      'desc': instance.get_tes_elem_desc_name(instance.test_mechanisms_registry[v])
-            //                  });
-            //              });
-
-            //              dust.render('reg_ind_elem', elem_data, function(err, out){
-            //                  out = $(out);
-            //                  out.find('li > i.ui-icon-close').click(function(i,v){
-            //                      var indicator_guid = $(this).parents('.dda-package-indicators_dropzone').first().data('id'),
-            //                          el_id = $(this).data('id');
-            //                      instance.ind_remove_tes(indicator_guid, el_id);
-            //                      instance.ind_remove_obs(indicator_guid, el_id);
-            //                      instance.refresh_stix_package_tab();
-            //                  });
-            //                  instance.package_indicators.prepend(out);
-            //              });
-
-            //              // Add the drop-here-for-new-indicator dropzone
-            //              var div = $('<div class="dda-add-element clearfix"></div>');
-            //              div.prepend(
-            //                  $('<img></img>').attr('src', $('#' + indicator_element.template).find('#id_I_icon').val())
-            //                      .attr('type', 'image/svg+xml')
-            //                      .addClass('pull-left')
-            //                      .css({'width': '30px', 'margin-right': '5px'})
-            //              );
-
-            //          });
-
-
-
-
-
-            //          // Register the import-to-mantis button handler
-
-            //         $('#dda-stix-import').off('click').on('click', function(){
-            //             stix_base = instance.get_json();
-            //             var _save_fcn = function(){
-            //                 $.post('transform',
-            //                     {'jsn':JSON.stringify(stix_base), 'submit_name' : instance.load_name, 'id': instance.load_uuid, 'action': 'import'},
-            //                     function(data){
-            //                         if(data.status){
-            //                             // Set last-saved json so we have a copy of what's been saved to check against (to detect changes)
-            //                             instance._last_save = stix_base;
-            //                             log_message(data.msg, 'success', 5000);
-            //                             instance.reset_gui();
-            //                         }else{
-            //                             log_message(data.msg, 'error');
-            //                         }
-            //                     }, 'json');
-            //             };
-
-
-            //             if(!instance.load_name || !instance.load_uuid){
-            //                 //Ask user for meaningful name and generate uuid
-            //                 var dlg = $('<div id="dda-save-json-dlg" title="Import into Mantis"><p>Please provide a meaningful name for your package:</p></div>');
-            //                 var inp = $('<input id="dda-save-json-input" type="text"/>').val($('#dda-stix-meta > input[name="stix_header_title"]').first().val());
-            //                 dlg.append(inp);
-
-            //                 dlg.dialog({
-            //                     modal: true
-            //                 });
-            //                 var ok_btn = $('<button>Ok</button>').button().addClass('pull-right').click(function(){
-            //                     pkg_name = $.trim(dlg.find('input').first().val());
-            //                     if(pkg_name != ''){
-            //                         instance.load_name = pkg_name;
-            //                         instance.load_uuid = guid_gen();
-            //                         _save_fcn();
-            //                         dlg.dialog('close');
-            //                     }else{
-            //                         inp.focus();
-            //                     }
-
-            //                 });
-            //                 dlg.append(ok_btn);
-
-            //             }else
-            //                 _save_fcn();
-
-
-            //             return false;
-            //         });
-
-
-
-            //         // Save and release draft button
-            //         $('#dda-stix-save-and-release').off('click').on('click', function(){
-            //             stix_base = instance.get_json();
-
-            //             var _save_fcn = function(){
-            //                 $.post('transform',
-            //                     {'jsn':JSON.stringify(stix_base), 'submit_name' : instance.load_name, 'id': instance.load_uuid, 'action': 'release'},
-            //                     function(data){
-            //                         if(data.status){
-            //                             // Set last-saved json so we have a copy of what's been saved to check against (to detect changes)
-            //                             instance._last_save = stix_base;
-            //                             log_message(data.msg, 'success', 5000);
-            //                             instance.reset_gui();
-            //                         }else{
-            //                             log_message(data.msg, 'error');
-            //                         }
-            //                     }, 'json');
-            //             };
-
-
-            //             if(!instance.load_name || !instance.load_uuid){
-            //                 //Ask user for meaningful name and generate uuid
-            //                 var dlg = $('<div id="dda-save-json-dlg" title="Save JSON"><p>Please provide a meaningful name for your package:</p></div>');
-            //                 var inp = $('<input id="dda-save-json-input" type="text"/>').val($('#dda-stix-meta > input[name="stix_header_title"]').first().val());
-            //                 dlg.append(inp);
-
-            //                 dlg.dialog({
-            //                     modal: true
-            //                 });
-            //                 var ok_btn = $('<button>Ok</button>').button().addClass('pull-right').click(function(){
-            //                     pkg_name = $.trim(dlg.find('input').first().val());
-            //                     if(pkg_name != ''){
-            //                         instance.load_name = pkg_name;
-            //                         instance.load_uuid = guid_gen();
-            //                         _save_fcn();
-            //                         dlg.dialog('close');
-            //                     }else{
-            //                         inp.focus();
-            //                     }
-
-            //                 });
-            //                 dlg.append(ok_btn);
-
-            //             }else
-            //                 _save_fcn();
-
-
-            //             return false;
-            //         });
-
-
-            //         // Save draft button
-            //             $('#dda-stix-save').off('click').on('click', function(){
-            //              stix_base = instance.get_json();
-            //              var _save_fcn = function(){
-            //                  $.post('transform',
-            //                         {'jsn':JSON.stringify(stix_base), 'submit_name' : instance.load_name, 'id': instance.load_uuid, 'action': 'save'},
-            //                         function(data){
-            //                             if(data.status){
-            //                                 // Set last-saved json so we have a copy of what's been saved to check against (to detect changes)
-            //                                 instance._last_save = stix_base;
-            //                                 log_message(data.msg, 'success', 5000);
-            //                             }else{
-            //                                 log_message(data.msg, 'error');
-            //                             }
-            //                         }, 'json');
-            //              };
-
-
-            //              if(!instance.load_name || !instance.load_uuid){
-            //                  //Ask user for meaningful name and generate uuid
-            //                  var dlg = $('<div id="dda-save-json-dlg" title="Save JSON"><p>Please provide a meaningful name for your package:</p></div>');
-            //                  var inp = $('<input id="dda-save-json-input" type="text"/>').val($('#dda-stix-meta > input[name="stix_header_title"]').first().val());
-            //                  dlg.append(inp);
-
-            //                  dlg.dialog({
-            //                      modal: true
-            //                  });
-            //                  var ok_btn = $('<button>Ok</button>').button().addClass('pull-right').click(function(){
-            //                      pkg_name = $.trim(dlg.find('input').first().val());
-            //                      if(pkg_name != ''){
-            //                          instance.load_name = pkg_name;
-            //                          instance.load_uuid = guid_gen();
-            //                          _save_fcn();
-            //                          dlg.dialog('close');
-            //                      }else{
-            //                          inp.focus();
-            //                      }
-
-            //                  });
-            //                  dlg.append(ok_btn);
-
-            //              }else
-            //                  _save_fcn();
-
-            //              return false;
-            //             });
-
-            //          //Load draft button
-            //          $('#dda-stix-load').off('click').on('click', function(){
-            //              var dlg = $('<div id="dda-load-json-dlg" title="Load draft"><p>Please choose from your saved templates:</p></div>');
-            //              var dlg1 = $('<div id="dda-load-json-confirm-dlg" title="Confirmation"><p>You have not yet saved the changes you made to the current draft. Do you really want to continue loading?</p></div>');
-
-            //              var sel = $('<select></select>');
-            //              $.get('load?list', function(data){
-            //                  if(data.status)
-            //                      $.each(data.data, function(i,v){
-            //                          var _t_sel = $('<option></option>').attr('value',v.id).text(v.name + ' ('+v.date+')');
-            //                          sel.append(_t_sel);
-            //                      });
-            //              });
-            //              dlg.append(sel);
-
-            //              dlg.dialog({
-            //                  modal: true
-            //              });
-
-            //              var _load_saved_json = function(){
-            //                  instance.reset_gui();
-            //                  var load_id = $(sel).val();
-            //                  instance.load_remote_save(load_id);
-            //              }
-
-            //              var ok_btn = $('<button>Ok</button>').button().addClass('pull-right').click(function(){
-            //                  // Check for not-saved changes
-            //                  if(instance._last_save===false)
-            //                      instance._last_save = instance.get_json();
-
-            //                  if(!deepCompare(instance.get_json(), instance._last_save)){ // Changes in document
-            //                      var ok_btn1 = $('<button>Ok</button>').button().addClass('pull-right').click(function(){
-            //                          _load_saved_json();
-            //                          if(dlg) dlg.dialog('close');
-            //                          if(dlg1) dlg1.dialog('close');
-            //                      });
-            //                      var cancel_btn1 = $('<button>Cancel</button>').button().addClass('pull-right').click(function(){
-            //                          dlg.dialog('close');
-            //                          dlg1.dialog('close');
-            //                      });
-            //                      dlg1.dialog({
-            //                          modal: true
-            //                      });
-            //                      dlg1.append(cancel_btn1);
-            //                      dlg1.append(ok_btn1);
-            //                  }else{ // No changes, or already saved.
-            //                      _load_saved_json();
-            //                      if(dlg) dlg.dialog('close');
-            //                  }
-
-            //              });
-            //              dlg.append(ok_btn);
-
-            //          });
         },
 
 
@@ -667,21 +315,15 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                 $('#dda-investigation-meta').find('input[name="stix_package_id"]').val("{" + instance.namespace_uri + '}package-' + guid_gen());
             var stix_base = {
                 'stix_header': form2js($('#dda-investigation-meta').find('input, select, textarea').get(), undefined, false),
-                'observables': [],
-                'actions': []
+                'observables': []
             }
 
             // Include the observables
             $.each(instance.observable_registry, function(i,v){
                 stix_base.observables.push(instance.obs_get_json(i));
             });
-
-            // Include the actions
-            $.each(instance.action_registry, function(i,v){
-                stix_base.actions.push(v);
-            });
-
-            return stix_base
+            
+            return stix_base;
         },
 
 
@@ -712,7 +354,6 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
             $.each(jsn.observables, function(i,v){
                 var template = 'dda-observable-template_' + v.observable_properties.object_type + '_' + v.observable_properties.object_subtype;
                 instance.obs_pool_add_elem(template, v.observable_id);
-                instance.obs_update_name(v.observable_id);
                 var el = instance.observable_registry[v.observable_id];
 
                 //restore title and description
@@ -727,13 +368,11 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                 $.each(v.related_observables, function(i,v){
                     el.relations.push({label: v, target: i});
                 });
+
+                // Update observable display name
+                instance.obs_update_name(v.observable_id);
             });
 
-            // Restore actions
-            instance.action_registry = {};
-            $.each(jsn.actions, function(i,v){
-                instance.action_registry[v['guid']] = v;
-            });
         },
 
 
