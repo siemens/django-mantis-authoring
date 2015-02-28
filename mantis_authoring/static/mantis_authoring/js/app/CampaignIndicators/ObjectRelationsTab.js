@@ -469,8 +469,7 @@ define(['jquery', 'd3'],function($, d3){
                            'dx': 0,
                            'dy': -3
                           })
-                linkLabel.exit().remove();
-                linkLabel.append('textPath')
+                    .append('textPath')
                     .attr('xlink:href',function(d,i) {return '#link'+i})
                     .attr('startOffset', '50%')
                     .style('text-anchor', 'middle')
@@ -491,7 +490,7 @@ define(['jquery', 'd3'],function($, d3){
                         });
                         return lbl;
                     });
-
+                linkLabel.exit().remove();
 
 
                 if (d3.event) {
