@@ -506,7 +506,7 @@ class stixTransformer:
 
         # First collect all object relations.
         for properties_obj in observable_definitions:
-            relations[properties_obj['observable_id']] = properties_obj['related_observables']
+            relations[self.gen_slugged_id(properties_obj['observable_id'])] = properties_obj['related_observables']
 
         for properties_obj in observable_definitions:
             object_type = properties_obj['observable_properties']['object_type']
@@ -620,6 +620,7 @@ class stixTransformer:
         # description of observables are read from the cybox object
         # where we put it before
 
+        
         self.cybox_observable_list = []
         for obs_id, cybox_obj in cybox_object_dict.iteritems():
 
@@ -628,7 +629,7 @@ class stixTransformer:
             description = cybox_obj.properties.mantis_description
 
             for rel_id, rel_type in relations.get(obs_id,{}).iteritems():
-                related_object = cybox_object_dict[rel_id].properties
+                related_object = cybox_object_dict[self.gen_slugged_id(rel_id)].properties
                 if not related_object: # This might happen if an observable was not generated (because data was missing); TODO!
                     continue
                 cybox_obj.add_related(related_object, rel_type, inline=False)
@@ -786,7 +787,6 @@ class stixTransformer:
         stix_package.stix_header = stix_header
         if self.campaign:
             stix_package.campaigns.append(self.campaign)
-        print "Namespace map is %s " % self.namespace_map
         self.stix_package = stix_package.to_xml(ns_dict=self.namespace_map,
                                                 auto_namespace=stix_package.ENRICH_NS_DICT)
         return self.stix_package
