@@ -148,13 +148,13 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                     }
 
                     // Save the report if it changed
-                    if(instance.load_name && instance.load_uuid){
-                        if(!deepCompare(instance.get_json(), instance._last_save)){
-                            instance.transform_json('save', true, function(data, stix_base){
-                                instance._last_save = stix_base;
-                            });
-                        }
-                    }
+                    //if(instance.load_name && instance.load_uuid){
+                    //    if(!deepCompare(instance.get_json(), instance._last_save)){
+                    //        instance.transform_json('save', true, function(data, stix_base){
+                    //            instance._last_save = stix_base;
+                    //        });
+                    //    }
+                    //}
                 }
             });
 
