@@ -1,4 +1,4 @@
-define(['jquery', 'form2js', 'dust'],function($, form2js){
+define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js){
 
     /*
      * Return a javascript object literal with our base config of the
@@ -21,7 +21,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
             var instance = this;
             this.init_user_namespace(function(success){
                 // Now init each tab
-                instance.init_stix_package_tab();
+                instance.init_headline();
                 instance.init_campaign_tab();
                 instance.init_observable_pool_tab();
                 instance.init_indicator_pool_tab();
@@ -96,21 +96,22 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                     // Create objects
                     $.each(response.data, function(i,v){
                         if(v.object_class=='observable'){
-                            var el = instance.obs_pool_add_elem('dda-observable-template_' + v.object_type + '_' + v.object_subtype, v.object_id);
-                            if(!el) return true;
+                            var el1 = instance.obs_pool_add_elem('dda-observable-template_' + v.object_type + '_' + v.object_subtype, v.object_id);
+                            if(!el1) return true;
                             $.each(v.properties, function(i1,v1){
-                                $('[name="'+i1+'"]', el.element).val(v1);
+                                $('[name="'+i1+'"]', el1.element).val(v1);
                             });
-                            instance.obs_elem_validate(el.observable_id); // this also triggers name generation
-                            log_message('Created '+ v.object_type +' ('+ v.object_subtype +') object: ' + el.observable_id, 'success', 5000);
+                            instance.obs_elem_validate(el1.observable_id); // this also triggers name generation
+                            log_message('Created '+ v.object_type +' ('+ v.object_subtype +') object: ' + el1.observable_id, 'success', 5000);
                         }else if(v.object_class=='testmechanism'){
-                            var el = instance.tes_pool_add_elem('dda-test-mechanism-template_' + v.object_type + '_' + v.object_subtype, v.object_id);
+                            var el2 = instance.tes_pool_add_elem('dda-test-mechanism-template_' + v.object_type + '_' + v.object_subtype, v.object_id);
 
-                            if(!el) return true;
+                            if(!el2) return true;
                             $.each(v.properties, function(i1,v1){
-                                $('[name="'+i1+'"]', el.element).val(v1);
+                                $('[name="'+i1+'"]', el2.element).val(v1);
                             });
-                            log_message('Created '+ v.object_subtype +' ('+ v.object_type +') object: ' + el.object_id, 'success', 5000);
+                            instance.tes_preview_element(el2.object_id);
+                            log_message('Created '+ v.object_subtype +' ('+ v.object_type +') object: ' + el2.object_id, 'success', 5000);
                         }
                         //TODO: treat other types
                     });
@@ -129,22 +130,22 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                     }
 
                     if(ui.newTab.index()==0){
-                        instance.refresh_stix_package_tab();
+                        instance.refresh_observable_pool_tab();
+
                     }
                     if(ui.newTab.index()==1){
-                        instance.refresh_campaign_tab();
-                    }
-                    if(ui.newTab.index()==2){
                         instance.refresh_indicator_pool_tab();
                     }
+                    if(ui.newTab.index()==2){
+                        instance.refresh_object_relations_tab();
+
+                    }
                     if(ui.newTab.index()==3){
+
                         instance.refresh_test_mechanisms_pool_tab();
                     }
                     if(ui.newTab.index()==4){
-                        instance.refresh_observable_pool_tab();
-                    }
-                    if(ui.newTab.index()==5){
-                        instance.refresh_object_relations_tab();
+                        instance.refresh_campaign_tab();
                     }
 
                     // Save the report if it changed
@@ -190,7 +191,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
          */
         reset_gui: function(){
             var instance = this;
-            $('#dda-stix-meta').find('input, select, textarea').val('');
+            $('#dda-headline-container').find('input, select, textarea').val('');
 
             // Reset campaign info
             $('#dda-campaign-template_Campaign', '#dda-campaign-container')
@@ -218,11 +219,49 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
         /**
          * Initializes the STIX package tab
          */
-        init_stix_package_tab: function(){
+        init_headline: function(){
             var instance = this;
 
             // Reset GUI because some browsers keep values in inputs on reload
             instance.reset_gui();
+
+            // Treat the type selector
+            var update_headline_h1 = function(){
+                var title_el = $('#dda-headline-report-type-title'),
+                    title = title_el.val(),
+                    hl = $('#dda-headline-report-type > h1').first();
+                if(title==''){
+                    title = title_el.attr('placeholder');
+                    if(title=='')
+                        title='<empty>';
+                    hl.css('color', 'gray');
+                }else
+                    hl.css('color', 'black');
+                hl.text(title);
+            };
+            $('#dda-headline-report-type-selector').on('change', function(){
+                if($(this).val() == 'stix'){
+                    $('#dda-headline-report-type-title').inputmask('Regex', { clearMaskOnLostFocus: false, regex: '.*'}).css('width', '100%');
+                    update_headline_h1();
+                    // Hide the input field for the RT number
+                    $('#dda-headline-report-type-rtnr').hide();
+                }else if($(this).val() == 'investigation'){
+                    $('#dda-headline-report-type-title').inputmask("INVES-9{+}", {clearMaskOnLostFocus: false, placeholder: ""}).css('width', '100%');
+                    update_headline_h1();
+                    // Hide the input field for the RT number
+                    $('#dda-headline-report-type-rtnr').hide();
+                }else if($(this).val() == 'incident_report'){
+                    $('#dda-headline-report-type-title').inputmask("IR-9{+}", {clearMaskOnLostFocus: false, placeholder: ""}).css('width', '50%');
+                    update_headline_h1();
+                    // Show the input field for the RT number
+                    $('#dda-headline-report-type-rtnr').show();
+                }
+                $('#dda-headline-report-type-title').on('change keyup', function(){
+                    update_headline_h1();
+                });
+                $('#dda-headline-report-type-rtnr').inputmask("Sie\\men\\s CERT\\#-9{+}", {clearMaskOnLostFocus: false, placeholder: ""})
+            }).trigger('change');
+            
 
             // Show-stix button
             $('#dda-stix-debug_show_stix').button().click(function(){
@@ -320,29 +359,50 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                     btn
                 );
             });
+
         },
 
         /**
-         *
+         * Checks whether an observable is in an indicator
+         * @param {integer} ind_id Indicator id in which to check. All indicators if not provided
          */
-        is_observable_in_indicator: function(id){
-            var instance = this,
-                ret = false;
+        is_observable_in_indicator: function(obs_id, ind_id){
+            var instance = this;
+            ind_id = ind_id || false;
 
+            if(ind_id){
+                if($.inArray(obs_id, instance.indicator_registry[ind_id].observables)!==-1)
+                    return true;
+                return false;
+            }
+
+            var ret = false;
             $.each(instance.indicator_registry, function(i,v){
-                if($.inArray(id, v.observables)!==-1){
+                if($.inArray(obs_id, v.observables)!==-1){
                     ret = true;
                     return false; //break from each
                 }
             });
             return ret;
         },
-        is_test_mechanism_in_indicator: function(id){
-            var instance = this,
-                ret = false;
 
+        /**
+         * Checks whether a test mechanism is in an indicator
+         * @param {integer} ind_id Indicator id in which to check. All indicators if not provided
+         */
+        is_test_mechanism_in_indicator: function(tes_id, ind_id){
+            var instance = this;
+            ind_id = ind_id || false;
+
+            if(ind_id){
+                if($.inArray(tes_id, instance.indicator_registry[ind_id].test_mechanisms)!==-1)
+                    return true;
+                return false;
+            }            
+            
+            var ret = false;
             $.each(instance.indicator_registry, function(i,v){
-                if($.inArray(id, v.test_mechanisms)!==-1){
+                if($.inArray(tes_id, v.test_mechanisms)!==-1){
                     ret = true;
                     return false; //break from each
                 }
@@ -542,7 +602,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                 if(!instance.load_name || !instance.load_uuid){
                     //Ask user for meaningful name and generate uuid
                     var dlg = $('<div id="dda-save-json-dlg" title="Import into Mantis"><p>Please provide a meaningful name for your package:</p></div>');
-                    var inp = $('<input id="dda-save-json-input" type="text"/>').val($('#dda-stix-meta > input[name="stix_header_title"]').first().val());
+                    var inp = $('<input id="dda-save-json-input" type="text"/>').val($('#dda-headline-report-type-title').val());
                     dlg.append(inp);
 
                     dlg.dialog({ modal: true });
@@ -578,7 +638,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                 if(!instance.load_name || !instance.load_uuid){
                     //Ask user for meaningful name and generate uuid
                     var dlg = $('<div id="dda-save-json-dlg" title="Save JSON"><p>Please provide a meaningful name for your package:</p></div>');
-                    var inp = $('<input id="dda-save-json-input" type="text"/>').val($('#dda-stix-meta > input[name="stix_header_title"]').first().val());
+                    var inp = $('<input id="dda-save-json-input" type="text"/>').val($('#dda-headline-report-type-title').val());
                     dlg.append(inp);
 
                     dlg.dialog({ modal: true });
@@ -614,7 +674,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                 if(!instance.load_name || !instance.load_uuid){
                     //Ask user for meaningful name and generate uuid
                     var dlg = $('<div id="dda-save-json-dlg" title="Save JSON"><p>Please provide a meaningful name for your package:</p></div>');
-                    var inp = $('<input id="dda-save-json-input" type="text"/>').val($('#dda-stix-meta > input[name="stix_header_title"]').first().val());
+                    var inp = $('<input id="dda-save-json-input" type="text"/>').val($('#dda-headline-report-type-title').val());
                     dlg.append(inp);
 
                     dlg.dialog({ modal: true });
@@ -737,10 +797,10 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
         get_json: function(){
             var instance = this;
             // Generate package id if not already existing
-            if($('#dda-stix-meta').find('input[name="stix_package_id"]').val()=='')
-                $('#dda-stix-meta').find('input[name="stix_package_id"]').val("{" + instance.namespace_uri + '}package-' + guid_gen());
+            if($('#dda-headline-report-meta-stix-package-id').val() == '')
+                $('#dda-headline-report-meta-stix-package-id').val("{" + instance.namespace_uri + '}package-' + guid_gen());
             var stix_base = {
-                'stix_header': form2js($('#dda-stix-meta').find('input, select, textarea').get(), undefined, false),
+                'stix_header': form2js($('#dda-headline-container').find('input, select, textarea').get(), undefined, false),
                 'campaign': {},
                 'incidents': [],
                 'indicators': [],
@@ -794,12 +854,12 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
             instance.load_name = load_name || false;
             instance.load_uuid = load_uuid || false;
 
-            if(instance.load_name)
-                $('#grp-content-title h1').text(instance.load_name);
 
             // Restore STIX header information
             $.each(jsn.stix_header, function(i,v){
-                $('[name="'+i+'"]', '#dda-stix-meta').val(v);
+                var t_el = $('[name="'+i+'"]', '#dda-headline-container');
+                t_el.val(v);
+                if(t_el.is('select')) t_el.trigger('change');
             });
 
             // Restore indicators
@@ -834,10 +894,9 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                 $.each(v.related_observables, function(i,v){
                     el.relations.push({label: v, target: i});
                 });
-
-                // Update observable display name
-                instance.obs_update_name(v.observable_id);
             });
+            // Update observable display names and validate objects
+            instance.obs_elem_validate();
 
             // Restore the test mechanisms
             instance.test_mechanisms_registry = {};
@@ -850,6 +909,7 @@ define(['jquery', 'form2js', 'dust'],function($, form2js){
                 $.each(v, function(i1,v1){
                     $('[name="'+i1+'"]', el.element).val(v1);
                 });
+                instance.tes_preview_element(v.test_mechanism_id);
             });
 
             // Restore the campaign information

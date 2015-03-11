@@ -19,7 +19,7 @@ from django.conf.urls import url
 
 from . import views
 
-import CampaignIndicators, InvestigationIndicators
+import CampaignIndicators
 
 urlpatterns = [
     # 'New Report' Authoring
@@ -27,16 +27,10 @@ urlpatterns = [
     url(r'^Templates/CampaignIndicators/transform$', CampaignIndicators.ProcessingView.as_view()),
     url(r'^Templates/CampaignIndicators/upload$', CampaignIndicators.UploadFile.as_view(), name="url.mantis_authoring.upload_file"),
 
-    # 'New Investigation' Authoring
-    url(r'^Templates/InvestigationIndicators/$', InvestigationIndicators.FormView.as_view(), name=InvestigationIndicators.FORM_VIEW_NAME),
-    
-
     url(r'/ref$', views.GetAuthoringObjectReference.as_view(), name="url.mantis_authoring.ref"),
 
     url(r'^validate_object$', views.ValidateObject.as_view(), name="url.mantis_authoring.validate_object"),
     url(r'/validate_object$', views.ValidateObject.as_view(), name="url.mantis_authoring.validate_object"),
-    url(r'^get_object_name$', views.GetObjectName.as_view(), name="url.mantis_authoring.get_object_name"),
-    url(r'/get_object_name$', views.GetObjectName.as_view(), name="url.mantis_authoring.get_object_name"),
     url(r'^similar_object$', views.GetAuthoringSimilarObjects.as_view(), name="url.mantis_authoring.similar_object"),
     url(r'/similar_object$', views.GetAuthoringSimilarObjects.as_view(), name="url.mantis_authoring.similar_object")
 

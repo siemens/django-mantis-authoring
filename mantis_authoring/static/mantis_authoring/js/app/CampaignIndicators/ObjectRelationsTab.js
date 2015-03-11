@@ -241,6 +241,12 @@ define(['jquery', 'd3'],function($, d3){
             };
 
             function tick() {
+                // Don't render if we are hidden
+                if($('#relation-pane').get(0).offsetHeight == 0){
+                    force.stop();
+                    force2.stop();
+                    return;
+                }
                 
                 // Correct position of the nodes
                 node.call(updateNode);

@@ -29,7 +29,7 @@ from querystring_parser import parser
 
 from django import forms
 from django.conf import settings
-from django.core.cache import cache
+from django.core.cache import caches
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -525,11 +525,9 @@ class stixTransformer:
 
 
             if isinstance(transform_result,dict):
-
                 result_type = transform_result['type']
                 main_properties_obj = transform_result['main_obj_properties_instance']
                 properties_obj_list = transform_result['obj_properties_instances']
-
             else:
                 result_type = 'single_obj'
                 main_properties_obj = transform_result
@@ -619,11 +617,9 @@ class stixTransformer:
         # cybox objects are packed into Observables. Title and
         # description of observables are read from the cybox object
         # where we put it before
-
         
         self.cybox_observable_list = []
         for obs_id, cybox_obj in cybox_object_dict.iteritems():
-
             # Observable title and description were transported in our cybox object
             title = cybox_obj.properties.mantis_title
             description = cybox_obj.properties.mantis_description
@@ -826,6 +822,8 @@ class UploadFile(AuthoringMethodMixin,View):
             'data': {}
         }
 
+        cache = caches['default']
+
         POST = self.request.POST
         post_dict = parser.parse(str(POST.urlencode()))
         ns_info = self.get_authoring_namespaces(self.request.user,fail_silently=False)
@@ -833,17 +831,21 @@ class UploadFile(AuthoringMethodMixin,View):
 
         # If our request contains a type and a filekey, the UI wants us to import a specific file with a specific module
         if post_dict.has_key('fid') and post_dict.has_key('type'):
+
             fid = post_dict.get('fid', '')
             ftype = post_dict.get('type', '')
 
-
             # Get file properties from cache
-            rs = request.session.get('mantis_authoring_filecache', {})
-            te = rs.get('MANTIS_AUTHORING__file__' + fid, None)
+            te = cache.get('MANTIS_AUTHORING__file__' + fid)
 
+            # BUG: sometimes te is None. We still need to figure out why.
+            # As for now, we just tell the user to try this indicator again...
+            if not te:
+                res['msg'] = "We're sorry! An error occured processing the file. Please try again..."
+                print 'te', te
+                print 'post_dict', post_dict
 
             if (fid!='' and ftype!='') and (te) and (os.path.isfile(te['cache_file'])):
-
                 # Iterate over available file processors and filter those with the correct type the GUI wants us to use.
                 mods_dir = os.path.dirname(os.path.realpath(__file__))
                 mods = [x[:-3] for x in os.listdir(os.path.join(mods_dir, 'file_analysis')) if x.endswith(".py") and not x.startswith('__')]
@@ -925,14 +927,9 @@ class UploadFile(AuthoringMethodMixin,View):
                                 dest_file.write(chunk)
                             dest_file.close()
 
-                            # Cache file meta in session
-                            if 'mantis_authoring_filecache' not in request.session:
-                                request.session['mantis_authoring_filecache'] = {}
-                            request.session['mantis_authoring_filecache']['MANTIS_AUTHORING__file__' + file_id] = {
-                                'cache_file': dest_file.name,
-                                'filename': f.name
-                            }
-                            request.session.save()
+                            # Cache file meta
+                            cache.set('MANTIS_AUTHORING__file__' + file_id, { 'cache_file': dest_file.name, 'filename': f.name }, 10)
+
 
                         else:
                             # There is only one module. Use that and process the file
