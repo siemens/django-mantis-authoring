@@ -191,6 +191,9 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js){
          */
         reset_gui: function(){
             var instance = this;
+
+            $('#dda-container-tabs').tabs('option', 'active', 0);
+            
             $('#dda-headline-container').find('input, select, textarea').val('');
 
             // Reset campaign info
@@ -204,15 +207,16 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js){
                 instance.obs_pool_remove_elem(v.observable_id);
             });
 
+            // Reset test mechanisms
+            $.each(instance.test_mechanisms_registry, function(i,v){
+                instance.tes_pool_remove_elem(v.object_id);
+            });
+
             // Reset indicators
             $.each(instance.indicator_registry, function(i,v){
                 instance.ind_pool_remove_elem(v.object_id);
             });
 
-            // Reset test mechanisms
-            $.each(instance.test_mechanisms_registry, function(i,v){
-                instance.tes_pool_remove_elem(v.object_id);
-            });
         },
 
 
@@ -259,7 +263,7 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js){
                 $('#dda-headline-report-type-title').on('change keyup', function(){
                     update_headline_h1();
                 });
-                $('#dda-headline-report-type-rtnr').inputmask("Sie\\men\\s CERT\\#-9{+}", {clearMaskOnLostFocus: false, placeholder: ""})
+                $('#dda-headline-report-type-rtnr').inputmask("Sie\\men\\s-CERT\\#9{+}", {clearMaskOnLostFocus: false, placeholder: ""})
             }).trigger('change');
             
 
@@ -850,6 +854,8 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js){
          */
         load_from_json: function(jsn, load_name, load_uuid){
             var instance = this;
+
+            instance.reset_gui();
 
             instance.load_name = load_name || false;
             instance.load_uuid = load_uuid || false;
