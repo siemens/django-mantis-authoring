@@ -158,7 +158,7 @@ define(['jquery', 'dust'],function($){
                                                         <div class="grp-row" style="padding-top:0px;"> \
                                                         <p>Select the indicators, IOCs, and Snort rules you wish to include in this indicator.</p> \
                                                         <div> \
-                                                        <input type="text" class="ind_pool_sel_listfilter" placeholder="Filter list below"> \
+                                                        <input type="text" class="ind_pool_sel_listfilter" placeholder="Filter List Below"> \
                                                         <div class="ind_pool_sel_list"> \
                                                         <div class="ind_pool_sel_opt_obs"> \
                                                         <span style="font-weight:bold;font-style:italic;" style="margin-bottom:3px;">Indicators</span> \

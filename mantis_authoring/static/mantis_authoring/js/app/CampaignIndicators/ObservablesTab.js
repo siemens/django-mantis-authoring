@@ -54,6 +54,7 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 
             });
 
+            // Toggle button for containers
             instance._pc_el_shown=true;
             $('#dda-template-head-toogle').click(function(){
                 if(instance._pc_el_shown)
@@ -63,6 +64,9 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
                 instance._pc_el_shown = !instance._pc_el_shown;
             });
 
+            // Filter observables
+            $('#dda-observable-pool-list').filterByText($('#dda-template-head-filter'), '> .dda-add-element');
+            
             // Init dropzone
             var file_dropzone = new Dropzone('form#dda-observable-filedrop', {
                 'previewTemplate': '<div></div>',

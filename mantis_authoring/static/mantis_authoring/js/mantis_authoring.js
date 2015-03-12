@@ -412,6 +412,9 @@
                 var regex = new RegExp(search,'gi');
                 $(select).find(elements).each(function() {
                     var option = $(this).text();
+                    $.each($(this).find('input, select, textarea'), function(){
+                        option += " "+ $(this).val();
+                    });
                     if(option.match(regex) !== null) {
                         $(this).show();
                     }else{
