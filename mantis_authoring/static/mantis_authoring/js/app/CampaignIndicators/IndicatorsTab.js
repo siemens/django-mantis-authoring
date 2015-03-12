@@ -123,6 +123,12 @@ define(['jquery', 'dust'],function($){
                                 }
                             });
                         });
+                        // On load/refresh add the already included observables to the result list
+                        if(instance.is_test_mechanism_in_indicator(test_id, ind_id)){
+                            ind_sel_opt_obs_result.append(
+                                $('<li></li>').attr('data-id', test_id).text(instance.get_tes_elem_desc_name(test_elem))
+                            );
+                        }
                         out.appendTo(ind_sel_opt_test);
                     });
                 });
