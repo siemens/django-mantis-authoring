@@ -27,7 +27,8 @@ class TEMPLATE_Default(transformer_object):
         file_path = forms.CharField(required=False,
                                     help_text = """Fully-qualified path to the file including filename (must
                                                    not conflict with File_Name field!!!)""")
-        file_size = forms.IntegerField(required=False)
+        file_size = forms.IntegerField(required=False,
+                                       help_text = """Please specify the filesize in bytes!""")
 
         md5 = forms.CharField(max_length=32, required=False)
         sha1 = forms.CharField(max_length=40, required=False)

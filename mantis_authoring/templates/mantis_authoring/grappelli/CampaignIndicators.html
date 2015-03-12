@@ -29,6 +29,55 @@ Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 {% endblock javascripts %}
 
 
+{% block content_title %}
+
+<div id="dda-headline-container" class="grp-module" style="display:none;">
+  <div class="grp-row g-d-24">
+    <div class="l-3c">
+      <div id="dda-headline-report-type" class="c-1">
+        <h1 style="padding:5px 0 5px 0;height:24px;">&nbsp;</h1>
+        <select id="dda-headline-report-type-selector" style="width:100%" name="stix_header_report_type">
+          <option value="stix">Generic STIX Package</option>
+          <option value="investigation">Investigation</option>
+          <option value="incident_report">Incident Report</option>
+        </select>
+        <input id="dda-headline-report-type-title" placeholder="Title" type="text" name="stix_header_title" style="width:100%">
+        <input id="dda-headline-report-type-rtnr" placeholder="Related CERT Incident Number" type="text" name="stix_header_rtnr" style="width:49%; display:none;">
+      </div>
+
+      <div id="dda-headline-report-meta" class="c-2">
+        <input type="hidden" name="stix_package_id" id="dda-headline-report-meta-stix-package-id">
+        <textarea rows="3" type="text" name="stix_header_description" placeholder="Description" style="resize:none;"></textarea>
+        <select name="stix_header_tlp"><option value="WHITE">TLP: White</option><option value="GREEN">TLP: Green</option><option value="AMBER">TLP: Amber</option><option value="RED">TLP: Red</option></select>
+      </div>
+
+      <div id="dda-headline-report-buttons" class="c-3">
+        <div class="pull-right">
+          <button id="dda-stix-import">Import to MANTIS</button>
+        </div>
+
+        <div class="">
+          <button id="dda-stix-save" class="">Save Draft</button>
+          <button id="dda-stix-save-and-release">Save & Release</button>
+          <button id="dda-stix-load" class="">Load Draft</button>
+        </div>
+
+        <fieldset style="border: 1px solid gray;margin-top:8px; padding: 5px;">
+          <legend style="font-style:italic; margin-left:6px;padding-left:3px; padding-right:3px;">Debug Controls</legend>
+          <div class="" id="dda-stix-debug">
+            <button id="dda-stix-debug_show_stix">Show STIX</button>
+            <button id="dda-stix-debug_show_json">Show JSON</button>
+            <button id="dda-stix-debug_load_json">Load JSON</button>
+          </div>
+        </fieldset>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+
 {% block content %}
 <div id="dda-messages">
   <ul class="grp-messagelist">
@@ -39,67 +88,12 @@ Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
   <div id="dda-container-tabs">
     <ul>
-      <li><a href="#dda-tab-stix">STIX Package</a></li>
-      <li><a href="#dda-tab-campaign">Campaign Info</a></li>
-      <li><a href="#dda-tab-indicator">Indicator Pool</a></li>
-      <li><a href="#dda-tab-test-mechanisms">IOC</a></li>
-      <li><a href="#dda-tab-observables">Observable Pool</a></li>
-      <li><a href="#dda-tab-observable-relations">Observable Relations</a></li>
+      <li><a href="#dda-tab-observables">Indicator Pool</a></li>
+      <li><a href="#dda-tab-indicator">Indicator Grouping</a></li>
+      <li><a href="#dda-tab-observable-relations">Indicator Relations</a></li>
+      <li><a href="#dda-tab-test-mechanisms">Snort/IOC Rules</a></li>
+      <li><a href="#dda-tab-campaign">Threat Actor/Campaign Info</a></li>
     </ul>
-
-
-    <!-- Object Package Tab -->
-    <div id="dda-tab-stix" class="l-2cr-fluid l-d-12">
-      <div class="c-1">
-        <div class="grp-module">
-          <h2>Package Meta</h2>
-          <div class="grp-row" id="dda-stix-meta">
-            <input type="text" name="stix_header_title" placeholder="Title">
-            <input type="hidden" name="stix_package_id">
-            <textarea rows="3" type="text" name="stix_header_description" placeholder="Description"></textarea>
-            <select name="stix_header_tlp"><option value="WHITE">White</option><option value="GREEN">Green</option><option value="AMBER">Amber</option><option value="RED">Red</option></select>
-            <hr>
-            <div class="pull-left">
-              <button id="dda-stix-save" class="pull-left">Save Draft</button>
-              <button id="dda-stix-save-and-release">Save & Release</button><br/>
-              <button id="dda-stix-load" class="pull-left">Load Draft</button>
-            </div>
-            <div class="pull-right">
-              <button id="dda-stix-import">Import to MANTIS</button><br/>
-            </div>
-          </div>
-          <div class="grp-row" id="dda-stix-debug">
-            <button id="dda-stix-debug_show_stix">Show STIX</button>
-            <button id="dda-stix-debug_show_json">Show JSON</button>
-            <button id="dda-stix-debug_load_json">Load JSON</button>
-          </div>
-        </div>
-
-        <div class="grp-module">
-          <h2>Observables</h2>
-          <div class="grp-row" id="dda-observable-pool"></div>
-        </div>
-
-        <div class="grp-module">
-          <h2>Test Mechanisms</h2>
-          <div class="grp-row" id="dda-test-mechanisms-pool"></div>
-        </div>
-      </div>
-      <div class="c-2">
-        <div class="grp-module">
-          <h2>Package Contents</h2>
-          <div id="dda-package-indicators" class="grp-row">
-          </div>
-        </div>
-      </div>
-
-      <div id="dda-gen-output" class="grp-module" style="display:none;">
-        <h2>Package Output</h2>
-        <div class="grp-row">
-          <div id="dda-gen-output-content" style="width:100%;height:100%;"></div>
-        </div>
-      </div>
-    </div>
 
 
     <!-- Campaign Info Tab -->
@@ -167,7 +161,7 @@ Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
       </div>
       <div class="c-2">
         <div class="grp-module">
-          <h2 id="dda-template-head" class="clearfix">Pool <button id="dda-template-head-toogle" class="pull-right">Toggle All</button> </h2>
+          <h2 id="dda-template-head" class="clearfix">Pool <button id="dda-template-head-toogle" class="pull-right">Toggle All</button><input id="dda-template-head-filter" type="text" placeholder="Filter the List of Indicators" class="pull-right" style="width:auto;"></h2>
           <div class="grp-row" id="dda-observable-pool-list"></div>
         </div>
       </div>

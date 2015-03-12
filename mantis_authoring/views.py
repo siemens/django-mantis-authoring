@@ -160,97 +160,79 @@ class ValidateObject(FormView):
         return kwargs
 
     def post(self, request, *args, **kwargs):
-        POST = self.request.POST
-        post_dict = parser.parse(str(POST.urlencode()))
-        observable_properties = post_dict.get('observable_properties', {})
-        observable_properties['observable_id'] = post_dict.get('observable_id')
-        observable_properties['I_object_display_name'] = 'NONE'
-        observable_properties['I_icon'] = 'NONE'
-        object_type = observable_properties.get('object_type', None)
-        object_subtype = observable_properties.get('object_subtype', 'Default')
+        res = {
+            'status': True,
+            'data': dict()
+        }
+        POST = self.request.POST.get('obs', {})
+        p_dict = json.loads(POST)
 
-        if True: #try:
+        for post_dict in p_dict:
+            observable_properties = post_dict.get('observable_properties', {})
+            observable_properties['observable_id'] = post_dict.get('observable_id')
+            observable_properties['I_object_display_name'] = 'NONE'
+            observable_properties['I_icon'] = 'NONE'
+            object_type = observable_properties.get('object_type', None)
+            object_subtype = observable_properties.get('object_subtype', 'Default')
+
             im = importlib.import_module('mantis_authoring.cybox_object_transformers.' + object_type.lower())
             template_obj = getattr(im,'TEMPLATE_%s' % object_subtype)()
 
             form_class = template_obj.ObjectForm
             form = form_class(**self.get_form_kwargs(observable_properties,object_type=object_type,
                                                      object_subtype=object_subtype))
-        #except:
-        #    res = {
-        #        'status': False,
-        #        'msg': 'An error occured validating the object.',
-        #        'data': None
-        #    }
-        #    return HttpResponse(json.dumps(res), content_type='application/json', )
 
-        if form.is_valid():
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
+            res['data'][observable_properties['observable_id']] = dict()
+            res['data'][observable_properties['observable_id']]['object_name'] = getObjectName(observable_properties)
 
-    def form_valid(self, form, *args, **kwargs):
-        res = {
-            'status': True,
-            'msg': 'Validation successful',
-            'data': None
-        }
-        return HttpResponse(json.dumps(res), content_type='application/json', )
-
-    def form_invalid(self, form, *args, **kwargs):
-        res = {
-            'status': True,
-            'msg': 'An error occured validating the object.',
-            'data': self.errors_to_json(form.errors)
-        }
-        return HttpResponse(json.dumps(res), content_type='application/json', )
-
-
-
-
-
-class GetObjectName(BasicJSONView):
-    """
-    View serving the name of a passed cybox object
-    """
-    @property
-    def returned_obj(self):
-        res = {
-            'status': False,
-            'msg': 'An error occurred building the name',
-            'data': ''
-        }
-        POST = self.request.POST
-        post_dict = parser.parse(str(POST.urlencode()))
-
-        object_element = post_dict.get('observable_properties', {})
-        object_type = object_element.get('object_type', '').lower().strip()
-        object_subtype = object_element.get('object_subtype', 'Default')
-
-        try:
-            im = importlib.import_module('mantis_authoring.cybox_object_transformers.' + object_type)
-            template_obj = getattr(im,'TEMPLATE_%s' % object_subtype)()
-            transform_result = template_obj.process_form(object_element,'dummy','dummy')
-            if isinstance(transform_result, dict):
-                result_type = transform_result['type']
-                main_properties_obj = transform_result['main_obj_properties_instance']
-                properties_obj_list = transform_result['obj_properties_instances']
-                res['status'] = True
-                if main_properties_obj:
-                    cybox_xml = main_properties_obj.to_xml()
-                    res['data'] = name_cybox_obj(cybox_xml)
-                    res['status'] = True
-                elif len(properties_obj_list) > 0:
-                        (id,properties_obj) = properties_obj_list[0]
-                        res['data'] = 'Bulk: %s ...' % name_cybox_obj(properties_obj.to_xml())
-                else:
-                    res['data'] = 'Empty Bulk Object'
+            if form.is_valid():
+                res['data'][observable_properties['observable_id']]['valid'] = True
+                res['data'][observable_properties['observable_id']]['msg'] = 'Validation successful'
+                res['data'][observable_properties['observable_id']]['data'] = None
             else:
-                cybox_xml = transform_result.to_xml()
+                res['data'][observable_properties['observable_id']]['valid'] = False
+                res['data'][observable_properties['observable_id']]['msg'] = 'An error occured validating the object.'
+                res['data'][observable_properties['observable_id']]['data'] = self.errors_to_json(form.errors)
+
+        return HttpResponse(json.dumps(res), content_type='application/json', )
+
+
+
+def getObjectName(object_element):
+    """
+    Function for determining the name of a passed object
+    """
+    res = {
+        'status': True,
+        'data': ''
+    }
+    object_type = object_element.get('object_type', '').lower().strip()
+    object_subtype = object_element.get('object_subtype', 'Default')
+
+    try:
+        im = importlib.import_module('mantis_authoring.cybox_object_transformers.' + object_type)
+        template_obj = getattr(im,'TEMPLATE_%s' % object_subtype)()
+        transform_result = template_obj.process_form(object_element,'dummy','dummy')
+        if isinstance(transform_result, dict):
+            result_type = transform_result['type']
+            main_properties_obj = transform_result['main_obj_properties_instance']
+            properties_obj_list = transform_result['obj_properties_instances']
+            res['status'] = True
+            if main_properties_obj:
+                cybox_xml = main_properties_obj.to_xml()
                 res['data'] = name_cybox_obj(cybox_xml)
                 res['status'] = True
-        except Exception as e:
-            res['msg'] = str(e)
-
-        return res
+            elif len(properties_obj_list) > 0:
+                    (id,properties_obj) = properties_obj_list[0]
+                    res['data'] = 'Bulk: %s ...' % name_cybox_obj(properties_obj.to_xml())
+            else:
+                res['data'] = 'Empty Bulk Object'
+        else:
+            cybox_xml = transform_result.to_xml()
+            res['data'] = name_cybox_obj(cybox_xml)
+            res['status'] = True
+    except Exception as e:
+        res['status'] = False
+        res['data'] = str(e)
+    return res
 

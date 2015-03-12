@@ -59,6 +59,9 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 		    <h3>{title}</h3> \
 		    </div> \
 		    {body|s} \
+                    <div class="dda-tes-preview"> \
+                    <textarea readonly="true" style="background-color:white !important;color:gray;"></textarea> \
+                    </div> \
 		    </div>', 'test_mechanism_container');
 
 	    if(!template_id){
@@ -103,6 +106,7 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 		// Bind the toggle
 		out.find('h3').first().click(function(){
 		    out.find('.dda-test-mechanism-template').first().toggle();
+                    out.find('.dda-tes-preview').first().toggle();
 		});
 
 		// Buttonize
@@ -118,6 +122,7 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 		// Insert in DOM
 		instance.tes_pool_list.prepend(out);
 
+
 		// Register the object internally
 		instance.test_mechanisms_registry[guid_test] = {
 		    template: template_id,
@@ -132,6 +137,27 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 	    return ret;
 
 	},
+
+        /**
+         * Sets the preview of a test mechanism element 
+         * @param {string} guid The id of the test mechanism
+         */
+        tes_preview_element: function(guid){
+            var instance = this,
+                el = instance.test_mechanisms_registry[guid].element,
+                prev_ta = $('.dda-tes-preview', el).find('textarea').first();
+
+            if($('#id_object_subtype', el).val() == 'SNORT'){
+                prev_ta.val(
+                    window.Base64.decode($('[name="snort_rules"]', el).val())
+                );
+            }
+            if($('#id_object_subtype', el).val() == 'IOC'){
+                prev_ta.val(
+                    window.Base64.decode($('[name="ioc_xml"]', el).val())
+                );
+            }
+        },
 
 
 	/**

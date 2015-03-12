@@ -82,6 +82,11 @@ button span {
     text-shadow: 0 1px 0 #F5F5F5;
     margin-bottom: 2px;
 }
+
+#dda-indicator-pool-list > .dda-add-element{
+    margin-top: 15px;
+}
+
 .dda-add-element h3 {
     padding: 0;
     border: 0 none;
@@ -353,12 +358,49 @@ li.ui-selectee {
     width: auto;
 }
 
+#dda-headline-report-buttons button {
+    margin-left:0;
+    width: auto;
+}
+
 
 .helptext {
     margin-top: 5px;
     display: block;
 }
 
+.ind_pool_sel_list{
+    border: 1px solid lightgrey;
+    background-color:white;
+    padding: 3px;
+    overflow-y:scroll;
+    height:100%;
+    min-height:200;
+    max-height:200px;
+}
+
+.ind_pool_sel_list .sel_option{
+    padding: 5px;
+    background-color: #dbdbdb;
+    margin-bottom:3px;
+    border: 1px solid #ccc;
+}
+.ind_pool_sel_list .sel_option h3{
+    background-color: #dbdbdb;
+    background-image:none;
+}
+
+.ind_pool_sel_list .sel_option_selected{
+    background: none repeat scroll 0 0 #d1ecb5;
+}
+
+.ind_pool_sel_list .sel_option_selected h3{
+    background: none repeat scroll 0 0 #d1ecb5;
+}
+
+.ind_pool_sel_result_obs, .ind_pool_sel_result_tes {
+    margin-left: 35px;
+}
 
 .dda-grp-message > .ui-icon{
     display: inline-block !important;
