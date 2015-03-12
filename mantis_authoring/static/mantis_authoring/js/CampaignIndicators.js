@@ -70,8 +70,10 @@
                         // Periodically ping the backend to keep the session alive
                         function ping(){
                             setTimeout(function(){
-                                $.get('ping', function(){
-                                    ping();
+                                $.get('ping', function(data){
+                                    if(data.status){
+                                        ping();
+                                    };
                                 });
                             }, 60 * 1000);
                         }
