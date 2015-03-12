@@ -67,6 +67,16 @@
                         overlay.remove();
                         content_container.show();
 
+                        // Periodically ping the backend to keep the session alive
+                        function ping(){
+                            setTimeout(function(){
+                                $.get('ping', function(){
+                                    ping();
+                                });
+                            }, 60 * 1000);
+                        }
+                        ping();
+
                     });
                 });
 

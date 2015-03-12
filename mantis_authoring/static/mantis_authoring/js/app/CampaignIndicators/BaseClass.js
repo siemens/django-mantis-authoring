@@ -877,6 +877,7 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js){
                 t_el.val(v);
             });
             $('#dda-headline-report-type-title').trigger('change');
+            $('#dda-headline-report-type-selector').trigger('change');
 
             // Restore indicators
             instance.indicator_registry = {};
