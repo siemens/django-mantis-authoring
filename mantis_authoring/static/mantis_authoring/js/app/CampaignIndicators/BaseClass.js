@@ -262,8 +262,19 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js){
                 }
                 $('#dda-headline-report-type-title').on('change keyup', function(){
                     update_headline_h1();
+                    // If the title starts with a 'IR-' or 'INVES-' we change the type accordingly.
+                    if($('#dda-headline-report-type-title').val().toLowerCase().startsWith('ir-') && $('#dda-headline-report-type-selector').val() != 'incident_report'){
+                        $('#dda-headline-report-type-selector').val('incident_report');
+                        $('#dda-headline-report-type-selector').trigger('change');
+                    }
+                    if($('#dda-headline-report-type-title').val().toLowerCase().startsWith('inves-') && $('#dda-headline-report-type-selector').val() != 'investigation'){
+                        $('#dda-headline-report-type-selector').val('investigation');
+                        $('#dda-headline-report-type-selector').trigger('change');
+                    }
+                        
                 });
                 $('#dda-headline-report-type-rtnr').inputmask("Sie\\men\\s-CERT\\#9{+}", {clearMaskOnLostFocus: false, placeholder: ""})
+                
             }).trigger('change');
             
 
@@ -860,13 +871,12 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js){
             instance.load_name = load_name || false;
             instance.load_uuid = load_uuid || false;
 
-
             // Restore STIX header information
             $.each(jsn.stix_header, function(i,v){
                 var t_el = $('[name="'+i+'"]', '#dda-headline-container');
                 t_el.val(v);
-                if(t_el.is('select')) t_el.trigger('change');
             });
+            $('#dda-headline-report-type-title').trigger('change');
 
             // Restore indicators
             instance.indicator_registry = {};

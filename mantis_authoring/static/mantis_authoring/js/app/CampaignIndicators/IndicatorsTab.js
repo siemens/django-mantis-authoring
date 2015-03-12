@@ -40,6 +40,7 @@ define(['jquery', 'dust'],function($){
                     ind_opt_tmpl = dust.compile('<div class="sel_option {?selected}sel_option_selected{/selected}" data-type="{type}"> \
                                                 <h3>{title}</h3> \
                                                 <span>{description}</span> \
+                                                <textarea style="display:none;"></textarea>\
                                                 </div>', 'ind_opt_tmpl');
                 dust.loadSource(ind_opt_tmpl);
 
@@ -57,6 +58,19 @@ define(['jquery', 'dust'],function($){
                               };
                     dust.render('ind_opt_tmpl', tpl, function(err, out){
                         out = $(out);
+                        // include the values of the object so we can filter for all properties
+                        var hid = $('textarea', out);
+                        var rec_obj_val = function(k, v) {
+                            if (v instanceof Object) {
+                                $.each(v, function(k1, v1) {
+                                    rec_obj_val(k1, v1)
+                                });
+                            }else{
+                                hid.text(hid.text() + " " + v);
+                            }
+                        };
+                        $.each(instance.obs_get_json(obs_id), function(k,v){ rec_obj_val(k,v);});
+                        
                         out.click(function(){
                             $(this).toggleClass('sel_option_selected', 0, function(){
                                 if($(this).is( '.sel_option_selected')){
@@ -141,7 +155,7 @@ define(['jquery', 'dust'],function($){
                                                         {body|s} \
                                                         </div> \
                                                         <div style="width:33%" class="pull-left"> \
-                                                        <div class="grp-row"> \
+                                                        <div class="grp-row" style="padding-top:0px;"> \
                                                         <p>Select the indicators, IOCs, and Snort rules you wish to include in this indicator.</p> \
                                                         <div> \
                                                         <input type="text" class="ind_pool_sel_listfilter" placeholder="Filter list below"> \
