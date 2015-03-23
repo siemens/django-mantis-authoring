@@ -60,10 +60,10 @@ class TEMPLATE_Default(transformer_object):
 
         if properties['file_name']:
             cybox_file.file_name = String(properties['file_name'])
-        if str(properties['file_name']).count('.')>0:
+        if unicode(properties['file_name']).count('.')>0:
             file_extension = properties['file_name'].rsplit('.')[-1]
             cybox_file.file_extension = String(file_extension)
-        if str(properties['file_path']):
+        if unicode(properties['file_path']):
             cybox_file.file_path= properties['file_path']
         if properties['file_size'] != '':
             cybox_file.size_in_bytes = int(properties['file_size'])

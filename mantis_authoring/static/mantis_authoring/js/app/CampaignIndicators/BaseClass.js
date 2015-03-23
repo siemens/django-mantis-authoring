@@ -44,7 +44,6 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js){
                     log_message(response.msg, 'error');
                     return;
                 }
-
                 if(response.action=='ask'){
                     // Query user for action
                     var dlg = $('<div class="dda-obs-find_similar-dlg" title="Choose the file parsing mechanism">Please wait...</div>'),
@@ -94,28 +93,73 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js){
 
                 }else if(response.action=='create'){
                     // Create objects
+
+                    // We keep track of things we do after creating.
+                    // add_to_ind will add elements to indicators after creation
+                    // ind_namespace_ids will keep track of the newly generated indicators with their ids. We need this so we can put observables to these indicators, and observables only have the namespace, not the id
+                    var add_to_ind = {};
+                    var ind_namespace_ids = {};
+                    
                     $.each(response.data, function(i,v){
                         if(v.object_class=='observable'){
-                            var el1 = instance.obs_pool_add_elem('dda-observable-template_' + v.object_type + '_' + v.object_subtype, v.object_id);
+                            // If there's a object_namespace passed, we create
+                            // one for the observable. This is also an indicator
+                            // that we want to group this one into an indicator
+                            if(v.object_namespace != undefined){
+                                v.object_id = "{" + v.object_namespace + '}Observable-' + guid_gen();
+                                if(add_to_ind[v.object_namespace]==undefined)
+                                    add_to_ind[v.object_namespace] = [];
+                                add_to_ind[v.object_namespace].push(v.object_id);
+                            };
+
+                            // Create the element and set its properties
+                            var el1 = instance.obs_pool_add_elem('dda-observable-template_' + v.object_type + '_' + v.object_subtype, v.object_id); 
                             if(!el1) return true;
                             $.each(v.properties, function(i1,v1){
                                 $('[name="'+i1+'"]', el1.element).val(v1);
                             });
                             instance.obs_elem_validate(el1.observable_id); // this also triggers name generation
-                            log_message('Created '+ v.object_type +' ('+ v.object_subtype +') object: ' + el1.observable_id, 'success', 5000);
+                            
+                            // Only log a message if we dont group to an indicator
+                            if(v.object_namespace == undefined)
+                                log_message('Created '+ v.object_type +' ('+ v.object_subtype +') object: ' + el1.observable_id, 'success', 5000);
+                            
                         }else if(v.object_class=='testmechanism'){
+                            // Create the element and set its properties
                             var el2 = instance.tes_pool_add_elem('dda-test-mechanism-template_' + v.object_type + '_' + v.object_subtype, v.object_id);
-
                             if(!el2) return true;
                             $.each(v.properties, function(i1,v1){
                                 $('[name="'+i1+'"]', el2.element).val(v1);
                             });
+                            
                             instance.tes_preview_element(el2.object_id);
                             log_message('Created '+ v.object_subtype +' ('+ v.object_type +') object: ' + el2.object_id, 'success', 5000);
+                            
+                        }else if(v.object_class=='indicator'){
+                            // Create the element and set its properties
+                            var guid = "{" + v.object_namespace + '}' + v.object_type + '-' + guid_gen();
+                            instance.ind_pool_add_elem('dda-indicator-template_' + v.object_type, guid);
+                            if(instance.indicator_registry[guid] == undefined) return true;
+                            var el3 = instance.indicator_registry[guid];
+                            $.each(v.properties, function(i1,v1){
+                                $('[name="'+i1+'"]', el3.element).val(v1);
+                            });
+
+                            // keep track of the new ids
+                            ind_namespace_ids[v.object_namespace] = guid;
                         }
-                        //TODO: treat other types
                     });
 
+                    // Process aftertasks
+                    $.each(add_to_ind, function(i,v){
+                        var indicator_id = ind_namespace_ids[i];
+                        $.each(v, function(i1,v1){
+                            if(!instance.is_observable_in_indicator(v1, indicator_id))
+                                instance.indicator_registry[indicator_id].observables.push(v1);
+                        });
+                        log_message('Created indicator group '+ indicator_id +' and added '+ v.length  +' observables to it', 'success', 5000);
+                    });
+                    instance.refresh_indicator_pool_tab();
                 }
             };
 

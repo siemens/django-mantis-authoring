@@ -32,11 +32,11 @@ class TEMPLATE_Default(transformer_object):
     def process_form(self, properties,id_base=None,namespace_tag=None):
         service_object = win_service_object.WinService()
         if properties['display_name'].strip():
-            service_object.display_name = String(str(properties.get('display_name','')))
+            service_object.display_name = String(unicode(properties.get('display_name','')))
         if properties['service_dll'].strip():
-            service_object.service_dll = String(str(properties.get('service_dll','')))
+            service_object.service_dll = String(unicode(properties.get('service_dll','')))
         if properties['startup_command_line'].strip():
-            service_object.startup_command_line = String(str(properties.get('startup_command_line','')))
+            service_object.startup_command_line = String(unicode(properties.get('startup_command_line','')))
 
         return service_object
 

@@ -38,7 +38,7 @@ class DISABLEDTEMPLATE_Default(transformer_object):
     def process_form(self, properties,id_base=None,namespace_tag=None):
         cybox_dns_record = dns_record_object.DNSRecord()
         cybox_dns_record.domain_name = self.create_cybox_uri_object(properties.get('domain_name', ''))
-        cybox_dns_record.ip_address = address_object.Address(String(str(properties.get('ip_address',''))))
+        cybox_dns_record.ip_address = address_object.Address(String(unicode(properties.get('ip_address',''))))
         cybox_dns_record.ip_address.condition = 'Equals'
         if properties.get('queried_date',None):
             cybox_dns_record.queried_date = properties.get('queried_date',None)

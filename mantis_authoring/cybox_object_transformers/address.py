@@ -60,7 +60,7 @@ class TEMPLATE_Default(transformer_object):
     def process_form(self, properties,id_base=None,namespace_tag=None):
         # We use the cybox API to create an address object
         cybox_address = address_object.Address()
-        cybox_address.address_value = String(str(properties.get('ip_addr','')))
+        cybox_address.address_value = String(unicode(properties.get('ip_addr','')))
         cybox_address.category = properties.get('category', None)
         cybox_address.condition = 'Equals'
         return cybox_address

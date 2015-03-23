@@ -508,6 +508,8 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
                 // one single object
                 var obs_jsn = instance.obs_get_json(id),
                     obs = instance.observable_registry[id];
+                if(obs == undefined) return;
+                
                 // Check if we already validated this element (we use a string representation of the json)
                 if(obs.__check_change != undefined){
                     if(obs.__check_change == JSON.stringify(obs_jsn)){

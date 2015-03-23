@@ -52,7 +52,7 @@ class file_analyzer(file_object):
 
                 predef_id = xroot.get('id', None)
                 if predef_id:
-                    predef_id = '%s:Test_Mechanism-%s' % (kwargs['default_ns_slug'],predef_id)
+                    predef_id = '%s:Test_Mechanism-%s' % (kwargs['ns_info']['default_ns_slug'],predef_id)
 
                 res['status'] = True
                 res['object_class'] = ftype

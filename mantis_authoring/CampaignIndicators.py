@@ -175,6 +175,16 @@ class FormView(BasicSTIXPackageTemplateView):
             ('OR', 'OR'),
             ('AND', 'AND'),
         )
+        KILL_CHAIN_TYPES = (
+                    ('Unknown', 'Unknown'),
+            ('Reconnaissance', 'Reconnaissance'),
+            ('Weaponization', 'Weaponization'),
+            ('Delivery', 'Delivery'),
+            ('Exploitation', 'Exploitation'),
+            ('Installation', 'Installation'),
+            ('Command and Control', 'Command and Control'),
+            ('Actions on Objectives', 'Actions on Objectives')
+        )
         object_type = forms.CharField(initial="Indicator", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Indicator", widget=forms.HiddenInput)
         I_icon =  forms.CharField(initial=get_StixIcon('Indicator', 'stix.mitre.org'), widget=forms.HiddenInput)
@@ -184,6 +194,7 @@ class FormView(BasicSTIXPackageTemplateView):
         indicator_operator = forms.ChoiceField(choices=OPERATOR_TYPES, required=False, initial="OR",
                                                help_text="Chose 'OR' if any of the observables in the indicator by themselves are indicative of an attack; "
                                                          "chose 'AND' if the observables in this indicator must be present 'together'.")
+        kill_chain_phase = forms.ChoiceField(choices=KILL_CHAIN_TYPES, required=False, initial="Unknown")
 
     class TestMechanismIOC(forms.Form):
         object_type = forms.CharField(initial="Test_Mechanism", widget=forms.HiddenInput)
@@ -271,7 +282,6 @@ class stixTransformer:
 
 
     def __init__(self, *args,**kwargs):
-
         # Setup our namespace
 
         self.namespace_name = kwargs.get('namespace_uri', DINGOS_DEFAULT_ID_NAMESPACE_URI).decode('utf-8').encode('ascii')
@@ -340,7 +350,6 @@ class stixTransformer:
 
         self.__process_campaigns()
         self.__process_indicators()
-
         self.__create_stix_package()
 
     def __process_campaigns(self):
@@ -431,7 +440,7 @@ class stixTransformer:
                 counter += 1
             tac.identity.related_identities = RelatedIdentities(related_identities)
             tac.title = threatactor.get('title', '')
-            tac.description = StixStructuredText(threatactor.get('description', ''))
+            tac.description = threatactor.get('description', '')
             #tac.information_source = InformationSource()
             #tac.information_source.description = threatactor.get('information_source', '')
             #tac.confidence = Confidence(threatactor.get('confidence', ''))
@@ -656,6 +665,13 @@ class stixTransformer:
         stix_indicator.observable_composition_operator = indicator['indicator_operator']
         #stix_indicator.indicator_types = indicator['object_type']
 
+        # if 'kill_chain_phase' in indicator:
+        #     if indicator['kill_chain_phase'] in FormView.StixIndicator.KILL_CHAIN_TYPES:
+        #         stix_indicator.add_kill_chain_phase(
+        #             KillChainPhase()
+        #         )
+
+
         return stix_indicator
 
 
@@ -753,7 +769,7 @@ class stixTransformer:
             return
 
         stix_indicators = self.stix_indicators
-
+        
         #stix_id_generator = stix.utils.IDGenerator(namespace={self.namespace_name: self.namespace_prefix})
         #stix_id = stix_id_generator.create_id()
         stix_id = self.gen_slugged_id(stix_properties['stix_package_id'])
@@ -783,8 +799,9 @@ class stixTransformer:
         stix_package.stix_header = stix_header
         if self.campaign:
             stix_package.campaigns.append(self.campaign)
+            
         self.stix_package = stix_package.to_xml(ns_dict=self.namespace_map,
-                                                auto_namespace=stix_package.ENRICH_NS_DICT)
+                                                auto_namespace=True)
         return self.stix_package
 
 
@@ -860,7 +877,7 @@ class UploadFile(AuthoringMethodMixin,View):
                     res['msg'] = 'Could not find suitable modules for the requested processing type.'
                 else:
                     mod = proc_modules[0]
-                    proc_res = mod.process(default_ns_slug=ns_info['default_ns_slug'])
+                    proc_res = mod.process(ns_info=ns_info)
                     if not proc_res:
                         pass
                     elif not proc_res['status']:
@@ -889,6 +906,8 @@ class UploadFile(AuthoringMethodMixin,View):
                     if ao.is_class_type(req_type):
                         proc_modules.append(ao)
 
+                #TODO: we call test_object() 3 times below. We should only need to call it once.
+                        
                 if not proc_modules:
                     res['msg'] = 'Could not find suitable modules for the requested processing type.'
 
@@ -934,7 +953,7 @@ class UploadFile(AuthoringMethodMixin,View):
                         else:
                             # There is only one module. Use that and process the file
                             mod = mod_choices[0]
-                            proc_res = mod.process(default_ns_slug=ns_info['default_ns_slug'])
+                            proc_res = mod.process(ns_info=ns_info)
                             if not proc_res:
                                 pass
                             elif not proc_res['status']:
