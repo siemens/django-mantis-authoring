@@ -14,9 +14,15 @@ class file_analyzer(file_object):
     object_classes = ['indicator_list']
 
     object_type_mapping = {
+        'ARTIFACT': 'artifact',
         'IP': 'address',
-        'FILE': 'file',
-        'HASH': 'file'
+        'HASH': 'file',
+        'FILENAME': 'file',
+        'EMAIL': 'emailmessage',
+        'URI': 'uri',
+        'FQDN': 'uri',
+        'WINSERVICE': 'winservice',
+        'USERAGENT': 'httpsession'
         }
     required_columns = ['TYPE', 'VALUE', 'SOURCE']
     optional_columns = ['TIME', 'DESCRIPTION']
@@ -40,11 +46,15 @@ class file_analyzer(file_object):
 
     def yield_row(self):
         file_content = self.get_file_content()
+        print len(file_content)
         if self.file_type == 'excel':
             # yield excel rows
             book = xlrd.open_workbook(file_contents = file_content)
             fs = book.sheet_by_index(0)
             for row_index in xrange(1, fs.nrows):
+                # for col_name, col_index in self.column_index.iteritems():
+                #     print col_name, fs.cell(row_index, col_index).value,
+                # print
                 yield {col_name: fs.cell(row_index, col_index).value
                  for col_name, col_index in self.column_index.iteritems()}
                 
@@ -162,6 +172,7 @@ class file_analyzer(file_object):
         otype = otype.upper()
         if otype in self.object_type_mapping:
             return self.object_type_mapping[otype]
+        print otype
         return None
 
     def create_object_properties(self, row):
@@ -169,14 +180,35 @@ class file_analyzer(file_object):
         otype = row['TYPE'].upper()
         object_type = self.map_object_type(otype)
 
+
+        if object_type == 'artifact':
+            # Create an artifact object
+            ret = {
+                'data': row['VALUE']
+            }
+
+
+                
+        if object_type == 'address':
+            # Create address object
+            ret = {
+                'ip_addr': row['VALUE'],
+                'category': 'ipv4-addr',
+                'dda-observable-title': 'IP Address "%s"' % (row['VALUE'])
+            }
+            #TODO: determine the category of the element
+
+        
+
         if object_type == 'file':
-            #create a file object
-            ret = { 'file_name': '',
-                    'file_path': '',
-                    'file_size': '',
-                    'md5': '',
-                    'sha1': '',
-                    'sha256': ''
+            # Create a file object
+            ret = {
+                'file_name': '',
+                'file_path': '',
+                'file_size': '',
+                'md5': '',
+                'sha1': '',
+                'sha256': ''
             }
             if otype == 'HASH':
                 if len(row['VALUE']) == 32:
@@ -186,19 +218,56 @@ class file_analyzer(file_object):
                 elif len(row['VALUE']) == 64:
                     ret['sha1'] = row['VALUE']
                 ret['dda-observable-title'] = 'Unknown file with hash "%s"' % (row['VALUE'])
-            elif otype == 'FILE':
+            elif otype == 'FILENAME':
                 ret['filename'] = row['VALUE']
                 ret['dda-observable-title'] = 'File "%s"' % (row['VALUE'])
 
-        if object_type == 'address':
+
+
+                
+        if object_type == 'emailmessage':
+            # Create a emailmessage object
             ret = {
-                'ip_addr': row['VALUE'],
-                'category': 'ipv4-addr',
-                'dda-observable-title': 'IP Address "%s"' % (row['VALUE'])
+                'from_': row['VALUE']
             }
-            #TODO: determine the category of the element
+
 
             
+        if object_type == 'uri':
+            # Create a uri object
+            ret = {
+                'value': row['VALUE']
+            }
+            if otype == 'FQDN':
+                ret['type_'] = 'Domain Name'
+            else:
+                if not '://' in row['VALUE']:
+                    ret['type_'] = 'General URN'
+
+                    
+                    
+        if object_type == 'winservice':
+            # Create a winservice object
+            if '.dll' in row['VALUE'].lower():
+                ret = {
+                    'service_dll': row['VALUE']
+                }
+            else:
+                ret = {
+                    'service_name': row['VALUE']
+                }
+
+
+        if object_type == 'httpsession':
+            # Create a http session object
+            if otype == 'USERAGENT':
+                ret = {
+                    'user_agent': row['VALUE']
+                }
+            
+
+
+                
         # Process optional columns
         if 'DESCRIPTION' in row:
             ret['dda-observable-description'] = row['DESCRIPTION']

@@ -147,7 +147,7 @@ define(['jquery', 'dust'],function($, dust){
          * @param {string} template_id
          * @param {string} guid_passed Optional guid which will be used instead of generating one
          */
-        ind_pool_add_elem: function(template_id, guid_passed){
+        ind_pool_add_elem: function(template_id, guid_passed, no_refresh){
             var instance = this,
                 auto_gen = false,
                 template = false,
@@ -190,6 +190,9 @@ define(['jquery', 'dust'],function($, dust){
                                                         </div>\
                                                         </div>', 'indicator_container');
 
+
+            no_refresh = no_refresh || false;
+            
             if(!template_id){ // When user clicked the button
                 template = instance.ind_pool_elements_templates.first();
                 template_id = template.attr('id');
@@ -285,7 +288,8 @@ define(['jquery', 'dust'],function($, dust){
                     ret = guid_indicator;
                 }
 
-                instance.refresh_indicator_pool_tab();
+                if(!no_refresh)
+                    instance.refresh_indicator_pool_tab();
             });
             return ret;
 
@@ -319,9 +323,36 @@ define(['jquery', 'dust'],function($, dust){
         ind_pool_remove_elem: function(guid){
             var instance = this;
 
-            instance.indicator_registry[guid].element.remove();
-            delete instance.indicator_registry[guid];
-            instance.refresh_stix_package_tab();
+            if(instance.indicator_registry[guid].observables.length > 0){
+                var dlg = $('<div id="dda-delete-indicator-dlg" title="Delete Indicator Group"><div>\
+                            <span>Do you also want to remote the indicators contained in this group?</span><br><br>\
+                            <button class="del_inc_ind pull-left" style="width:auto;">Also delete indicators</button><button class="del_wo_ind pull-right" style="width:auto;">Just remove the group</button>\
+                            </div></div>');
+                dlg.dialog({
+                    width: '350px',
+                    modal: true,
+                    draggable: false,
+                    resizable: false,
+                    create: function(event, ui){
+                        dlg.find('.del_inc_ind').first().button().click(function(){
+                            var ind = instance.indicator_registry[guid];
+                            $.each(ind.observables, function(i,v){
+                                instance.obs_pool_remove_elem(v);
+                            });
+                            ind.element.remove();
+                            delete instance.indicator_registry[guid];
+                            instance.refresh_stix_package_tab();
+                            dlg.dialog('close');
+                        });
+                        dlg.find('.del_wo_ind').first().button().click(function(){
+                            instance.indicator_registry[guid].element.remove();
+                            delete instance.indicator_registry[guid];
+                            instance.refresh_stix_package_tab();
+                            dlg.dialog('close');
+                        });
+                    }
+                });
+            }
         },
 
 

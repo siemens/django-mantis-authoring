@@ -539,6 +539,13 @@ define(['jquery', 'd3', 'filesaver'],function($, d3, filesaver){
 
                 force2.start();
                 force.start();
+
+                // var k = 0;
+                // while ((force2.alpha() > 1e-2) && (k < 150)) {
+                //     force2.tick();
+                //     k = k + 1;
+                // }
+                
             }
 
             function spliceLinksForNode(node) {

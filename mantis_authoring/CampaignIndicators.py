@@ -887,7 +887,7 @@ class UploadFile(AuthoringMethodMixin,View):
                         res['status'] = True
                         res['data'] = proc_res['data']
                         res['action'] = 'create'
-
+                    cache.delete('MANTIS_AUTHORING__file__' + fid)
 
         else:
             FILES = request.FILES
@@ -963,6 +963,7 @@ class UploadFile(AuthoringMethodMixin,View):
                                 res['status'] = True
                                 res['data'] = proc_res['data']
                                 res['action'] = 'create'
+                            cache.delete('MANTIS_AUTHORING__file__' + file_id)
 
 
         if not request.is_ajax(): # Indicates fallback (form based upload)

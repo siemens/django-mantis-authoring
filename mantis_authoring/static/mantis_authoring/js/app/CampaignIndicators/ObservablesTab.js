@@ -176,8 +176,9 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone, dust){
          * @param {string} guid_passed An optional guid which will be used instead of generating one
          * @param {boolean} no_dom_insert Tells the function to not insert the created element into the DOM
          * @param {boolean} no_meta Tells the function to not insert Title/Description Fields (used for reference type)
+         * @param {boolean} insert_collapsed Tells the function insert the element in collapsed state
          */
-        obs_pool_add_elem: function(template_id, guid_passed, no_dom_insert, no_meta){
+        obs_pool_add_elem: function(template_id, guid_passed, no_dom_insert, no_meta, insert_collapsed){
             var instance = this,
                 template = $('#' + template_id),
                 observable_container_tmpl = dust.compile('<div class="dda-add-element clearfix" data-id="{id}"> \
@@ -197,6 +198,10 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone, dust){
                                                          </div> \
                                                          </div>', 'observable_container');
 
+            insert_collapsed = insert_collapsed || false;
+            no_dom_insert = no_dom_insert || false;
+            no_meta = no_meta || false;
+            
             // Get a new id
             var guid = guid_gen(),
                 guid_observable = "{" + instance.namespace_uri + '}Observable-' + guid;
@@ -223,9 +228,14 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone, dust){
                 out = $(out);
 
                 // Bind the toggle
-                out.find('h3').first().click(function(){
+                var h3 = out.find('h3').first().click(function(e){
                     out.find('div').first().toggle();
+                    e.preventDefault();
                 });
+                if(insert_collapsed){
+                    out.find('div').first().hide();
+                };
+                
 
                 // Buttonize
                 out.find('.dda-obs-remove').button({
@@ -488,7 +498,6 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone, dust){
             id = id || false;
             force = force || false;
             async = async || false;
-
 
             if(id == false){
                 //collect all objects

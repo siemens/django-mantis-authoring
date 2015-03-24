@@ -99,7 +99,7 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
                     // ind_namespace_ids will keep track of the newly generated indicators with their ids. We need this so we can put observables to these indicators, and observables only have the namespace, not the id
                     var add_to_ind = {};
                     var ind_namespace_ids = {};
-                    
+
                     $.each(response.data, function(i,v){
                         if(v.object_class=='observable'){
                             // If there's a object_namespace passed, we create
@@ -113,17 +113,16 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
                             };
 
                             // Create the element and set its properties
-                            var el1 = instance.obs_pool_add_elem('dda-observable-template_' + v.object_type + '_' + v.object_subtype, v.object_id); 
+                            var el1 = instance.obs_pool_add_elem('dda-observable-template_' + v.object_type + '_' + v.object_subtype, v.object_id, false, false, true);
                             if(!el1) return true;
                             $.each(v.properties, function(i1,v1){
                                 $('[name="'+i1+'"]', el1.element).val(v1);
                             });
-                            instance.obs_elem_validate(el1.observable_id); // this also triggers name generation
-                            
+
                             // Only log a message if we dont group to an indicator
                             if(v.object_namespace == undefined)
                                 log_message('Created '+ v.object_type +' ('+ v.object_subtype +') object: ' + el1.observable_id, 'success', 5000);
-                            
+
                         }else if(v.object_class=='testmechanism'){
                             // Create the element and set its properties
                             var el2 = instance.tes_pool_add_elem('dda-test-mechanism-template_' + v.object_type + '_' + v.object_subtype, v.object_id);
@@ -131,14 +130,14 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
                             $.each(v.properties, function(i1,v1){
                                 $('[name="'+i1+'"]', el2.element).val(v1);
                             });
-                            
+
                             instance.tes_preview_element(el2.object_id);
                             log_message('Created '+ v.object_subtype +' ('+ v.object_type +') object: ' + el2.object_id, 'success', 5000);
-                            
+
                         }else if(v.object_class=='indicator'){
                             // Create the element and set its properties
                             var guid = "{" + v.object_namespace + '}' + v.object_type + '-' + guid_gen();
-                            instance.ind_pool_add_elem('dda-indicator-template_' + v.object_type, guid);
+                            instance.ind_pool_add_elem('dda-indicator-template_' + v.object_type, guid, true);
                             if(instance.indicator_registry[guid] == undefined) return true;
                             var el3 = instance.indicator_registry[guid];
                             $.each(v.properties, function(i1,v1){
@@ -159,6 +158,10 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
                         });
                         log_message('Created indicator group '+ indicator_id +' and added '+ v.length  +' observables to it', 'success', 5000);
                     });
+
+                    // Validate observables
+                    instance.obs_elem_validate(); // this also triggers name generation
+
                     instance.refresh_indicator_pool_tab();
                 }
             };
@@ -237,7 +240,7 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
             var instance = this;
 
             $('#dda-container-tabs').tabs('option', 'active', 0);
-            
+
             $('#dda-headline-container').find('input, select, textarea').val('');
 
             // Reset campaign info
@@ -315,12 +318,12 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
                         $('#dda-headline-report-type-selector').val('investigation');
                         $('#dda-headline-report-type-selector').trigger('change');
                     }
-                        
+
                 });
                 $('#dda-headline-report-type-rtnr').inputmask("Sie\\men\\s-CERT\\#9{+}", {clearMaskOnLostFocus: false, placeholder: ""})
-                
+
             }).trigger('change');
-            
+
 
             // Show-stix button
             $('#dda-stix-debug_show_stix').button().click(function(){
@@ -457,8 +460,8 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
                 if($.inArray(tes_id, instance.indicator_registry[ind_id].test_mechanisms)!==-1)
                     return true;
                 return false;
-            }            
-            
+            }
+
             var ret = false;
             $.each(instance.indicator_registry, function(i,v){
                 if($.inArray(tes_id, v.test_mechanisms)!==-1){

@@ -352,8 +352,13 @@ li.ui-selectee {
     padding: 3px;
     overflow-y:scroll;
     height:100%;
-    min-height:200;
-    max-height:200px;
+    min-height:236px;
+    max-height:236px;
+}
+
+.ind_pool_sel_result {
+    max-height: 268px;
+    overflow-y: scroll;
 }
 
 .ind_pool_sel_list .sel_option{
