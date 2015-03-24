@@ -1,4 +1,4 @@
-define(['jquery', 'd3'],function($, d3){
+define(['jquery', 'd3', 'filesaver'],function($, d3, filesaver){
 
     /*
      * Defines the prototype enhancements of the base application
@@ -12,6 +12,20 @@ define(['jquery', 'd3'],function($, d3){
          */
         init_object_relations_tab: function(){
             var instance = this;
+
+            // Bind functionality to the actions buttons
+            $('#dda-relation-action-export-svg').click(function(){
+                var svg = $('#relation-pane > svg').clone();
+                svg.attr('width', '100%').attr('height', '100%');
+                svg.find('g[transform]').first().removeAttr('transform').find('rect').first().attr('width', '100%').attr('height', '100%');
+                var xml = svg.get(0);
+                var svgxml = (new XMLSerializer).serializeToString(xml);
+                var filename = $('#dda-headline-report-type-title').val();
+                if(filename=='') filename = 'export.svg';
+                else filename = filename + '.svg';
+                var svgblob = new Blob([svgxml], {type: 'image/svg;charset=utf-8'});
+                filesaver(svgblob, filename);
+            });
 
             var getData = function(){
                 var data_set = [];
@@ -322,6 +336,12 @@ define(['jquery', 'd3'],function($, d3){
                 });
                 link.enter().insert("path", ".node")
                     .attr('id', function(d,i) { return 'link'+i;})
+                    .style({
+                        'stroke': '#999',
+                        'stroke-width': '1px',
+                        'cursor': 'crosshair',
+                        'fill': 'none'
+                    })
                     .attr("class", "link")
                     .attr('marker-end', 'url(#end)')
                     .on("mousedown",
@@ -349,7 +369,11 @@ define(['jquery', 'd3'],function($, d3){
                 labelAnchor = labelAnchor.data(labelAnchors, function(d){
                     return labelAnchors.indexOf(d);
                 });
-                labelAnchor.enter().insert('g').attr('class', 'labelAnchor').append('text');
+                labelAnchor.enter().insert('g').attr('class', 'labelAnchor').style({
+                    'fill': '#555',
+                    'font-family': '"Arial',
+                    'font-size': '12px'
+                }).append('text');
                 labelAnchor.exit().remove();
 
                 //Update labels
@@ -357,11 +381,13 @@ define(['jquery', 'd3'],function($, d3){
                     if(i % 2 !== 0){
                         d3.select(this).select('tspan').remove();
                         d3.select(this).append('tspan')
+                            .style('font-size', '90%')
                             .attr('class', 'labelTextType')
                             .attr({'x': 0, 'y': '0em'}).text(d.node.type);
                         var _n = instance.get_obs_elem_desc_name(d.node, '', 13);
                         if(_n!='')
                             d3.select(this).append('tspan')
+                            .style('font-weight', 'bold')
                             .attr('class', 'labelTextContent')
                             .attr({'x': 0, 'y': '1.2em'})
                             .text(_n);
@@ -378,7 +404,9 @@ define(['jquery', 'd3'],function($, d3){
                     return nodes.indexOf(d);
                 });
                 node.enter()
-                    .insert("g").attr("class", "node").append('circle').attr('r', 10).attr('style', function(d){return 'fill:'+fill(d.type)+';opacity:1;'})
+                    .insert("g").attr("class", "node").append('circle')
+                    .attr('r', 10)
+                    .attr('style', function(d){return 'fill:'+fill(d.type)+';opacity:1; stroke:#000; stroke-width:2px;'})
                     .on("mousedown",
                         function(d) {
                             // disable zoom
@@ -469,7 +497,11 @@ define(['jquery', 'd3'],function($, d3){
                 linkLabel = linkLabel.data(links, function(d){ return links.indexOf(d); });
                 linkLabel.enter()
                     .append('text')
-                    .style("pointer-events", "none")
+                    .style({"pointer-events": "none",
+                            'font-family': 'Arial',
+                            'font-size': '75%',
+                            'fill': '#aaa'
+                           })
                     .attr({'class':'linkLabel',
                            'id':function(d,i){return 'linkLabel'+i},
                            'dx': 0,

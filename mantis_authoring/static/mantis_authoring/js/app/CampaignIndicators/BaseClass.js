@@ -1,4 +1,4 @@
-define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js){
+define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
 
     /*
      * Return a javascript object literal with our base config of the
@@ -654,7 +654,7 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js){
                 var _save_fcn = function(){
                     instance.transform_json('import', false, function(data, stix_base){
                         instance._last_save = stix_base;
-                        instance.reset_gui();
+                        //instance.reset_gui();
                     });
                 };
 
@@ -690,7 +690,7 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js){
                 var _save_fcn = function(){
                     instance.transform_json('release', false, function(data, stix_base){
                         instance._last_save = stix_base;
-                        instance.reset_gui();
+                        //instance.reset_gui();
                     });
                 };
 

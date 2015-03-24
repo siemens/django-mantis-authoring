@@ -1,4 +1,4 @@
-define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
+define(['jquery', 'dropzone', 'dust'],function($, Dropzone, dust){
 
     // Disable dropzone.js autodiscovery (however we're too late here, since the DOM is already loaded)
     Dropzone.autoDiscover = false;

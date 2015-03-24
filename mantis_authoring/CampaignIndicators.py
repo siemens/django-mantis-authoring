@@ -46,6 +46,7 @@ from cybox.common import String, Time, ToolInformation, ToolInformationList
 
 import stix.utils
 from stix.core import STIXPackage, STIXHeader
+from stix.common.kill_chains import KillChainPhase
 from stix.common import InformationSource, Confidence, Identity, Activity, DateTimeWithPrecision, StructuredText as StixStructuredText, VocabString as StixVocabString
 from stix.common.identity import RelatedIdentities
 from stix.indicator import Indicator
@@ -176,14 +177,14 @@ class FormView(BasicSTIXPackageTemplateView):
             ('AND', 'AND'),
         )
         KILL_CHAIN_TYPES = (
-                    ('Unknown', 'Unknown'),
-            ('Reconnaissance', 'Reconnaissance'),
-            ('Weaponization', 'Weaponization'),
-            ('Delivery', 'Delivery'),
-            ('Exploitation', 'Exploitation'),
-            ('Installation', 'Installation'),
-            ('Command and Control', 'Command and Control'),
-            ('Actions on Objectives', 'Actions on Objectives')
+            ("", "None"),
+            ("stix:KillChainPhase-af1016d6-a744-4ed7-ac91-00fe2272185a", "Reconnaissance"),
+            ("stix:KillChainPhase-445b4827-3cca-42bd-8421-f2e947133c16", "Weaponization"),
+            ("stix:KillChainPhase-79a0e041-9d5f-49bb-ada4-8322622b162d", "Delivery"),
+            ("stix:KillChainPhase-f706e4e7-53d8-44ef-967f-81535c9db7d0", "Exploitation"),
+            ("stix:KillChainPhase-e1e4e3f7-be3b-4b39-b80a-a593cfd99a4f", "Installation"),
+            ("stix:KillChainPhase-d6dc32b9-2538-4951-8733-3cb9ef1daae2", "Command and Control"),
+            ("stix:KillChainPhase-786ca8f9-2d9a-4213-b38e-399af4a2e5d6", "Actions on Objectives")
         )
         object_type = forms.CharField(initial="Indicator", widget=forms.HiddenInput)
         I_object_display_name = forms.CharField(initial="Indicator", widget=forms.HiddenInput)
@@ -626,7 +627,7 @@ class stixTransformer:
         # cybox objects are packed into Observables. Title and
         # description of observables are read from the cybox object
         # where we put it before
-        
+
         self.cybox_observable_list = []
         for obs_id, cybox_obj in cybox_object_dict.iteritems():
             # Observable title and description were transported in our cybox object
@@ -665,11 +666,11 @@ class stixTransformer:
         stix_indicator.observable_composition_operator = indicator['indicator_operator']
         #stix_indicator.indicator_types = indicator['object_type']
 
-        # if 'kill_chain_phase' in indicator:
-        #     if indicator['kill_chain_phase'] in FormView.StixIndicator.KILL_CHAIN_TYPES:
-        #         stix_indicator.add_kill_chain_phase(
-        #             KillChainPhase()
-        #         )
+        if 'kill_chain_phase' in indicator:
+            if indicator['kill_chain_phase'].strip() != '' and indicator['kill_chain_phase'] in {x[0]:x[1] for x in FormView.StixIndicator.KILL_CHAIN_TYPES}:
+                stix_indicator.add_kill_chain_phase(
+                    KillChainPhase(indicator['kill_chain_phase'])
+                )
 
 
         return stix_indicator
@@ -769,7 +770,7 @@ class stixTransformer:
             return
 
         stix_indicators = self.stix_indicators
-        
+
         #stix_id_generator = stix.utils.IDGenerator(namespace={self.namespace_name: self.namespace_prefix})
         #stix_id = stix_id_generator.create_id()
         stix_id = self.gen_slugged_id(stix_properties['stix_package_id'])
@@ -799,7 +800,7 @@ class stixTransformer:
         stix_package.stix_header = stix_header
         if self.campaign:
             stix_package.campaigns.append(self.campaign)
-            
+
         self.stix_package = stix_package.to_xml(ns_dict=self.namespace_map,
                                                 auto_namespace=True)
         return self.stix_package
@@ -907,7 +908,7 @@ class UploadFile(AuthoringMethodMixin,View):
                         proc_modules.append(ao)
 
                 #TODO: we call test_object() 3 times below. We should only need to call it once.
-                        
+
                 if not proc_modules:
                     res['msg'] = 'Could not find suitable modules for the requested processing type.'
 

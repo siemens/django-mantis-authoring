@@ -1,4 +1,4 @@
-define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
+define(['jquery', 'dropzone', 'dust', 'filesaver'],function($, Dropzone, dust, filesaver){
 
     // Disable dropzone.js autodiscovery (however we're too late here, since the DOM is already loaded)
     Dropzone.autoDiscover = false;
@@ -56,6 +56,7 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 	        test_mechanism_container_tmpl = dust.compile('<div class="dda-add-element"> \
 		    <div class="clearfix" style="margin-bottom:5px;"> \
 		    <button class="dda-tes-remove pull-right"></button> \
+                    <button class="dda-tes-export pull-right">Export</button> \
 		    <h3>{title}</h3> \
 		    </div> \
 		    {body|s} \
@@ -118,6 +119,15 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 		}).click(function(){
 		    instance.tes_pool_remove_elem(guid_test);
 		});
+                out.find('.dda-tes-export').button({
+		    icons:{
+			primary: 'ui-icon-arrowthickstop-1-s'
+		    },
+		    text: true
+		}).click(function(){
+		    instance.tes_elem_export(guid_test);
+		});
+                
 
 		// Insert in DOM
 		instance.tes_pool_list.prepend(out);
@@ -137,6 +147,28 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone){
 	    return ret;
 
 	},
+
+        /**
+         * Exports the rule as download to the user
+         * @param {string} guid The id of the test mechanism
+         */
+        tes_elem_export: function(guid){
+            var instance = this,
+                el = instance.test_mechanisms_registry[guid].element;
+
+            if($('#id_object_subtype', el).val() == 'SNORT'){
+                var blob = new Blob([window.Base64.decode($('[name="snort_rules"]', el).val())], {type: "text/plain;charset=utf-8"});
+                filesaver(blob, $('[name="snort_title"]', el).val());
+
+            }
+            if($('#id_object_subtype', el).val() == 'IOC'){
+                
+                var blob = new Blob([window.Base64.decode($('[name="ioc_xml"]', el).val())], {type: "text/plain;charset=utf-8"});
+                filesaver(blob, $('[name="ioc_title"]', el).val());
+
+            }
+            
+        },
 
         /**
          * Sets the preview of a test mechanism element 

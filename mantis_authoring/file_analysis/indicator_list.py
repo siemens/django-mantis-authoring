@@ -111,8 +111,7 @@ class file_analyzer(file_object):
         # namespaces of the user
         all_namespaces = {}
         for ns in IdentifierNameSpace.objects.all():
-            all_namespaces[ns.name] = ns.uri
-
+            all_namespaces[ns.name.lower()] = ns.uri
             
         # In this we collect the indicators we need to crate in the front-end
         new_indicators = {}
@@ -124,7 +123,7 @@ class file_analyzer(file_object):
                 continue
 
             object_namespace = row['SOURCE']
-            ns_long = all_namespaces.get(row['SOURCE'], None)
+            ns_long = all_namespaces.get(row['SOURCE'].lower(), None)
             # Namespace does not exits?
             if not ns_long:
                 continue
@@ -157,7 +156,6 @@ class file_analyzer(file_object):
             })
 
         res['status'] = True
-
         return res
 
     def map_object_type(self, otype):

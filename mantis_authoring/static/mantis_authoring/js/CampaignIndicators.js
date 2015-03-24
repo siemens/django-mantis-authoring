@@ -23,10 +23,13 @@
                 "d3": "../../d3.min",
                 //"ace": "../../ace" // ACE included via <script> tag, since ACE via require.js has a bug
                 "dust": "../../dust-full.min",
-                "form2js": "../../form2js"
+                "form2js": "../../form2js",
+                "filesaver": "../../FileSaver.min",
             }
         });
         define('jquery', [], function() { return $; });
+        define.amd.dust = true;
+        
         require(['BaseClass',
                  'ObservablesTab',
                  'TestMechanismsTab',
