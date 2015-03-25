@@ -107,7 +107,24 @@ class GetAuthoringSimilarObjects(BasicJSONView):
         try:
             im = importlib.import_module('mantis_authoring.cybox_object_transformers.' + object_type)
             template_obj = getattr(im,'TEMPLATE_%s' % object_subtype)()
-            cybox_xml = template_obj.process_form(object_element).to_xml()
+            transform_result = template_obj.process_form(object_element)
+            if isinstance(transform_result, dict):
+
+                result_type = transform_result['type']
+                main_properties_obj = transform_result['main_obj_properties_instance']
+                properties_obj_list = transform_result['obj_properties_instances']
+
+                if main_properties_obj:
+                    cybox_xml = main_properties_obj.to_xml()
+                elif len(properties_obj_list) > 0:
+                    cybox_xml = ''
+                    pass
+                else:
+                    cybox_xml = ''
+                    pass
+            else:
+                cybox_xml = transform_result.to_xml()
+            
             fact_term_list = template_obj.get_relevant_fact_term_list()
             similar_objects = find_similar_cybox_obj(cybox_xml, fact_term_list)
             for similar_obj in similar_objects:

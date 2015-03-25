@@ -38,7 +38,8 @@ define(['jquery', 'dust'],function($, dust){
                     ind_sel_opt_obs_result = $('.ind_pool_sel_result_obs', $(this)).first(),
                     ind_sel_opt_tes_result = $('.ind_pool_sel_result_tes', $(this)).first(),
                     ind_opt_tmpl = dust.compile('<div class="sel_option {?selected}sel_option_selected{/selected}" data-type="{type}"> \
-                                                <h3>{title}</h3> \
+                                                <span class="pull-right" style="font-size:90%;">Source: {source}</span> \
+                                                <h3>{display_type}{title}</h3> \
                                                 <span>{description}</span> \
                                                 <textarea style="display:none;"></textarea>\
                                                 </div>', 'ind_opt_tmpl');
@@ -52,6 +53,8 @@ define(['jquery', 'dust'],function($, dust){
                 //insert observables
                 $.each(instance.observable_registry, function(obs_id, obs_elem){
                     var tpl = {title: instance.get_obs_elem_desc_name(obs_elem),
+                               display_type: obs_elem.type + ': ',
+                               source: instance.get_ns_from_guid(obs_elem.observable_id),
                                description: obs_elem.element.find('[name="dda-observable-description"]').val(),
                                type: 'obs',
                                selected: instance.is_observable_in_indicator(obs_id, ind_id)
@@ -78,7 +81,7 @@ define(['jquery', 'dust'],function($, dust){
                                     instance.indicator_registry[ind_id].observables=uniqueArray(instance.indicator_registry[ind_id].observables);
                                     // Add the item to the result list
                                     ind_sel_opt_obs_result.append(
-                                        $('<li></li>').attr('data-id', obs_id).text(instance.get_obs_elem_desc_name(obs_elem))
+                                        $('<li></li>').attr('data-id', obs_id).text(obs_elem.type + ': ' + instance.get_obs_elem_desc_name(obs_elem))
                                     );
                                 }else{
                                     instance.ind_remove_obs(ind_id, obs_id);
@@ -90,7 +93,7 @@ define(['jquery', 'dust'],function($, dust){
                         // On load/refresh add the already included observables to the result list
                         if(instance.is_observable_in_indicator(obs_id, ind_id)){
                             ind_sel_opt_obs_result.append(
-                                $('<li></li>').attr('data-id', obs_id).text(instance.get_obs_elem_desc_name(obs_elem))
+                                $('<li></li>').attr('data-id', obs_id).text(obs_elem.type + ': ' + instance.get_obs_elem_desc_name(obs_elem))
                             );
                         }
                         out.appendTo(ind_sel_opt_obs);
@@ -101,6 +104,8 @@ define(['jquery', 'dust'],function($, dust){
                 //insert test mechanisms
                 $.each(instance.test_mechanisms_registry, function(test_id, test_elem){
                     var tpl = {title: instance.get_tes_elem_desc_name(test_elem),
+                               display_type: '',
+                               source: instance.get_ns_from_guid(test_elem.object_id),
                                description: test_elem.description,
                                type: 'obs',
                                selected: instance.is_test_mechanism_in_indicator(test_id, ind_id)
@@ -341,13 +346,13 @@ define(['jquery', 'dust'],function($, dust){
                             });
                             ind.element.remove();
                             delete instance.indicator_registry[guid];
-                            instance.refresh_stix_package_tab();
+                            instance.refresh_indicator_pool_tab();
                             dlg.dialog('close');
                         });
                         dlg.find('.del_wo_ind').first().button().click(function(){
                             instance.indicator_registry[guid].element.remove();
                             delete instance.indicator_registry[guid];
-                            instance.refresh_stix_package_tab();
+                            instance.refresh_indicator_pool_tab();
                             dlg.dialog('close');
                         });
                     }

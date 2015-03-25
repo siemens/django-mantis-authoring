@@ -164,6 +164,7 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
                     // Validate observables
                     instance.obs_elem_validate(); // this also triggers name generation
 
+                    instance.refresh_observable_pool_tab();
                     instance.refresh_indicator_pool_tab();
                 }
             };
@@ -818,6 +819,19 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
         },
 
 
+        
+        /**
+         * Returns the ns part of a guid
+         * @param {string} guid
+         */
+        get_ns_from_guid: function(guid){
+            guid = guid || '';
+            var s = guid.substring(guid.indexOf("{")+1, guid.indexOf("}"));
+            if(s == ''){
+                s = guid.substring(0, guid.indexOf(":"));
+            };
+            return s;
+        },
 
         /**
          * Does some action with the current document
@@ -945,7 +959,7 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
             instance.observable_registry = {};
             $.each(jsn.observables, function(i,v){
                 var template = 'dda-observable-template_' + v.observable_properties.object_type + '_' + v.observable_properties.object_subtype;
-                instance.obs_pool_add_elem(template, v.observable_id);
+                instance.obs_pool_add_elem(template, v.observable_id, false, false, true);
                 var el = instance.observable_registry[v.observable_id];
 
                 //restore title and description

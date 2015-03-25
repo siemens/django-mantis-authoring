@@ -228,7 +228,7 @@ class file_analyzer(file_object):
                     ret['sha1'] = row['VALUE']
                 ret['dda-observable-title'] = 'Unknown file with hash "%s"' % (row['VALUE'])
             elif otype == 'FILENAME':
-                ret['filename'] = row['VALUE']
+                ret['file_name'] = row['VALUE']
                 ret['dda-observable-title'] = 'File "%s"' % (row['VALUE'])
 
 

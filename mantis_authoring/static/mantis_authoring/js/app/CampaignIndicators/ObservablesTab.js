@@ -184,10 +184,11 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone, dust){
         obs_pool_add_elem: function(template_id, guid_passed, no_dom_insert, no_meta, insert_collapsed){
             var instance = this,
                 template = $('#' + template_id),
+                //                                                         <button class="dda-obs-find_similar pull-right"></button> \
                 observable_container_tmpl = dust.compile('<div class="dda-add-element clearfix" data-id="{id}"> \
-                                                         <button class="dda-obs-find_similar pull-right"></button> \
                                                          <button class="dda-obs-remove pull-right"></button> \
                                                          <span class="pull-right dda-obs-error"></span> \
+                                                         <span class="pull-right" style="font-weight:normal; font-size:90%;">Source: {source}</span> \
                                                          <h3>{title}</h3> \
                                                          <p class="obs_object_name">{obs_name}</p> \
                                                          <div> \
@@ -221,6 +222,7 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone, dust){
             var tpl = {
                 id: guid_observable,
                 title: $('#id_I_object_display_name', template).val(),
+                source: instance.get_ns_from_guid(guid_observable),
                 obs_name: template.find('#id_object_type').val(),
                 meta: !no_meta,
                 body: template.clone().attr('id', guid_observable).html()
@@ -275,6 +277,13 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone, dust){
 
                 // Bind validator
                 instance.obs_on_blur(out, instance.obs_elem_validate);
+
+                if(instance.is_observable_in_indicator(guid_observable)){
+                    $('div:first', out).hide();
+                    $(out).addClass('dda-add-element-selected');
+                }else{
+                    $(out).removeClass('dda-add-element-selected');
+                };
 
                 ret = instance.observable_registry[guid_observable];
             });
