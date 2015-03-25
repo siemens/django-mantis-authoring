@@ -262,6 +262,10 @@ button span {
 }
 
 
+.dda-add-element.dda-add-element-selected, .dda-add-element.dda-add-element-selected h3 {
+    background: none repeat scroll 0 0 #d1ecb5;
+}
+
 
 #dda-relation-list .dda-rel-selected, #dda-relation-list .dda-rel-selected h3, .ui-selected > div {
     background: #CEE9F2;

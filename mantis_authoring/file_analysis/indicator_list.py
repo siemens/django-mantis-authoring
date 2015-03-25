@@ -33,6 +33,7 @@ class file_analyzer(file_object):
         # Check for required columns. If one is missing we return immediately
         # Otherwise we remember the place of the column
         columns_ok = True
+        self.column_index = dict()
         fr = [x.upper() for x in first_row]
         for rc in self.required_columns:
             if rc not in fr:
@@ -46,17 +47,26 @@ class file_analyzer(file_object):
 
     def yield_row(self):
         file_content = self.get_file_content()
-        print len(file_content)
+
         if self.file_type == 'excel':
             # yield excel rows
             book = xlrd.open_workbook(file_contents = file_content)
             fs = book.sheet_by_index(0)
+            
             for row_index in xrange(1, fs.nrows):
-                # for col_name, col_index in self.column_index.iteritems():
-                #     print col_name, fs.cell(row_index, col_index).value,
-                # print
-                yield {col_name: fs.cell(row_index, col_index).value
-                 for col_name, col_index in self.column_index.iteritems()}
+                row =  fs.row(row_index)
+                r = {}
+                for col_name, col_index in self.column_index.iteritems():
+                    r[col_name] = ''
+                    try:
+                        r[col_name] = row[col_index].value
+                    except:
+                        pass
+                yield r
+                
+                # yield {col_name: fs.cell(row_index, col_index).value
+                #        for col_name, col_index in self.column_index.iteritems()}
+ 
                 
         if self.file_type == 'csv':
             # yield csv rows
@@ -172,7 +182,6 @@ class file_analyzer(file_object):
         otype = otype.upper()
         if otype in self.object_type_mapping:
             return self.object_type_mapping[otype]
-        print otype
         return None
 
     def create_object_properties(self, row):

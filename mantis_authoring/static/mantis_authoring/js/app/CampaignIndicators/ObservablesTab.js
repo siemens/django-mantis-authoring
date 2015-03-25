@@ -89,12 +89,15 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone, dust){
         refresh_observable_pool_tab: function(){
             var instance = this;
 
-            // Minimize all items that are already placed in an indicator
+            // Minimize all items that are already placed in an indicator. Mark those that are in an indicator
             $.each($('#dda-observable-pool-list > .dda-add-element'),  function(i,v){
                 var obs_id = $(this).data('id');
                 if(instance.is_observable_in_indicator(obs_id)){
                     $('div:first', v).hide();
-                }
+                    $(v).addClass('dda-add-element-selected');
+                }else{
+                    $(v).removeClass('dda-add-element-selected');
+                };
             });
         },
 

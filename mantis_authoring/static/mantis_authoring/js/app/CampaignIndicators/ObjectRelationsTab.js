@@ -18,6 +18,10 @@ define(['jquery', 'd3', 'filesaver'],function($, d3, filesaver){
                 var svg = $('#relation-pane > svg').clone();
                 svg.attr('width', '100%').attr('height', '100%');
                 svg.find('g[transform]').first().removeAttr('transform').find('rect').first().attr('width', '100%').attr('height', '100%');
+                
+                //svg.attr('width', '100%').attr('height', '100%');
+                //svg.find('g[transform]').first().find('rect').first().attr('width', '100%').attr('height', '100%');
+                
                 var xml = svg.get(0);
                 var svgxml = (new XMLSerializer).serializeToString(xml);
                 var filename = $('#dda-headline-report-type-title').val();
@@ -53,40 +57,6 @@ define(['jquery', 'd3', 'filesaver'],function($, d3, filesaver){
                 }, []);
             };
 
-            var getLabelAnchors = function(){
-                var data_set = [];
-                $.each(instance.observable_registry, function(i,v){
-                    // Push twice for object pairs; Link will then be like 0,1 - 2,3 - 4,5
-                    data_set.push({
-                        node: v,
-                        x: v.x,
-                        y: v.y,
-                        px: v.px,
-                        py: v.py
-                    });
-                    data_set.push({
-                        node : v,
-                        x: v.x,
-                        y: v.y,
-                        px: v.px,
-                        py: v.py
-                    });
-                });
-                return data_set;
-            };
-
-            var getLabelAnchorLinks = function(){
-                var node_set = [];
-                var c = 0;
-                $.each(instance.observable_registry, function(i,v){
-                    node_set.push({
-                        source : c * 2,
-                        target : c * 2 + 1
-                    });
-                    c++;
-                });
-                return node_set;
-            };
 
             var width = $('#relation-pane').width();
             var height = $('#relation-pane').height();
@@ -143,14 +113,6 @@ define(['jquery', 'd3', 'filesaver'],function($, d3, filesaver){
                     .linkDistance(150).charge(-800)
                     .on("tick", tick);
 
-            // force layout for labels
-            var force2 = d3.layout.force()
-                    .nodes(getLabelAnchors())
-                    .links(getLabelAnchorLinks())
-                    .gravity(0).linkDistance(0).linkStrength(0.7).charge(-100)
-                    .size([width, height]);
-
-
             // line displayed when dragging new nodes
             var drag_line = vis.append("line")
                     .attr("class", "drag_line")
@@ -162,14 +124,10 @@ define(['jquery', 'd3', 'filesaver'],function($, d3, filesaver){
             // get layout properties
             var nodes = force.nodes();
             var links = force.links();
-            var labelAnchors = force2.nodes();
-            var labelLinks = force2.links();
 
             var node = vis.selectAll('.node');
             var link = vis.selectAll('.link');
             var linkLabel = vis.selectAll('.linkLabel');
-            var labelAnchor = vis.selectAll('.labelAnchor');
-            var labelLink = vis.selectAll('.labelLink');
 
             // add keyboard callback
             d3.select(window)
@@ -258,37 +216,11 @@ define(['jquery', 'd3', 'filesaver'],function($, d3, filesaver){
                 // Don't render if we are hidden
                 if($('#relation-pane').get(0).offsetHeight == 0){
                     force.stop();
-                    force2.stop();
                     return;
                 }
                 
                 // Correct position of the nodes
                 node.call(updateNode);
-                labelAnchor.each(function(d,i){
-                    if(i % 2 == 0) {
-                        d.x = d.node.x;
-                        d.y = d.node.y;
-                    } else {
-                        var _b = this.childNodes[0];
-                        try{
-                            var b = _b.getBBox();
-                        }catch(e){
-                            return;
-                        }
-
-                        var diffX = d.x - d.node.x;
-                        var diffY = d.y - d.node.y;
-
-                        var dist = Math.sqrt(diffX * diffX + diffY * diffY);
-
-                        var shiftX = b.width * (diffX - dist) / (dist * 2);
-                        shiftX = Math.max(-b.width, Math.min(0, shiftX));
-                        var shiftY = 5;
-
-                        this.childNodes[0].setAttribute("transform", "translate(" + shiftX + "," + shiftY + ")");
-                    }
-                });
-                labelAnchor.call(updateNode);
                 
                 // Correct position of links                
                 link.attr("d", function(d) {
@@ -296,8 +228,6 @@ define(['jquery', 'd3', 'filesaver'],function($, d3, filesaver){
                         dy = d.target.y - d.source.y;
                     return "M" + d.source.x + "," + d.source.y + " " + d.target.x + "," + d.target.y;
                 });
-                //link.call(updateLink);
-                labelLink.call(updateLink);
 
                 // Correct the labels on the edges
                 linkLabel.call(updateLinkLabel);
@@ -316,8 +246,6 @@ define(['jquery', 'd3', 'filesaver'],function($, d3, filesaver){
             instance._d3_redraw = function(load){
                 if(typeof(load)==='undefined') load = false;
                 if(load){
-                    force2.nodes(getLabelAnchors());
-                    force2.links(getLabelAnchorLinks());
                     force.nodes(getData());
                     force.links(getLinks());
                     //reset zoom
@@ -327,8 +255,6 @@ define(['jquery', 'd3', 'filesaver'],function($, d3, filesaver){
                 }
                 nodes = force.nodes();
                 links = force.links();
-                labelLinks = force2.links();
-                labelAnchors = force2.nodes();
 
                 // Create the links between the nodes
                 link = link.data(links, function(d){
@@ -364,47 +290,12 @@ define(['jquery', 'd3', 'filesaver'],function($, d3, filesaver){
                 link.classed("link_selected", function(d) { return d === selected_link; });
 
 
-                
-                // Create the node labels
-                labelAnchor = labelAnchor.data(labelAnchors, function(d){
-                    return labelAnchors.indexOf(d);
-                });
-                labelAnchor.enter().insert('g').attr('class', 'labelAnchor').style({
-                    'fill': '#555',
-                    'font-family': '"Arial',
-                    'font-size': '12px'
-                }).append('text');
-                labelAnchor.exit().remove();
-
-                //Update labels
-                labelAnchor.select('text').each(function(d,i){
-                    if(i % 2 !== 0){
-                        d3.select(this).select('tspan').remove();
-                        d3.select(this).append('tspan')
-                            .style('font-size', '90%')
-                            .attr('class', 'labelTextType')
-                            .attr({'x': 0, 'y': '0em'}).text(d.node.type);
-                        var _n = instance.get_obs_elem_desc_name(d.node, '', 13);
-                        if(_n!='')
-                            d3.select(this).append('tspan')
-                            .style('font-weight', 'bold')
-                            .attr('class', 'labelTextContent')
-                            .attr({'x': 0, 'y': '1.2em'})
-                            .text(_n);
-                    }
-                });
-
-                //Link the node labels
-                labelLink = labelLink.data(labelLinks);
-                labelLink.exit().remove();
-
-
                 // Create the data nodes
                 node = node.data(nodes, function(d){
                     return nodes.indexOf(d);
                 });
-                node.enter()
-                    .insert("g").attr("class", "node").append('circle')
+                var node_g = node.enter().insert("g");
+                node_g.attr("class", "node").append('circle')
                     .attr('r', 10)
                     .attr('style', function(d){return 'fill:'+fill(d.type)+';opacity:1; stroke:#000; stroke-width:2px;'})
                     .on("mousedown",
@@ -426,10 +317,6 @@ define(['jquery', 'd3', 'filesaver'],function($, d3, filesaver){
                                 .attr("y2", mousedown_node.y);
 
                             instance._d3_redraw();
-                        })
-                    .on("mousedrag",
-                        function(d) {
-                            // instance._d3_redraw();
                         })
                     .on("mouseup",
                         function(d) {
@@ -484,7 +371,20 @@ define(['jquery', 'd3', 'filesaver'],function($, d3, filesaver){
                     .duration(300)
                     .ease("elastic");
 
+                node_g.append('text').text(function(d,i){
+                    return instance.get_obs_elem_desc_name(d, '', 20)}).attr('y', 22).style({'text-anchor': 'middle',
+                                                                                             'pointer-events': 'none',
+                                                                                             'font-family': 'Arial'
+                                                                                            });
+                node_g.append('text').text(function(d,i){return d.type}).attr('y', -12).style({'text-anchor':'middle',
+                                                                                   'pointer-events': 'none',
+                                                                                   'font-family': 'Arial',
+                                                                                   'font-size': '90%',
+                                                                                   'fill': '#666'
+                                                                                  });
+                
 
+                
                 node.exit().transition()
                     .attr("r", 0)
                     .remove();
@@ -497,7 +397,7 @@ define(['jquery', 'd3', 'filesaver'],function($, d3, filesaver){
                 linkLabel = linkLabel.data(links, function(d){ return links.indexOf(d); });
                 linkLabel.enter()
                     .append('text')
-                    .style({"pointer-events": "none",
+                    .style({'pointer-events': 'none',
                             'font-family': 'Arial',
                             'font-size': '75%',
                             'fill': '#aaa'
@@ -537,15 +437,8 @@ define(['jquery', 'd3', 'filesaver'],function($, d3, filesaver){
                     d3.event.preventDefault();
                 }
 
-                force2.start();
                 force.start();
 
-                // var k = 0;
-                // while ((force2.alpha() > 1e-2) && (k < 150)) {
-                //     force2.tick();
-                //     k = k + 1;
-                // }
-                
             }
 
             function spliceLinksForNode(node) {

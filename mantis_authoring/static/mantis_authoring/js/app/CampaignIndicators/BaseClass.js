@@ -46,7 +46,7 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
                 }
                 if(response.action=='ask'){
                     // Query user for action
-                    var dlg = $('<div class="dda-obs-find_similar-dlg" title="Choose the file parsing mechanism">Please wait...</div>'),
+                    var dlg = $('<div class="" title="Choose the file parsing mechanism">Please wait...</div>'),
                         ask_content_tmpl = dust.compile('<ol style="max-height: 500px;"> \
                                                         <p>{action_msg}</p> \
                                                         {#data} \
@@ -58,6 +58,7 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
                                                         </li> \
                                                         {/data} \
                                                         </ol> \
+                                                        <span style="margin-top:6px; display:none;" class="ui-icon ui-icon-clock pull-left"></span> \
                                                         <div class="pull-right"> \
                                                         <button class="ok">Ok</button> \
                                                         <button class="cancel">Cancel</button> \
@@ -77,6 +78,7 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
                         $('button.ok', dlg).click(function(){
                             var sel = $('.ui-selected', dlg);
                             if(sel.length){
+                                $('.ui-icon-clock', dlg).show();
                                 var rd = response.data[sel.data('id')]
                                 $.post(response.action_url, rd, function(response1){
                                     window._handle_file_upload_response(response1);

@@ -887,7 +887,6 @@ class UploadFile(AuthoringMethodMixin,View):
                         res['status'] = True
                         res['data'] = proc_res['data']
                         res['action'] = 'create'
-                    cache.delete('MANTIS_AUTHORING__file__' + fid)
 
         else:
             FILES = request.FILES
@@ -948,7 +947,7 @@ class UploadFile(AuthoringMethodMixin,View):
                             dest_file.close()
 
                             # Cache file meta
-                            cache.set('MANTIS_AUTHORING__file__' + file_id, { 'cache_file': dest_file.name, 'filename': f.name }, 10)
+                            cache.set('MANTIS_AUTHORING__file__' + file_id, { 'cache_file': dest_file.name, 'filename': f.name }, 10 * 60)
 
 
                         else:
@@ -963,7 +962,6 @@ class UploadFile(AuthoringMethodMixin,View):
                                 res['status'] = True
                                 res['data'] = proc_res['data']
                                 res['action'] = 'create'
-                            cache.delete('MANTIS_AUTHORING__file__' + file_id)
 
 
         if not request.is_ajax(): # Indicates fallback (form based upload)
