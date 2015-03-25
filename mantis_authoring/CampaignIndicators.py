@@ -409,11 +409,12 @@ class stixTransformer:
             tac.id_ = None
             if self.campaign and self.campaign.id_:
                 related_ta1 = ThreatActor()
-
                 related_ta1.idref= self.gen_slugged_id(tac.idref)
                 related_ta1.timestamp = None
-
-                self.campaign.attribution.append(related_ta1)
+                
+                attrib = Attribution()
+                attrib.append(related_ta1)
+                self.campaign.attribution.append(attrib)
 
 
             self.threatactor = tac
@@ -450,9 +451,10 @@ class stixTransformer:
                 related_ta = ThreatActor()
                 related_ta.idref= self.gen_slugged_id(tac_id)
                 related_ta.timestamp = None
-                self.campaign.attribution.append(related_ta)
 
-
+                attrib = Attribution()
+                attrib.append(related_ta)
+                self.campaign.attribution.append(attrib)
 
 
             self.threatactor = tac

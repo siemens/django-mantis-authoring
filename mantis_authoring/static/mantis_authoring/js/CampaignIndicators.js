@@ -8,7 +8,6 @@
 
         content_container.hide();
         overlay.appendTo(content_main);
-
         require.config({
             baseUrl: data_main,
             shim: {
@@ -24,7 +23,7 @@
                 //"ace": "../../ace" // ACE included via <script> tag, since ACE via require.js has a bug
                 "dust": "../../dust-full.min",
                 "form2js": "../../form2js",
-                "filesaver": "../../FileSaver.min",
+                "filesaver": "../../FileSaver.min"
             }
         });
         define('jquery', [], function() { return $; });
