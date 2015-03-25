@@ -715,7 +715,7 @@ class stixTransformer:
             top_obs_id = self.gen_slugged_id(top_obs_id_basis)
             top_obs = Observable(obs_composition, id_=top_obs_id)
 
-            indicator.add_observable(top_obs)
+            stix_indicator.add_observable(top_obs)
 
 
             # TODO: Not dealing with references, yet!
