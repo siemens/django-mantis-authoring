@@ -884,8 +884,6 @@ class UploadFile(AuthoringMethodMixin,View):
             # As for now, we just tell the user to try this indicator again...
             if not te:
                 res['msg'] = "We're sorry! An error occured processing the file. Please try again..."
-                print 'te', te
-                print 'post_dict', post_dict
 
             if (fid!='' and ftype!='') and (te) and (os.path.isfile(te['cache_file'])):
                 # Iterate over available file processors and filter those with the correct type the GUI wants us to use.
