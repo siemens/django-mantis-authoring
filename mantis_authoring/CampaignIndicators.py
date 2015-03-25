@@ -41,7 +41,7 @@ from django.utils.html import conditional_escape
 
 
 import cybox.utils
-from cybox.core import Observable, Observables, Object
+from cybox.core import Observable, Observables, Object, ObservableComposition
 from cybox.common import String, Time, ToolInformation, ToolInformationList
 
 import stix.utils
@@ -643,8 +643,6 @@ class stixTransformer:
 
 
 
-
-
     def __create_stix_indicator(self, indicator):
         """
         Helper function to create an Indicator object
@@ -653,7 +651,7 @@ class stixTransformer:
         stix_indicator.title = indicator['indicator_title']
         stix_indicator.description = indicator['indicator_description']
         stix_indicator.confidence = Confidence(indicator['indicator_confidence'])
-        stix_indicator.observable_composition_operator = indicator['indicator_operator']
+
         #stix_indicator.indicator_types = indicator['object_type']
 
         return stix_indicator
@@ -680,7 +678,12 @@ class stixTransformer:
             related_observables = indicator['related_observables']
             related_test_mechanisms = indicator['related_test_mechanisms']
 
+
             # Add the observables to the indicator
+
+            observables_of_indicator = []
+
+
             for related_observable_id in related_observables:
                 related_observable_id = self.gen_slugged_id(related_observable_id)
                 if related_observable_id in self.bulk_observable_mapping:
@@ -688,13 +691,32 @@ class stixTransformer:
                         obs_rel = Observable()
                         obs_rel.idref = self.gen_slugged_id(related_id)
                         obs_rel.id_ = None
+                        observables_of_indicator.append(obs_rel)
 
-                        stix_indicator.add_observable(obs_rel)
                 else:
                     obs_rel = Observable()
                     obs_rel.idref = self.gen_slugged_id(related_observable_id)
                     obs_rel.id_ = None
-                    stix_indicator.add_observable(obs_rel)
+                    observables_of_indicator.append(obs_rel)
+
+            obs_composition = ObservableComposition(
+            operator=indicator['indicator_operator'],
+            observables=observables_of_indicator
+            )
+
+
+            top_obs_id_basis = indicator['indicator_id'].replace('Indicator','Observable')
+
+            if top_obs_id_basis == indicator['indicator_id']:
+                raise ValueError("Indicator id %s must start with 'Indicator' -- otherwise I cannot derive "
+                                 "an identifier for the embedded ObservableComposition!" % indicator['identifier_id'])
+
+
+            top_obs_id = self.gen_slugged_id(top_obs_id_basis)
+            top_obs = Observable(obs_composition, id_=top_obs_id)
+
+            indicator.add_observable(top_obs)
+
 
             # TODO: Not dealing with references, yet!
             # Add observable references to the indicator
@@ -784,7 +806,7 @@ class stixTransformer:
         if self.campaign:
             stix_package.campaigns.append(self.campaign)
         self.stix_package = stix_package.to_xml(ns_dict=self.namespace_map,
-                                                auto_namespace=stix_package.ENRICH_NS_DICT)
+                                                auto_namespace=True)#stix_package.ENRICH_NS_DICT)
         return self.stix_package
 
 
