@@ -18,7 +18,8 @@ class file_analyzer(file_object):
         'IP': 'address',
         'HASH': 'file',
         'FILENAME': 'file',
-        'EMAIL': 'emailmessage',
+        'EMAIL_FROM': 'emailmessage',
+        'EMAIL_TO': 'emailmessage',
         'URI': 'uri',
         'FQDN': 'uri',
         'WINSERVICE': 'winservice',
@@ -236,9 +237,14 @@ class file_analyzer(file_object):
                 
         if object_type == 'emailmessage':
             # Create a emailmessage object
-            ret = {
-                'from_': row['VALUE']
-            }
+            if otype == 'EMAIL_FROM':
+                ret = {
+                    'from_': row['VALUE']
+                }
+            if otype == 'EMAIL_TO':
+                ret = {
+                    'to': row['VALUE'].replace(';', "\n").replace(' ', "\n")
+                }                
 
 
             
