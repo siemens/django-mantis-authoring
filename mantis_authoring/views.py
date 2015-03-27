@@ -13,8 +13,6 @@ from dingos.models import InfoObject
 from .utilities import name_cybox_obj, find_similar_cybox_obj
 
 
-
-
 class GetAuthoringObjectReference(BasicJSONView):
     """
     View serving a reference to an existing object

@@ -144,7 +144,9 @@ Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
     <div id="dda-tab-observables" class="l-2cr-fluid l-d-12">
       <div class="c-1">
         <div class="grp-module">
-          <h2>File Dropzone</h2>
+          <h2 class="clearfix">File Dropzone
+            <button id="dda-observable-filedrop-help" class="pull-right"></button>
+          </h2>
           <form class="grp-row dropper" id="dda-observable-filedrop" action="{% url 'url.mantis_authoring.upload_file' %}"method="post" enctype='multipart/form-data' target="dda-observable_upload-target">
             <input type="hidden" name="dda_dropzone_type_allow" value=""/>
             {% csrf_token %}

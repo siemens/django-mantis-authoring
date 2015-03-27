@@ -26,7 +26,7 @@ class file_analyzer(file_object):
         'USERAGENT': 'httpsession'
         }
     required_columns = ['TYPE', 'VALUE', 'SOURCE']
-    optional_columns = ['TIME', 'DESCRIPTION']
+    optional_columns = ['DESCRIPTION']
     column_index = {}
     file_type = ''
 
@@ -286,9 +286,5 @@ class file_analyzer(file_object):
         # Process optional columns
         if 'DESCRIPTION' in row:
             ret['dda-observable-description'] = row['DESCRIPTION']
-            
-        if 'TIME' in row:
-            # TODO: What do we do with this one?
-            pass
             
         return ret

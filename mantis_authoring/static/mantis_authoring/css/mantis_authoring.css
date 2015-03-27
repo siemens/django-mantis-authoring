@@ -255,6 +255,20 @@ button span {
     margin-bottom: -3px;
 }
 
+#dda-observable-filedrop-help-dlg ul {
+    list-style: outside;
+    margin: 6px 0 6px 10px;
+}
+#dda-observable-filedrop-help-dlg li {
+    margin: 0 0 3px 0;
+}
+#dda-observable-filedrop-help-dlg a {
+    color: #309bbf;
+}
+#dda-observable-filedrop-help-dlg b {
+    font-weight: bold;
+}
+
 #relation-pane {
     width: 100%;
     height: 800px;

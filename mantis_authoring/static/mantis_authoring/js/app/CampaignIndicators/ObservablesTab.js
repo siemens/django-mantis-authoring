@@ -80,6 +80,29 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone, dust){
                     log_message(errorMessage, 'error');
                 }
             });
+            $('#dda-observable-filedrop-help').button({
+                icons:{
+                    primary: 'ui-icon-help'
+                },
+                text: false
+            }).click(function(){
+                // TODO: fill the content of this box from the backend
+                var dlg = $('<div id="dda-observable-filedrop-help-dlg" title="File Dropzone"><p>This dropzone allows you to quickly includes files in you report. Files dropped are analyzed in the backend and will be processed according to the type identified. Currently, the system recognized the following file(types):</p> \
+                               <ul> \
+                                <li><b>Generic files</b>: Files will be included as file objects, including filesize and hashsums.</li> \
+                                <li><b>Test Mechanisms</b>: Files recognized will be added to the Snort/IOC rules if the system identifies them as such</li> \
+                            <li><b>Indicator Lists</b>: Files of Excel/CSV type with proper headers in place will yield multiple indicators. See this <a href="IndicatorListTemplate">template</a></li> \
+                               </ul> \
+                               <p>If a dropped file qualifies for more than one of the types, you will be asked how you would like to proceed. </p> \
+                              </div>');
+                dlg.dialog({
+                    modal: true,
+                    width: 600,
+                    position: ['center', 'center']
+                });
+                
+            });
+            
         },
 
 

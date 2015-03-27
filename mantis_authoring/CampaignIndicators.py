@@ -21,11 +21,14 @@
 
 
 import os, datetime, tempfile, importlib, json, pytz, copy, hashlib
+import xlwt
 from lxml import etree
 from StringIO import StringIO
 from base64 import b64decode
 from uuid import uuid4
 from querystring_parser import parser
+
+
 
 from django import forms
 from django.conf import settings
@@ -75,6 +78,8 @@ from dingos_authoring.models import AuthoredData
 from .view_classes import BasicSTIXPackageTemplateView
 
 from dingos.core.utilities import dict_map
+
+from .file_analysis import indicator_list
 
 
 FORM_VIEW_NAME = 'url.mantis_authoring.transformers.stix.campaign_indicators'
@@ -994,3 +999,44 @@ class UploadFile(AuthoringMethodMixin,View):
             return HttpResponse(ret)
         else: # Fancy upload with drag and drop can handle json response
             return HttpResponse(json.dumps(res), content_type="application/json")
+
+
+
+        
+class IndicatorListTemplate(AuthoringMethodMixin,View):
+    def get(self, request):
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename="IndicatorListTemplate.xls"'
+
+        # Get all known namespaces. We need those to match the allowed
+        # namespaces of the user
+        all_namespaces = {}
+        for ns in IdentifierNameSpace.objects.all():
+            all_namespaces[ns.uri] = ns.name.lower()
+        # Get the users namespace info
+        ns_info = self.get_authoring_namespaces(self.request.user,fail_silently=False)
+        allowed_namespaces = list()
+        for ns in ns_info['allowed_ns_uris']:
+            ns_s = all_namespaces[ns]
+            if ns_s == '' or ns_s == 'dingosdefaultidnamespace':
+                continue
+            allowed_namespaces.append(ns_s)
+            
+        wb = xlwt.Workbook()
+        ws = wb.add_sheet('indicator_list')
+
+        # Write the headers to the file
+        headers = indicator_list.file_analyzer.required_columns + indicator_list.file_analyzer.optional_columns
+        for i,l in enumerate(headers):
+            ws.write(0, i, l)
+
+        # Write the type and source help text somewhere to the right
+        ws.write(1, len(headers) + 2, "Valid values for the TYPE column: " + ", ".join(indicator_list.file_analyzer.object_type_mapping.keys()))
+        ws.write(2, len(headers) + 2, "Valid values for the SORUCE column: " + ", ".join(allowed_namespaces))
+        
+
+        f = StringIO()
+        wb.save(f)
+        f.seek(0)
+        response.write(f.read())
+        return response
