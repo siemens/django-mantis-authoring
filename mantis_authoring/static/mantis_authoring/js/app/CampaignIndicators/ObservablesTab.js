@@ -463,6 +463,9 @@ define(['jquery', 'dropzone', 'dust'],function($, Dropzone, dust){
             def = def || '<empty>';
             trim = trim || false;
 
+            if(v == undefined)
+                return def;
+
             // Use the already name returned from object validation
             if(v._object_name == undefined || force_update){
                 instance.obs_elem_validate(v.observable_id);
