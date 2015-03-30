@@ -8,6 +8,7 @@ if Menu.items and Menu.items.has_key('mantis_main'):
     if authoring_menu:
         authoring_menu.children = (
             MenuItem("New Report", reverse('url.mantis_authoring.transformers.stix.campaign_indicators'), check = lambda request: request.user.is_authenticated()),
+            MenuItem("Campaign/TA Maintenance", reverse('url.mantis_authoring.transformers.stix.campaign_maintenance'), check = lambda request: request.user.is_authenticated()),
         ) + authoring_menu.children
 
 
