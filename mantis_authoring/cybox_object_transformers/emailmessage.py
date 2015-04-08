@@ -56,6 +56,9 @@ class TEMPLATE_Default(Base):
         in_reply_to = forms.CharField(max_length=1024,
                                       required=False,
                                       help_text = "Message ID of the message that this email is a reply to." )
+        reply_to = forms.CharField(max_length=1024,
+                                      required=False,
+                                      help_text = "Reply-To address set in header." )
         send_date = forms.DateTimeField(required=False,
                                         help_text = "Date/time that the email message was sent.")
 
@@ -67,8 +70,9 @@ class TEMPLATE_Default(Base):
                                             " in the observable pool and relate it to this EmailMessage using"
                                             " the 'contained_in' relation. The latter is preferable if you may"
                                             " want to also relate the URI with other objects, as well.")
-
-
+        received_lines = forms.CharField(widget=forms.HiddenInput(), required=False)
+        x_mailer = forms.CharField(widget=forms.HiddenInput(), required=False)
+        
 
     def process_form(self, properties,id_base=None,namespace_tag=None):
 
