@@ -7,12 +7,76 @@ import re
 import hashlib
 import uuid
 import email
+import json
 import dateutil.parser, dateutil.tz
-import mantis_authoring.ExtractMsg as ExtractMsg
+import mantis_authoring.EmailObjectFunctions as EOF
 
-from StringIO import StringIO
-from email.Header import decode_header
-from email.utils import parseaddr
+from django.utils.encoding import force_str, force_text
+
+TRAILING_PUNCTUATION = ['.', ',', ':', ';', '.)', '"', '\'', '!']
+WRAPPING_PUNCTUATION = [('(', ')'), ('<', '>'), ('[', ']'), ('&lt;', '&gt;'), ('"', '"'), ('\'', '\''), ('href="', '"')]
+
+word_split_re = re.compile(r'''([\s<>"']+)''')
+simple_url_re = re.compile(r'^https?://\[?\w', re.IGNORECASE)
+simple_url_2_re = re.compile(r'^www\.|^(?!http)\w[^@]+\.(com|edu|gov|int|mil|net|org)($|/.*)$', re.IGNORECASE)
+simple_email_re = re.compile(r'^\S+@\S+\.\S+$')
+
+
+def djunescape(text, trail):
+    unescaped = (text + trail).replace(
+        '&amp;', '&').replace('&lt;', '<').replace(
+        '&gt;', '>').replace('&quot;', '"').replace('&#39;', "'")
+    if trail and unescaped.endswith(trail):
+        unescaped = unescaped[:-len(trail)]
+    elif trail == ';':
+        text += trail
+        trail = ''
+    return text, unescaped, trail
+
+def getURLs(inp):
+    ret = dict()
+    words = word_split_re.split(force_text(inp))
+    for i, word in enumerate(words):
+        if '.' in word or '@' in word or ':' in word:
+            #Deal with punctuation.
+            lead, middle, trail = '', word, ''
+            for punctuation in TRAILING_PUNCTUATION:
+                if middle.endswith(punctuation):
+                    middle = middle[:-len(punctuation)]
+                    trail = punctuation + trail
+            for opening, closing in WRAPPING_PUNCTUATION:
+                if middle.startswith(opening):
+                    middle = middle[len(opening):]
+                    lead = lead + opening
+                # Keep parentheses at the end only if they're balanced.
+                if(middle.endswith(closing)
+                   and middle.count(closing) == middle.count(opening) + 1):
+                    middle = middle[:-len(closing)]
+                    trail = closing + trail
+
+            url = None
+            if simple_url_re.match(middle):
+                middle, middle_unescaped, trail = djunescape(middle, trail)
+                url = middle_unescaped
+
+            elif simple_url_2_re.match(middle):
+                middle, middle_unescaped, trail = djunescape(middle, trail)
+                url = middle_unescaped
+
+            elif ':' not in middle and simple_email_re.match(middle):
+                local, domain = middle.rsplit('@', 1)
+                try:
+                    domain = domain.encode('idna').decode('ascii')
+                except UnicodeError:
+                    continue
+                # We leave out email addresses
+                #url = '%s@%s' % (local, domain)
+                
+            if url:
+                ret[url] = True
+
+    return ret.keys()
+
 
 
 class file_analyzer(file_object):
@@ -35,7 +99,7 @@ class file_analyzer(file_object):
 
         # Test for msg
         try:
-            message = ExtractMsg.Message(self.get_file_content())
+            message = EOF.Message(self.get_file_content())
             if message.sender is not None or message.to is not None:
                 self.object_type = 'msg'
                 return 'email_object'
@@ -56,10 +120,9 @@ class file_analyzer(file_object):
         
         if self.object_type == 'eml':
             # Process eml
-            eml = parseEml(self.get_file_content())
+            eml = EOF.parseEml(self.get_file_content())
             eml_rel_ref = str(uuid.uuid4())
-            #TODO Links
-            links = ''
+            links = "\n".join(set(getURLs(eml['body']) + getURLs(eml['html'])))
             
             res['status'] = True
             res['object_class'] = 'email_object'
@@ -119,7 +182,7 @@ class file_analyzer(file_object):
             
         elif self.object_type == 'msg':
             # Process msg
-            message = ExtractMsg.Message(self.get_file_content())
+            message = EOF.Message(self.get_file_content())
             eml_rel_ref = str(uuid.uuid4())
 
             try:
@@ -127,6 +190,12 @@ class file_analyzer(file_object):
                 send_date = dt.astimezone(dateutil.tz.gettz('UTC')).strftime("%Y-%m-%d %H:%M:%S")
             except:
                 send_date = ''
+
+            links = "\n".join(set(getURLs(message.body)))
+
+            rl = []
+            for rline in message.header.get_all('Received'):
+                rl.append( ' '.join([l.strip().replace("\t", ' ').decode('utf8', 'replace') for l in rline.split("\n")]) )
 
             res['status'] = True
             res['object_class'] = 'email_object'
@@ -141,9 +210,9 @@ class file_analyzer(file_object):
                                  'in_reply_to': message.header.get('In-Reply-To', ''),
                                  'reply_to': message.header.get('Reply-To', ''),
                                  'send_date': send_date,
-                                 'links': '',
+                                 'links': links,
                                  'x_mailer': message.header.get('X-Mailer', ''),
-                                 'received_lines': "\n".join(str(r) for r in message.header.get_all('Received'))
+                                 'received_lines': json.dumps(rl)
                              }
                      }]
 
@@ -197,88 +266,3 @@ class file_analyzer(file_object):
 
 
 
-def eml_parse_attachment(message_part):
-    content_disposition = message_part.get("Content-Disposition", None)
-    if content_disposition:
-        dispositions = content_disposition.strip().split(";")
-        if bool(content_disposition and dispositions[0].lower() == "attachment"):
-
-            file_data = message_part.get_payload(decode=True)
-            attachment = StringIO(file_data)
-            attachment.content_type = message_part.get_content_type()
-            attachment.size = len(file_data)
-            attachment.name = ''
-            attachment.create_date = None
-            attachment.mod_date = None
-            attachment.read_date = None
-            for param in dispositions[1:]:
-                name,value = param.split("=")
-                name = name.lower().strip()
-                value = value.strip().strip('"')
-                if name == "filename":
-                    attachment.name = value
-                elif name == "create-date":
-                    attachment.create_date = value  #TODO: datetime
-                elif name == "modification-date":
-                    attachment.mod_date = value #TODO: datetime
-                elif name == "read-date":
-                    attachment.read_date = value #TODO: datetime
-            return attachment
-
-    return None
-
-def parseEml(content):
-    msgobj = email.message_from_string(content)
-    if msgobj['Subject'] is not None:
-        decodefrag = decode_header(msgobj['Subject'])
-        subj_fragments = []
-        for s , enc in decodefrag:
-            if enc:
-                s = unicode(s , enc).encode('utf8','replace')
-            subj_fragments.append(s)
-        subject = ''.join(subj_fragments)
-    else:
-        subject = None
-
-    attachments = []
-    body = None
-    html = None
-    for part in msgobj.walk():
-        attachment = eml_parse_attachment(part)
-        if attachment:
-            attachments.append(attachment)
-        elif part.get_content_type() == "text/plain":
-            if body is None:
-                body = ""
-            body += unicode(
-                part.get_payload(decode=True),
-                part.get_content_charset(),
-                'replace'
-            ).encode('utf8','replace')
-        elif part.get_content_type() == "text/html":
-            if html is None:
-                html = ""
-            html += unicode(
-                part.get_payload(decode=True),
-                part.get_content_charset(),
-                'replace'
-            ).encode('utf8','replace')
-
-    try:
-        dt = dateutil.parser.parse(msgobj.get('Date', None))
-        send_date = dt.astimezone(dateutil.tz.gettz('UTC')).strftime("%Y-%m-%d %H:%M:%S")
-    except:
-        send_date = ''
-    return {
-        'subject' : subject,
-        'body' : body,
-        'html' : html,
-        'from' : msgobj.get('From', ''), #parseaddr(msgobj.get('From'))[1],
-        'to' : msgobj.get('To', ''), ##parseaddr(msgobj.get('To'))[1],
-        'in_reply_to': msgobj.get('In-Reply-To', ''),
-        'reply_to': msgobj.get('Reply-To', ''),
-        'received_lines' : "\n".join(str(r) for r in msgobj.get_all('Received')),
-        'x_mailer': msgobj.get('X-Mailer', ''),
-        'send_date': send_date,
-        'attachments': attachments,
-    }
