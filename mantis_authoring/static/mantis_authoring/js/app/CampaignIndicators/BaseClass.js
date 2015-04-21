@@ -101,6 +101,8 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
                     // ind_namespace_ids will keep track of the newly generated indicators with their ids. We need this so we can put observables to these indicators, and observables only have the namespace, not the id
                     var add_to_ind = {};
                     var ind_namespace_ids = {};
+                    var new_obs_relations = [];
+                    var new_obs_relations_ids = {};
 
                     $.each(response.data, function(i,v){
                         if(v.object_class=='observable'){
@@ -120,6 +122,10 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
                             $.each(v.properties, function(i1,v1){
                                 $('[name="'+i1+'"]', el1.element).val(v1);
                             });
+
+                            if(v._create_relation_ref != undefined){
+                                new_obs_relations_ids[v._create_relation_ref] = el1;
+                            };
 
                             // Only log a message if we dont group to an indicator
                             if(v.object_namespace == undefined)
@@ -148,6 +154,8 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
 
                             // keep track of the new ids
                             ind_namespace_ids[v.object_namespace] = guid;
+                        }else if(v.object_class=='relationship'){
+                            new_obs_relations.push(v);
                         }
                     });
 
@@ -159,6 +167,14 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
                                 instance.indicator_registry[indicator_id].observables.push(v1);
                         });
                         log_message('Created indicator group '+ indicator_id +' and added '+ v.length  +' observables to it', 'success', 5000);
+                    });
+
+                    $.each(new_obs_relations, function(i3,v3){
+                        var src = new_obs_relations_ids[v3['source_create_relation_ref']];
+                        var tgt = new_obs_relations_ids[v3['target_create_relation_ref']];
+                        var lbl = v3['object_type'];
+
+                        src.relations.push({label: lbl, target: tgt.observable_id});
                     });
 
                     // Validate observables

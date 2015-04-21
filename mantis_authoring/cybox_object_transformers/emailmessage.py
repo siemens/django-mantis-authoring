@@ -1,4 +1,4 @@
-
+import json
 
 from cybox.objects import email_message_object, address_object
 
@@ -9,6 +9,8 @@ from django import forms
 
 from django.utils.dateparse import parse_datetime
 
+import mantis_authoring.EmailObjectFunctions as EOF
+
 class Base(transformer_object):
     # We factor out helper functions that might be used
     # by serveral variants (at time of writing, there
@@ -16,24 +18,51 @@ class Base(transformer_object):
 
     def create_cybox_email_header_part(self, properties):
         cybox_email_header = email_message_object.EmailHeader()
-        """ recipients """
+
+        """ Sender """
+        if properties['from_'].strip():
+            cybox_email_header.from_ = address_object.EmailAddress(properties['from_'])
+        
+        """ Recipients """
         if properties['to'].strip():
             recipient_list = email_message_object.EmailRecipients()
             for recipient in properties['to'].splitlines(False):
                 recipient_list.append(address_object.EmailAddress(recipient.strip()))
             cybox_email_header.to = recipient_list
-        """ sender """
-        if properties['from_'].strip():
-            cybox_email_header.from_ = address_object.EmailAddress(properties['from_'])
-        """ subject """
+            
+        """ Subject """
         if properties['subject'].strip():
             cybox_email_header.subject = String(properties['subject'])
-        """ in reply to """
+            
+        """ In-Reply-To """
         if properties['in_reply_to'].strip():
             cybox_email_header.in_reply_to = String(properties['in_reply_to'])
-        """ send date """
+
+        """ Reply-To """
+        if properties['reply_to'].strip():
+            cybox_email_header.reply_to = String(properties['reply_to'])        
+            
+        """ Send date """
         if properties['send_date']:
             cybox_email_header.date = parse_datetime(properties['send_date'])
+
+        """ X-Mailer """
+        if properties['x_mailer']:
+            cybox_email_header.x_mailer = String(properties['x_mailer'])
+
+        """ Received Lines """
+        if properties['received_lines']:
+            # TODO
+            rdb = EOF.ReceivedDB()
+            try:
+                rl = json.loads(properties['received_lines'])
+                for line in rl:
+                    (helo, ident, rDNS, ip, by) = rdb.parse(line)
+            except:
+                pass
+
+            
+            
         return cybox_email_header
 
 
@@ -56,6 +85,9 @@ class TEMPLATE_Default(Base):
         in_reply_to = forms.CharField(max_length=1024,
                                       required=False,
                                       help_text = "Message ID of the message that this email is a reply to." )
+        reply_to = forms.CharField(max_length=1024,
+                                      required=False,
+                                      help_text = "Reply-To address set in header." )
         send_date = forms.DateTimeField(required=False,
                                         help_text = "Date/time that the email message was sent.")
 
@@ -67,8 +99,9 @@ class TEMPLATE_Default(Base):
                                             " in the observable pool and relate it to this EmailMessage using"
                                             " the 'contained_in' relation. The latter is preferable if you may"
                                             " want to also relate the URI with other objects, as well.")
-
-
+        received_lines = forms.CharField(widget=forms.HiddenInput(), required=False)
+        x_mailer = forms.CharField(widget=forms.HiddenInput(), required=False)
+        
 
     def process_form(self, properties,id_base=None,namespace_tag=None):
 
@@ -90,12 +123,10 @@ class TEMPLATE_Default(Base):
 
             counter = 0
             for link in links:
-
                 if link.strip():
                     obj_id_base = self.create_derived_id(id_base,
                                                      fact=link.strip(),
                                                      counter=counter
-
                     )
                     counter +=1
 
@@ -103,15 +134,11 @@ class TEMPLATE_Default(Base):
                     link_objects.append((obj_id_base,uri_obj))
 
         if link_objects:
-
             email_links = email_message_object.Links()
             for (id_base,obj) in link_objects:
                 id_ref = self.form_id_from_id_base(obj,namespace_tag,id_base)
                 email_links.append(email_message_object.LinkReference(id_ref))
-
-                cybox_email.links = email_links
-
-            # The user has specified
+            cybox_email.links = email_links
 
         return {'type': 'obj_with_subobjects',
                 'main_obj_properties_instance': cybox_email,

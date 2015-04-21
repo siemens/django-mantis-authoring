@@ -6,9 +6,6 @@ class file_analyzer(file_object):
     """
     Returns a generic file object.
     """
-    def test_object(self):
-        return True
-
 
     object_classes = ['file']
     def test_object(self):
