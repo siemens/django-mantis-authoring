@@ -43,6 +43,7 @@ setup(
         'django-mantis-stix-importer>=0.3.0,<0.4.0',
         'xlwt>=0.7.5',
         'xlrd>=0.9.3',
+        'olefile>=0.42.1'
     ],
     license="GPLv2+",
     zip_safe=False,
