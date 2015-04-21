@@ -1032,7 +1032,7 @@ class IndicatorListTemplate(AuthoringMethodMixin,View):
 
         # Write the type and source help text somewhere to the right
         ws.write(1, len(headers) + 2, "Valid values for the TYPE column: " + ", ".join(indicator_list.file_analyzer.object_type_mapping.keys()))
-        ws.write(2, len(headers) + 2, "Valid values for the SORUCE column: " + ", ".join(allowed_namespaces))
+        ws.write(2, len(headers) + 2, "Valid values for the SOURCE column: " + ", ".join(allowed_namespaces))
         
 
         f = StringIO()
