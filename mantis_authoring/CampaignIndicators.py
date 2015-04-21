@@ -724,8 +724,8 @@ class stixTransformer:
                     observables_of_indicator.append(obs_rel)
 
             obs_composition = ObservableComposition(
-            operator=indicator['indicator_operator'],
-            observables=observables_of_indicator
+                operator=indicator['indicator_operator'],
+                observables=observables_of_indicator
             )
 
 

@@ -88,16 +88,13 @@ define(['jquery', 'datetimepicker'],function($){
 	    ref.find('#id_object_id').val(item.value);
 	    ref.find('#id_label').val(item.label);
 
-	    var cdc = $('<div>').addClass('dda-threatactor-template clearfix');
-	    cdc.prepend(
-		$('<span></span>').text(' ('+ item.value +')').prepend($('<strong>').text(item.label))
-	    );
-	    cdc.prepend(
-		$('<i class="ui-icon ui-icon-close pull-left"></i>').click(function(e){
+	    var cdc = $('<div>').addClass('dda-threatactor-template dda-add-element clearfix');
+            cdc.append($('<img src="/static/mantis_stix_importer/img/icons/threat_actor.svg" type="image/svg+xml" class="pull-left" style="width:30px; margin-right:5px"/>'));
+	    cdc.append($('<span></span>').text(' ('+ item.value +')').prepend($('<strong>').text(item.label)));
+	    cdc.append($('<i class="ui-icon ui-icon-close pull-right"></i>').click(function(e){
 		    $('.dda-threatactor-template', '#dda-campaign-container').first().replaceWith(instance._old_threat_actor_element);
 		    instance.cam_bind_reference_completer();
-		})
-	    );
+		}) );
 
 	    cdc.prepend(ref);
 	    instance._old_threat_actor_element = $('.dda-threatactor-template', '#dda-campaign-container').first().replaceWith(cdc);
@@ -117,16 +114,13 @@ define(['jquery', 'datetimepicker'],function($){
 	    ref.find('#id_object_id').val(item.value);
 	    ref.find('#id_label').val(item.label);
 
-	    var cdc = $('<div>').addClass('dda-campaign-template clearfix');
-	    cdc.prepend(
-		$('<span></span>').text(' ('+ item.value +')').prepend($('<strong>').text(item.label))
-	    );
-	    cdc.prepend(
-		$('<i class="ui-icon ui-icon-close pull-left"></i>').click(function(e){
+	    var cdc = $('<div>').addClass('dda-campaign-template dda-add-element clearfix');
+            cdc.append($('<img src="/static/mantis_stix_importer/img/icons/campaign.svg" type="image/svg+xml" class="pull-left" style="width:30px; margin-right:5px"/>'));
+	    cdc.append($('<span></span>').text(' ('+ item.value +')').prepend($('<strong>').text(item.label)));
+	    cdc.append($('<i class="ui-icon ui-icon-close pull-right"></i>').click(function(e){
 		    $('.dda-campaign-template', '#dda-campaign-container').first().replaceWith(instance._old_campaign_element);
 		    instance.cam_bind_reference_completer();
-		})
-	    );
+		}) );
 	    
 	    cdc.prepend(ref);
 	    instance._old_campaign_element = $('.dda-campaign-template', '#dda-campaign-container').first().replaceWith(cdc);
