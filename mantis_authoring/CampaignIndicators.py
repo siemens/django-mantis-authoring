@@ -20,15 +20,12 @@
 #
 
 
-import os, datetime, tempfile, importlib, json, pytz, copy, hashlib
-import xlwt
-from lxml import etree
+import os, datetime, tempfile, importlib, json, pytz, copy, hashlib, xlwt, copy
 from StringIO import StringIO
 from base64 import b64decode
-from uuid import uuid4
+from lxml import etree
 from querystring_parser import parser
-
-
+from uuid import uuid4
 
 from django import forms
 from django.conf import settings
@@ -36,28 +33,27 @@ from django.core.cache import caches
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.core.urlresolvers import reverse
 from django.db.models import Q
+from django.http import HttpResponse
 from django.templatetags.static import static
+from django.utils.html import conditional_escape
 from django.views.generic import View
 from django.views.generic.edit import FormView
-from django.http import HttpResponse
-from django.utils.html import conditional_escape
-
 
 import cybox.utils
-from cybox.core import Observable, Observables, Object, ObservableComposition
 from cybox.common import String, Time, ToolInformation, ToolInformationList
+from cybox.core import Observable, Observables, Object, ObservableComposition
 
 import stix.utils
-from stix.core import STIXPackage, STIXHeader
-from stix.common.kill_chains import KillChainPhase
-from stix.common import InformationSource, Confidence, Identity, Activity, DateTimeWithPrecision, StructuredText as StixStructuredText, VocabString as StixVocabString
-from stix.common.identity import RelatedIdentities
-from stix.indicator import Indicator
-from stix.extensions.test_mechanism.open_ioc_2010_test_mechanism import OpenIOCTestMechanism
-from stix.extensions.test_mechanism.snort_test_mechanism import SnortTestMechanism
-from stix.extensions.marking.tlp import TLPMarkingStructure
 from stix.bindings.extensions.marking.tlp import TLPMarkingStructureType
 from stix.campaign import Campaign, Names, AssociatedCampaigns, Attribution
+from stix.common import InformationSource, Confidence, Identity, Activity, DateTimeWithPrecision, StructuredText as StixStructuredText, VocabString as StixVocabString
+from stix.common.identity import RelatedIdentities
+from stix.common.kill_chains import KillChainPhase
+from stix.core import STIXPackage, STIXHeader
+from stix.extensions.marking.tlp import TLPMarkingStructure
+from stix.extensions.test_mechanism.open_ioc_2010_test_mechanism import OpenIOCTestMechanism
+from stix.extensions.test_mechanism.snort_test_mechanism import SnortTestMechanism
+from stix.indicator import Indicator
 
 # 'Name' has been removed in STIX 1.1.1
 try:
@@ -65,21 +61,21 @@ try:
 except:
     from stix.campaign import Name
 
-from stix.threat_actor import ThreatActor, AssociatedActors
 from stix.data_marking import Marking, MarkingSpecification
 
+from .file_analysis import indicator_list
+from .view_classes import BasicSTIXPackageTemplateView
+from dingos import DINGOS_DEFAULT_ID_NAMESPACE_URI, DINGOS_TEMPLATE_FAMILY
+from dingos.core.utilities import dict_map
+from dingos.models import IdentifierNameSpace
+from dingos.view_classes import BasicJSONView
+from dingos_authoring.models import AuthoredData
+from dingos_authoring.view_classes import BasicProcessingView, AuthoringMethodMixin
+from dingos_authoring.views import GetDraftJSON
 from mantis_stix_importer.importer import STIX_Import
 from mantis_stix_importer.templatetags.mantis_stix_importer_tags import get_StixIcon
-from dingos import DINGOS_DEFAULT_ID_NAMESPACE_URI, DINGOS_TEMPLATE_FAMILY
-from dingos.view_classes import BasicJSONView
-from dingos.models import IdentifierNameSpace
-from dingos_authoring.view_classes import BasicProcessingView, AuthoringMethodMixin
-from dingos_authoring.models import AuthoredData
-from .view_classes import BasicSTIXPackageTemplateView
 
-from dingos.core.utilities import dict_map
 
-from .file_analysis import indicator_list
 
 
 FORM_VIEW_NAME = 'url.mantis_authoring.transformers.stix.campaign_indicators'
@@ -92,6 +88,12 @@ def escape_descriptions(path,v):
             return v
     else:
         return v
+
+
+
+    
+class GetDraft(GetDraftJSON):
+    author_view = FORM_VIEW_NAME
 
 
 class FormView(BasicSTIXPackageTemplateView):
@@ -198,8 +200,8 @@ class FormView(BasicSTIXPackageTemplateView):
         indicator_description = forms.CharField(widget=forms.Textarea, required=False)
         indicator_confidence = forms.ChoiceField(choices=CONFIDENCE_TYPES, required=False, initial="med")
         indicator_operator = forms.ChoiceField(choices=OPERATOR_TYPES, required=False, initial="OR",
-                                               help_text="Chose 'OR' if any of the observables in the indicator by themselves are indicative of an attack; "
-                                                         "chose 'AND' if the observables in this indicator must be present 'together'.")
+                                               help_text="Choose 'OR' if any of the observables in the indicator by themselves are indicative of an attack; "
+                                                         "choose 'AND' if the observables in this indicator must be present 'together'.")
         kill_chain_phase = forms.ChoiceField(choices=KILL_CHAIN_TYPES, required=False, initial="Unknown")
 
     class TestMechanismIOC(forms.Form):
@@ -235,13 +237,9 @@ class FormView(BasicSTIXPackageTemplateView):
         context = super(FormView, self).get_context_data(**kwargs)
 
         indicatorForms = [self.StixIndicator]
-        campaignForms = [self.StixCampaign, self.StixCampaignReference]
-        threatActorForms = [self.StixThreatActor, self.StixThreatActorReference]
         testMechanismForms = [self.TestMechanismIOC, self.TestMechanismSnort]
 
         context['indicatorForms'] = indicatorForms
-        context['campaignForms'] = campaignForms
-        context['threatActorForms'] = threatActorForms
         context['testMechanismForms'] = testMechanismForms
 
         return context
@@ -343,7 +341,6 @@ class stixTransformer:
         self.stix_indicators = []
         self.test_mechanisms = []
         self.campaign = None
-        self.threatactor = None
         self.indicators = {}
         self.observables = {}
         self.bulk_observable_mapping = {}
@@ -365,15 +362,17 @@ class stixTransformer:
         try:
             campaign = self.jsn['campaign']
         except:
-            print "Error. No threat campaigns passed."
+            print "Error. No campaign passed."
             return
 
-        try:
-            threatactor = campaign['threatactor']
-        except:
-            print "Error. No threat actor passed."
-            return
+        ##################################################
+        ########## TODO: implement ref to TA
+        return 
+        ##################################################
+        
 
+
+        
         # The campaign
         if campaign.get('object_type') == 'CampaignReference':
             camp = Campaign()
@@ -466,23 +465,23 @@ class stixTransformer:
 
     def __create_test_mechanism_object(self, test):
         """
-        Helper function which creates a test mechansim object according to the passed object type.
-        'full' specifies if the structure should be filled, otherweise an empty object is returned (used for referencing)
+        Helper function which creates a test mechansim object according to the
+        passed object type. 
+
         """
 
         tm = False
 
         if test['object_subtype'] == 'IOC':
-            tm = OpenIOCTestMechanism(test['test_mechanism_id'])
+            tm = OpenIOCTestMechanism(self.gen_slugged_id(test['test_mechanism_id']))
             try:
                 ioc = test['ioc_xml']
-                ioc_xml = etree.parse(StringIO(b64decode(ioc)))
-                tm.ioc = ioc_xml
+                tm.ioc = etree.parse(StringIO(b64decode(ioc)))
             except Exception as e:
                 print 'XML of "%s" not valid: %s' % (test['ioc_title'], str(e))
 
         elif test['object_subtype'] == 'SNORT':
-            tm = SnortTestMechanism(test['test_mechanism_id'])
+            tm = SnortTestMechanism(self.gen_slugged_id(test['test_mechanism_id']))
             tm.rules = b64decode(test['snort_rules']).splitlines()
 
         return tm
@@ -700,14 +699,10 @@ class stixTransformer:
         for indicator in indicators:
             stix_indicator = self.__create_stix_indicator(indicator)
             related_observables = indicator['related_observables']
-            related_test_mechanisms = indicator['related_test_mechanisms']
-
+            related_test_mechanisms = [self.gen_slugged_id(rtm) for rtm in indicator['related_test_mechanisms']]
 
             # Add the observables to the indicator
-
             observables_of_indicator = []
-
-
             for related_observable_id in related_observables:
                 related_observable_id = self.gen_slugged_id(related_observable_id)
                 if related_observable_id in self.bulk_observable_mapping:
@@ -742,7 +737,7 @@ class stixTransformer:
             stix_indicator.add_observable(top_obs)
 
 
-            # TODO: Not dealing with references, yet!
+            # TODO: Not dealing with references yet!
             # Add observable references to the indicator
             #for obs_ref in self.cybox_observable_references:
             #    obs_rel = Observable()
@@ -816,8 +811,7 @@ class stixTransformer:
         stix_package = STIXPackage(
             indicators=stix_indicators,
             observables=Observables(self.cybox_observable_list),
-            id_=stix_id.decode('utf-8').encode('ascii'),
-            threat_actors=self.threatactor)
+            id_=stix_id.decode('utf-8').encode('ascii'))
         stix_header = STIXHeader()
         stix_header.title = stix_properties['stix_header_title']
         stix_header.description = stix_properties['stix_header_description']

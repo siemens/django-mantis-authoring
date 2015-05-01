@@ -92,7 +92,7 @@ Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
       <li><a href="#dda-tab-indicator">Indicator Grouping</a></li>
       <li><a href="#dda-tab-observable-relations">Indicator Relations</a></li>
       <li><a href="#dda-tab-test-mechanisms">Snort/IOC Rules</a></li>
-      <li><a href="#dda-tab-campaign">Threat Actor/Campaign Info</a></li>
+      <li><a href="#dda-tab-campaign">Campaign</a></li>
     </ul>
 
 
@@ -100,7 +100,25 @@ Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
     <div id="dda-tab-campaign" class="l-2cr-fluid l-d-12">
       <div class="grp-module">
         <h2 class="clearfix">Campaign Information</h2>
-        <div class="grp-row" id="dda-campaign-container"></div>
+        <div class="grp-row" id="dda-campaign-container">
+          <table>
+            <tbody>
+              <tr>
+                <th style="width:20%;">Autocomplete Campaign:</th>
+                <th><input id="dda-campaign-input" type="text" style="width:100%;"></th>
+              </tr>
+            </tbody>
+          </table>
+          <input id="dda-campaign-selected_id" type="hidden">
+
+          <div id="dda-campaign-prev" class="dda-add-element clearfix" style="margin-top:15px; display:none;">
+            <i id="dda-campaign-prev-remove" class="ui-icon ui-icon-close pull-right"></i>
+            <img src="/static/mantis_stix_importer/img/icons/campaign.svg" type="image/svg+xml" class="pull-left" style="width:30px; margin-right:5px"/>
+            <h3 id="dda-campaign-prev-title"></h3>
+            <span id="dda-campaign-prev-title_sub"></span>
+          </div>
+
+        </div>
       </div>
     </div>
 

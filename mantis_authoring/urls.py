@@ -27,11 +27,16 @@ urlpatterns = [
     url(r'^Templates/CampaignIndicators/transform$', CampaignIndicators.ProcessingView.as_view()),
     url(r'^Templates/CampaignIndicators/upload$', CampaignIndicators.UploadFile.as_view(), name="url.mantis_authoring.upload_file"),
     url(r'^Templates/CampaignIndicators/IndicatorListTemplate$', CampaignIndicators.IndicatorListTemplate.as_view(), name="url.mantis_authoring.indicator_list_template"),
+    url(r'^Templates/CampaignIndicators/load$', CampaignIndicators.GetDraft.as_view()),
+    
 
-
-    # 'Manage Campaign/ThreatActor' Authoring
-    url(r'^Templates/CampaignMaintenance/$', CampaignMaintenance.FormView.as_view(), name=CampaignMaintenance.FORM_VIEW_NAME),
-    url(r'^Templates/CampaignMaintenance/transform$', CampaignMaintenance.ProcessingView.as_view()),
+    # 'Campaign/TA Maintenance' Authoring
+    url(r'^Templates/CampaignMaintenance/$', CampaignMaintenance.FormView.as_view(), name=CampaignMaintenance.FORM_VIEW_NAME_CAMPAIGN),
+    url(r'^Templates/CampaignMaintenance/transform_campaign$', CampaignMaintenance.CampaignProcessingView.as_view()),
+    url(r'^Templates/CampaignMaintenance/transform_threatactor$', CampaignMaintenance.ThreatActorProcessingView.as_view()),
+    url(r'^Templates/CampaignMaintenance/get_ref_tas$', CampaignMaintenance.GetRefThreatActors.as_view()),
+    url(r'^Templates/CampaignMaintenance/load_campaign$', CampaignMaintenance.GetDraftCampaign.as_view()),
+    url(r'^Templates/CampaignMaintenance/load_threatactor$', CampaignMaintenance.GetDraftThreatActor.as_view()),
     
 
     url(r'/ref$', views.GetAuthoringObjectReference.as_view(), name="url.mantis_authoring.ref"),

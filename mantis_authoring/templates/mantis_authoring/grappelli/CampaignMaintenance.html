@@ -1,0 +1,174 @@
+{% extends "mantis_authoring/grappelli/base.html" %}
+
+{% comment %}
+Copyright (c) Siemens AG, 2013
+
+This file is part of MANTIS.  MANTIS is free software: you can
+redistribute it and/or modify it under the terms of the GNU General Public
+License as published by the Free Software Foundation; either version 2
+of the License, or(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc., 51
+Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+{% endcomment %}
+
+{% load staticfiles %}
+
+{% block javascripts %}
+{{ block.super }}
+<script>
+  var data_main = '{% static 'mantis_authoring/js/app/CampaignMaintenance/' %}';
+</script>
+<script src="{% static 'mantis_authoring/js/CampaignMaintenance.js' %}"></script>
+{% endblock javascripts %}
+
+
+{% block content %}
+<div id="dda-messages">
+  <ul class="grp-messagelist">
+  </ul>
+</div>
+
+<div id="dda-main-container" style="display:none;">
+
+  <div id="dda-container-tabs">
+    <ul>
+      <li><a href="#dda-tab-campaign">Campaigns</a></li>
+      <li><a href="#dda-tab-threatactor">Threat Actors</a></li>
+    </ul>
+
+
+    <div id="dda-tab-campaign" class="l-2cr-fluid l-d-12">
+      <div class="grp-row" id="dda-campaign-container">
+
+        <div class="grp-module">
+          <h2>Maintain or create a campaign</h2>
+
+          <div id="dda-campaign-container-step1" style="text-align:center; padding: 10px;" class="grp-row">
+            <span>Select an</span> <select style="margin:0 5px;"><option>Existing Campaign</option></select>
+            <span> or create a</span> <button id="dda-campaign-container-step1_new" style="width:auto;; margin:0 5px; padding-right:5px;">New Campaign</button>
+          </div>
+
+          <div id="dda-campaign-container-step2" style="text-align:center; display:none;" class="grp-row">
+            <div class="dda-campaign-template" id="dda-campaign-template_{{ campaignForm.object_type.value }}">
+              <table>
+                {{ campaignForm.as_table }}
+              </table>
+            </div>
+            <button style="margin-top:10px;">Next</button>
+          </div>
+
+
+          <div id="dda-campaign-container-step3" style="display:none;" class="grp-row">
+            <div class="dda-add-element">
+              <div class="clearfix" style="margin-bottom:5px;">
+                <h3 class="campaign_title"></h3>
+              </div>
+              <div class="clearfix ind_pool_toggle_container">
+
+
+                <div class="pull-left" style="min-height:284px;width:33%;">
+                  <span>Create new ThreatActor</span>
+                  <div class="dda-threatactor-template" id="dda-threatactor-template_{{ threatActorForm.object_type.value }}">
+                    <table>
+                      {{ threatActorForm.as_table }}
+                    </table>
+                  </div>
+                  <button id="add_ta" style="margin-top:10px;">Create</button>
+                </div>
+
+
+                <div class="pull-left" style="width:33%;">
+                  <div class="grp-row">
+                    <p>Select ThreatActors referenced by campaign "<span class="campaign_title"></span>"</p>
+                    <div>
+                      <input type="text" placeholder="Filter list below" class="ind_pool_sel_listfilter" style="width:100%;">
+                      <div id="dda-campaign-container-step3_ta-list" class="ind_pool_sel_list">
+                        <div class="ta-list-new">
+                          <span style="font-weight:bold;font-style:italic;">Authored ThreatActors</span>
+                        </div>
+                        <div class="ta-list-ref">
+                          <span style="font-weight:bold;font-style:italic;">Existing ThreatActors</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
+                <div class="pull-left" style="width:33%;">
+                  <span>ThreatActors summary</span>
+                  <div class="ind_pool_sel_result">
+                    <div class="dda-add-element clearfix">
+                      <img src="/static/mantis_stix_importer/img/icons/campaign.svg" type="image/svg+xml" class="pull-left" style="width:30px; margin-right:5px"/>
+                      <h3 class="campaign_title"></h3>
+                      <ul class="ta-list-new-result" style="margin-left:35px;"></ul>
+                      <ul class="ta-list-ref-result" style="margin-left:35px;"></ul>
+                    </div>
+                  </div>
+                </div>
+
+
+
+              </div>
+
+
+            </div>
+
+            <button id="submit-import-mantis" style="margin-top:20px; width: auto;" class="pull-left">Submit & Import to MANTIS</button>
+            <button id="save-release" style="margin-top:20px; width: auto;" class="pull-left">Save & Release</button>
+            <button id="save-noimport" style="margin-top:20px; width: auto;" class="pull-left">Save (no import)</button>
+            <button id="view-stix" style="margin-top:20px; width: auto;" class="pull-right">View STIX</button>
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div id="dda-tab-threatactor" class="l-2cr-fluid l-d-12">
+      <div class="grp-module">
+        <h2 class="clearfix">ThreatActors</h2>
+        <div id="dda-threatactor-container" class="grp-row" >
+
+          <div class="pull-left" style="width:50%;">
+            <div class="grp-row">
+              <p>Select a ThreatActors for editing</p>
+              <div>
+                <input type="text" placeholder="Filter list below" class="ind_pool_sel_listfilter" style="width:100%;">
+                <div id="dda-threatactor-container-ta-list" class="ind_pool_sel_list">
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pull-left" style="min-height:284px;width:50%;">
+            <div class="grp-row">
+              <p>&nbsp;</p>
+              <div class="dda-threatactor-template" id="dda-threatactor-template_{{ threatActorForm.object_type.value }}-edit">
+                <table>
+                  {{ threatActorForm.as_table }}
+                </table>
+              </div>
+              <button id="ta_action" style="margin-top:10px;" data-action="edit">Edit</button>
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+</div>
+{% endblock content %}
