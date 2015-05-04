@@ -351,7 +351,7 @@ class stixThreatActorTransformer:
 
         # Create the package
         ta = self.create_ta_obj(self.jsn)
-        stix_package = STIXPackage(id_=self.jsn.get('id').replace('threatactor-', 'Package-'),
+        stix_package = STIXPackage(id_=ta._id.replace('threatactor-', 'Package-'),
                                    threat_actors=ta)
         self.stix_package = stix_package.to_xml(ns_dict=self.namespace_map,
                                                 auto_namespace=True)
