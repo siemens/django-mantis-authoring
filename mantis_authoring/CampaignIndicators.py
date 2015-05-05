@@ -473,16 +473,15 @@ class stixTransformer:
         tm = False
 
         if test['object_subtype'] == 'IOC':
-            tm = OpenIOCTestMechanism(test['test_mechanism_id'])
+            tm = OpenIOCTestMechanism(self.gen_slugged_id(test['test_mechanism_id']))
             try:
                 ioc = test['ioc_xml']
-                ioc_xml = etree.parse(StringIO(b64decode(ioc)))
-                tm.ioc = ioc_xml
+                tm.ioc = etree.parse(StringIO(b64decode(ioc)))
             except Exception as e:
                 print 'XML of "%s" not valid: %s' % (test['ioc_title'], str(e))
 
         elif test['object_subtype'] == 'SNORT':
-            tm = SnortTestMechanism(test['test_mechanism_id'])
+            tm = SnortTestMechanism(self.gen_slugged_id(test['test_mechanism_id']))
             tm.rules = b64decode(test['snort_rules']).splitlines()
 
         return tm
@@ -700,14 +699,10 @@ class stixTransformer:
         for indicator in indicators:
             stix_indicator = self.__create_stix_indicator(indicator)
             related_observables = indicator['related_observables']
-            related_test_mechanisms = indicator['related_test_mechanisms']
-
+            related_test_mechanisms = [self.gen_slugged_id(rtm) for rtm in indicator['related_test_mechanisms']]
 
             # Add the observables to the indicator
-
             observables_of_indicator = []
-
-
             for related_observable_id in related_observables:
                 related_observable_id = self.gen_slugged_id(related_observable_id)
                 if related_observable_id in self.bulk_observable_mapping:
