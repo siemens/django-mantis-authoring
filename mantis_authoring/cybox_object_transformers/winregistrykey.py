@@ -24,13 +24,13 @@ class TEMPLATE_Default(transformer_object):
                               required = True,
                               help_text = "The registry key")
         name = forms.CharField(max_length = 1024,
-                               required = True,
+                               required = False,
                                help_text = "The cell name")
         data = forms.CharField(max_length = 1024,
-                               required = True,
+                               required = False,
                                help_text = "The cell data")
         data_type = forms.CharField(max_length = 1024,
-                                    required = True,
+                                    required = False,
                                     help_text = "The cell data_type e.g. REG_SZ")
 
     def process_form(self, properties, id_base=None, namespace_tag=None):
