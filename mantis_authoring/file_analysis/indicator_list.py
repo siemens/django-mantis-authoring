@@ -20,6 +20,7 @@ class file_analyzer(file_object):
         'FILENAME': 'file',
         'EMAIL_FROM': 'emailmessage',
         'EMAIL_TO': 'emailmessage',
+        'EMAIL_SUBJECT': 'emailmessage',
         'URI': 'uri',
         'FQDN': 'uri',
         'WINSERVICE': 'winservice',
@@ -244,6 +245,10 @@ class file_analyzer(file_object):
             if otype == 'EMAIL_TO':
                 ret = {
                     'to': row['VALUE'].replace(';', "\n").replace(' ', "\n")
+                }
+            if otype == 'EMAIL_SUBJECT':
+                ret = {
+                    'subject': row['VALUE']
                 }                
 
 
