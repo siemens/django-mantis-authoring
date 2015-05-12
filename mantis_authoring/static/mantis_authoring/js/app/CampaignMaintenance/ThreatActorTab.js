@@ -42,6 +42,8 @@ define(['jquery', 'dust', 'mask', 'form2js'],function($, dust, mask, form2js){
                 var btn_action = ta_action_btn.attr('data-action'),
                     sel_selected = ipsl.find('.sel_option_selected'),
                     sel_id = sel_selected.attr('data-id');
+
+                if(instance.authored_tas[sel_id] == undefined) return false;
                 
                 if(btn_action=='edit'){
                     // Fetch current report from backend.
