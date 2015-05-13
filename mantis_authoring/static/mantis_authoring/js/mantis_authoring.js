@@ -360,7 +360,7 @@
         beforeSend: function(xhr, settings) {
             if (!csrfSafeMethod(settings.type) && sameOrigin(settings.url)) {
                 // Send the token to same-origin, relative URLs only.
-                // Send the token only if the method warrants CSRF protection
+                // Send the token only if the method warrants CSRF protectionrt
                 // Using the CSRFToken value acquired earlier
                 xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
             }
@@ -381,8 +381,11 @@
             });
         },
         _renderItem: function( ul, item ) {
+            var authored = '';
+            if(item.authored)
+                authored = 'Authored Item - ';
             return $( "<li>" )
-                .append( "<a>" + item.id + '<br><span class="dda-autocomplete-desc">' + item.label + '</span></a>')
+                .append('<a>' + authored + item.id + '<br><span class="dda-autocomplete-desc">' + item.label + '</span></a>')
                 .appendTo( ul );
         }
     });

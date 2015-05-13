@@ -84,7 +84,7 @@ define(['jquery'],function($){
                                     label: item.name,
                                     value: item.id,
                                     category: item.cat,
-                                    threatactor: item.threatactor
+                                    authored: item.authored
                                 }
                             }));
                         }

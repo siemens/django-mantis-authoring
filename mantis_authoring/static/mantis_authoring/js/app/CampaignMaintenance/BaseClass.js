@@ -88,7 +88,8 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
             $(div_s1).find('option[value]').remove();
             $(div_s2).find('input, select, textarea').not('[name^="I_"]').not('[type="hidden"]').val('');
             $(div_s3).find('input, select, textarea').not('[name^="I_"]').not('[type="hidden"]').val('');
-            $(ta_container).find('input, select, textarea').not('[name^="I_"]').not('[type="hidden"]').val('');
+            $(ta_container).find('input, select, textarea').not('[name^="I_"]').not('[type="hidden"]').val('').attr('readonly', false);
+            $(ta_container).find('.sel_option_selected').removeClass('sel_option_selected');
             self._last_save = false;
         },
 

@@ -21,7 +21,13 @@ define(['jquery', 'dust', 'mask', 'form2js'],function($, dust, mask, form2js){
                 var sel = $(this),
                     sel_id = sel.attr('data-id');
                 var sel_selected = ipsl.find('.sel_option_selected');
-                if(sel.is(sel_selected)) return;
+                if(sel.is(sel_selected)){
+                    $(ta_edit_form).find('input, select, textarea').not('[name^="I_"]').not('[type="hidden"]').val('').attr('readonly', false);
+                    ta_action_btn.find('.ui-button-text').text('Create ThreatActor');
+                    ta_action_btn.attr('data-action', 'new');
+                    sel_selected.removeClass('sel_option_selected');
+                    return;
+                }
                 sel_selected.removeClass('sel_option_selected');
 
                 sel.addClass('sel_option_selected');
@@ -32,7 +38,7 @@ define(['jquery', 'dust', 'mask', 'form2js'],function($, dust, mask, form2js){
                     t_el.attr('readonly', true);
                 });
 
-                ta_action_btn.text('Edit');
+                ta_action_btn.find('.ui-button-text').text('Edit');
                 ta_action_btn.attr('data-action', 'edit');
 
             });
@@ -41,10 +47,9 @@ define(['jquery', 'dust', 'mask', 'form2js'],function($, dust, mask, form2js){
             ta_action_btn.off('click').on('click', function(e){
                 var btn_action = ta_action_btn.attr('data-action'),
                     sel_selected = ipsl.find('.sel_option_selected'),
-                    sel_id = sel_selected.attr('data-id');
+                    sel_id = sel_selected.attr('data-id'),
+                    ta_json = form2js($('table', ta_edit_form).find('input, select, textarea').get(), undefined, false);
 
-                if(instance.authored_tas[sel_id] == undefined) return false;
-                
                 if(btn_action=='edit'){
                     // Fetch current report from backend.
                     $.get('load_threatactor', {name: instance.authored_tas[sel_id].jsn.uuid, force_take: force_take}, function(data){
@@ -61,10 +66,10 @@ define(['jquery', 'dust', 'mask', 'form2js'],function($, dust, mask, form2js){
 
                             // Set the button actions
                             var ta_action = 'release';
-                            ta_action_btn.text('Save');
+                            ta_action_btn.find('.ui-button-text').text('Save');
                             if(instance.authored_tas[ad_json.id].import_status != 0){
                                 ta_action = 'import';
-                                ta_action_btn.text('Import');
+                                ta_action_btn.find('.ui-button-text').text('Import');
                             };
                             ta_action_btn.attr('data-action', ta_action);
                             log_message(data.msg, 'success', 5000);
@@ -81,8 +86,52 @@ define(['jquery', 'dust', 'mask', 'form2js'],function($, dust, mask, form2js){
                         }
                     });
                     force_take = false;
+                }else if(btn_action=='new'){
+                    // Create a new threatactor
+                    ta_json['uuid'] = guid_gen();
+                    ta_json['id'] = "{" + instance.namespace_uri + '}threatactor-' + ta_json['uuid'];
+                    ta_json['ns'] = instance.namespace_uri;
+
+                    $.post('transform_threatactor',
+                           {'jsn': JSON.stringify(ta_json), 'submit_name': ta_json['identity_name'], 'id': ta_json['uuid'], 'action': 'generate save release'},
+                           function(data){
+                               if(data.status){
+                                   log_message('ThreatActor saved', 'success', 5000);
+                                   // Now load it again from the backend
+                                   $.get('load_threatactor', {name : ta_json['uuid']}, function(data){
+                                       if(data.status){
+                                           var dta = data.data;
+                                           var ad_json = $.parseJSON(dta.jsn);
+                                           dta['jsn'] = ad_json;
+                                           instance.authored_tas[ad_json.id] = dta;
+                                           var disp_name = dta.name;
+                                           if(dta.object_name != undefined) disp_name = dta.object_name;
+
+                                           var ta_list = $('#dda-threatactor-container-ta-list');
+
+                                           dust.render('ta_sel_option', {
+                                               id: dta.jsn.id,
+                                               name: disp_name,
+                                               identity_name: dta.jsn.identity_name,
+                                               aliases: dta.jsn.identity_aliases.replace('\n', ', '),
+                                               source: dta.jsn.ns,
+                                               selected: false
+                                           }, function(err, out){
+                                               out = $(out);
+                                               ta_list.prepend(out);
+                                           });
+
+                                           $(ta_edit_form).find('input, select, textarea').not('[name^="I_"]').not('[type="hidden"]').val('').attr('readonly', false);
+                                           ta_action_btn.find('.ui-button-text').text('Create ThreatActor');
+                                           ta_action_btn.attr('data-action', 'new');
+                                       }
+                                   },'json');
+
+
+                               }else
+                                   log_message(data.msg, 'error');
+                           }, 'json');
                 }else{
-                    var ta_json = form2js($('table', ta_edit_form).find('input, select, textarea').get(), undefined, false);
                     ta_json['uuid'] = instance.authored_tas[sel_id].jsn.uuid;
                     ta_json['id'] = instance.authored_tas[sel_id].jsn.id;
                     ta_json['ns'] = instance.authored_tas[sel_id].jsn.ns;
@@ -93,13 +142,16 @@ define(['jquery', 'dust', 'mask', 'form2js'],function($, dust, mask, form2js){
                                if(data.status){
                                    log_message(data.msg, 'success', 5000);
                                    instance.refresh_threatactor_tab();
+                                   $(ta_edit_form).find('input, select, textarea').not('[name^="I_"]').not('[type="hidden"]').attr('readonly', true);
+                                   ta_action_btn.find('.ui-button-text').text('Edit');
+                                   ta_action_btn.attr('data-action', 'edit');
                                }else
                                    log_message(data.msg, 'error');
                            }, 'json');
 
                 }
             });
-            
+
 
             instance.refresh_threatactor_tab();
         },
