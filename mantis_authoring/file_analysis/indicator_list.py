@@ -1,9 +1,9 @@
 from .__object_base__ import *
 
-import re
-import xlrd
-import csv
-import StringIO
+import re, StringIO
+import csv, xlrd
+import collections
+import ntpath
 
 from dingos.models import IdentifierNameSpace
 
@@ -27,7 +27,7 @@ class file_analyzer(file_object):
         'USERAGENT': 'httpsession'
         }
     required_columns = ['TYPE', 'VALUE', 'SOURCE']
-    optional_columns = ['DESCRIPTION']
+    optional_columns = ['DESCRIPTION', 'GROUP']
     column_index = {}
     file_type = ''
 
@@ -138,8 +138,17 @@ class file_analyzer(file_object):
         # In this we collect the indicators we need to crate in the front-end
         new_indicators = {}
 
+        # We create a dictionary to hold the grouped observables. The grouped
+        # objects are structured according to [group_id][object_type] so we can
+        # group matching lines according to their type (So even if there are
+        # items in one group with differing type, we can still group compatible
+        # items)
+        new_obs_grouped = dict()
+
         # Add the observables to the result
         for row in self.yield_row():
+            group = row.get('GROUP', '').strip()
+            
             object_type = self.map_object_type(row['TYPE'])
             if not object_type:
                 continue
@@ -152,16 +161,38 @@ class file_analyzer(file_object):
             # User has no permission to author this NS?
             if not ns_long in ns_info['allowed_ns_uris']:
                 continue
-            
-            new_indicators[ns_long] = True
-            res['data'].append({
+
+            new_obs = {
                 'object_class': 'observable',
                 'object_type': object_type,
                 'object_subtype': 'Default',
                 'properties': self.create_object_properties(row),
                 'object_namespace': ns_long
-            });
+            }
+            
+            if group:
+                if group in new_obs_grouped:
+                    # Group already exists
+                    if object_type in new_obs_grouped[group]:
+                        # Group and object match. Lets merge the properties
+                        new_obs_grouped[group][object_type] = self.updateDict(new_obs_grouped[group][object_type], new_obs)
+                    else:
+                        # Group exists but not with this object type. Create new
+                        new_obs_grouped[group][object_type] = new_obs
+                else:
+                    # No items yet in this group. Create new
+                    new_obs_grouped[group] = dict()
+                    new_obs_grouped[group][object_type] = new_obs
+            else:
+                # add to the normal obs
+                res['data'].append(new_obs);
+            new_indicators[ns_long] = True
 
+        # Add the grouped observables to the result
+        for group_name, group_item in new_obs_grouped.iteritems():
+            for g_object_type, g_item in group_item.iteritems():
+                res['data'].append(g_item)
+            
         # Add the indicators to the result
         for ni in new_indicators:
             res['data'].append({
@@ -228,9 +259,12 @@ class file_analyzer(file_object):
                     ret['sha1'] = row['VALUE']
                 elif len(row['VALUE']) == 64:
                     ret['sha1'] = row['VALUE']
-                ret['dda-observable-title'] = 'Unknown file with hash "%s"' % (row['VALUE'])
+                ret['dda-observable-title'] = 'File with hash "%s"' % (row['VALUE'])
             elif otype == 'FILENAME':
-                ret['file_name'] = row['VALUE']
+                fname = row['VALUE']
+                ret['file_name'] = ntpath.basename(fname)
+                ret['file_path'] = fname
+                #ret['file_path'] = ntpath.dirname(fname)
                 ret['dda-observable-title'] = 'File "%s"' % (row['VALUE'])
 
 
@@ -293,3 +327,19 @@ class file_analyzer(file_object):
             ret['dda-observable-description'] = row['DESCRIPTION']
             
         return ret
+
+
+
+
+    def updateDict(self, d, u):
+        for k,v in u.iteritems():
+            if isinstance(v, collections.Mapping):
+                r = self.updateDict(d.get(k, {}), v)
+                d[k] = r
+            else:
+                if type(u[k]) is str and u[k].strip() == '':
+                    continue
+                d[k] = u[k] 
+        return d
+
+                

@@ -1027,6 +1027,7 @@ class IndicatorListTemplate(AuthoringMethodMixin,View):
         # Write the type and source help text somewhere to the right
         ws.write(1, len(headers) + 2, "Valid values for the TYPE column: " + ", ".join(indicator_list.file_analyzer.object_type_mapping.keys()))
         ws.write(2, len(headers) + 2, "Valid values for the SOURCE column: " + ", ".join(allowed_namespaces))
+        ws.write(3, len(headers) + 2, "GROUP column: This allows you to group rows belonging together so they will end up in the same indicator. Rows belonging together will be identified by having equal values in the GROUP column. Note that context should make sense, so for example a FILENAME and a HASH would work, a FILENAME and an IP for example would not work. ")
         
 
         f = StringIO()
