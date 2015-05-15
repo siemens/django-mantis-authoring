@@ -148,14 +148,14 @@ class file_analyzer(file_object):
 
         # Add the observables to the result
         for row in self.yield_row():
-            group = row.get('GROUP', '').strip()
+            group = str(row.get('GROUP', '')).strip()
             
-            object_type = self.map_object_type(row['TYPE'])
+            object_type = self.map_object_type(str(row['TYPE']))
             if not object_type:
                 continue
 
-            object_namespace = row['SOURCE']
-            ns_long = all_namespaces.get(row['SOURCE'].lower(), None)
+            object_namespace = str(row['SOURCE'])
+            ns_long = all_namespaces.get(object_namespace.lower(), None)
             # Namespace does not exits?
             if not ns_long:
                 continue
@@ -225,7 +225,7 @@ class file_analyzer(file_object):
 
     def create_object_properties(self, row):
         ret = {}
-        otype = row['TYPE'].upper()
+        otype = str(row['TYPE']).upper()
         object_type = self.map_object_type(otype)
 
 
@@ -242,7 +242,7 @@ class file_analyzer(file_object):
             ret = {
                 'ip_addr': row['VALUE'],
                 'category': 'ipv4-addr',
-                'dda-observable-title': 'IP Address "%s"' % (row['VALUE'])
+                'dda-observable-title': 'IP Address "%s"' % (str(row['VALUE']))
             }
             #TODO: determine the category of the element
 
@@ -259,6 +259,7 @@ class file_analyzer(file_object):
                 'sha256': ''
             }
             if otype == 'HASH':
+                row['VALUE'] = str(row['VALUE'])
                 if len(row['VALUE']) == 32:
                     ret['md5'] = row['VALUE']
                 elif len(row['VALUE']) == 40:
@@ -267,7 +268,7 @@ class file_analyzer(file_object):
                     ret['sha1'] = row['VALUE']
                 ret['dda-observable-title'] = 'File with hash "%s"' % (row['VALUE'])
             elif otype == 'FILENAME':
-                fname = row['VALUE']
+                fname = str(row['VALUE'])
                 ret['file_name'] = ntpath.basename(fname)
                 ret['file_path'] = fname
                 #ret['file_path'] = ntpath.dirname(fname)
@@ -284,7 +285,7 @@ class file_analyzer(file_object):
                 }
             if otype == 'EMAIL_TO':
                 ret = {
-                    'to': row['VALUE'].replace(';', "\n").replace(' ', "\n")
+                    'to': str(row['VALUE']).replace(';', "\n").replace(' ', "\n")
                 }
             if otype == 'EMAIL_SUBJECT':
                 ret = {
@@ -301,14 +302,14 @@ class file_analyzer(file_object):
             if otype == 'FQDN':
                 ret['type_'] = 'Domain Name'
             else:
-                if not '://' in row['VALUE']:
+                if not '://' in str(row['VALUE']):
                     ret['type_'] = 'General URN'
 
                     
                     
         if object_type == 'winservice':
             # Create a winservice object
-            if '.dll' in row['VALUE'].lower():
+            if '.dll' in str(row['VALUE']).lower():
                 ret = {
                     'service_dll': row['VALUE']
                 }
