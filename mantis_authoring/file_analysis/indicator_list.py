@@ -77,6 +77,7 @@ class file_analyzer(file_object):
             # f.seek(0) We dont seek back to the beginning, so we can skip the headline
             reader = csv.reader(f, delimiter=dialect.delimiter, quotechar=dialect.quotechar)
             for row in reader:
+                row.extend([''] * (len(self.column_index) - len(row))) # Extend the row to match the number of columns
                 try:
                     yield {col_name: row[col_index]
                            for col_name, col_index in self.column_index.iteritems()}
@@ -174,8 +175,13 @@ class file_analyzer(file_object):
                 if group in new_obs_grouped:
                     # Group already exists
                     if object_type in new_obs_grouped[group]:
-                        # Group and object match. Lets merge the properties
+                        # Group and object match. Lets merge the properties, but
+                        # preserve the description field
+                        tmp_desc = new_obs_grouped[group][object_type]['properties']['dda-observable-description']
+                        if tmp_desc != '':
+                            tmp_desc = tmp_desc + "\n"
                         new_obs_grouped[group][object_type] = self.updateDict(new_obs_grouped[group][object_type], new_obs)
+                        new_obs_grouped[group][object_type]['properties']['dda-observable-description'] = tmp_desc + new_obs_grouped[group][object_type]['properties']['dda-observable-description']
                     else:
                         # Group exists but not with this object type. Create new
                         new_obs_grouped[group][object_type] = new_obs
