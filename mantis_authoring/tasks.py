@@ -45,11 +45,9 @@ def export_to_actionables(top_level_iobject,
                           action_comment='Import of Report authored via GUI'):
     tags_to_add = []
 
-    print import_jsn
-
     if import_jsn:
-        report_type = import_jsn.get('stix_header',{}).get('stix_header_report_type')
-        header_title = import_jsn.get('stix_header',{}).get('stix_header_title')
+        report_type = import_jsn.get('stix_header',{}).get('stix_header_report_type', '')
+        header_title = import_jsn.get('stix_header',{}).get('stix_header_title', '')
         if  report_type in ['incident_report', 'investigation'] or header_title.startswith('CERT-'):
             if header_title:
                 possible_tag = check_tag_validity(header_title,

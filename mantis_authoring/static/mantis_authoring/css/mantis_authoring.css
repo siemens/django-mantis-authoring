@@ -87,7 +87,7 @@ button span {
     margin-top: 15px;
 }
 
-.dda-add-element h3 {
+.dda-add-element h3, .ind_pool_sel_list h3 {
     padding: 0;
     border: 0 none;
 }

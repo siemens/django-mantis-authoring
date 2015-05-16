@@ -10,6 +10,8 @@ from dingos import DINGOS_INTERNAL_IOBJECT_FAMILY_NAME
 from dingos.view_classes import BasicJSONView
 from dingos.models import InfoObject
 
+from dingos_authoring.models import AuthoredData
+
 from .utilities import name_cybox_obj, find_similar_cybox_obj
 
 
@@ -28,39 +30,56 @@ class GetAuthoringObjectReference(BasicJSONView):
         POST = self.request.POST
         post_dict = parser.parse(str(POST.urlencode()))
 
-
         object_element = post_dict.get('el', {})
-        object_type = object_element.get('object_type', None).lower().strip()
+
+        if type(object_element) is not dict:
+            object_element = parser.parse(object_element)
+
+        object_type = object_element.get('object_type', '').lower().strip()
         object_subtype = object_element.get('object_subtype', 'Default')
         queryterm = post_dict.get('q', '')
 
-        if not object_element or not object_type or object_type == '':
+        if not object_element or object_type == '':
             pass
         elif object_type == 'campaign':
-            q_q = Q(name__icontains=queryterm) & Q(iobject_type__name__icontains="Campaign")
+            # Get the authored objects with status 'import'
+            json_obj_l = AuthoredData.objects.filter(
+                kind = AuthoredData.AUTHORING_JSON,
+                latest = True,
+                author_view__name = 'url.mantis_authoring.transformers.stix.ct_maintenance_campaign',
+                status = AuthoredData.IMPORTED
+            ).prefetch_related('identifier','group','user').prefetch_related('top_level_iobject',
+                                                                             'top_level_iobject__identifier',
+                                                                             'top_level_iobject__identifier__namespace')
+            authored_campaigns = dict()
+            for ao in json_obj_l:
+                ta_jsn = json.loads(ao.content)
+                authored_campaigns['{'+ta_jsn['ns']+'}campaign-'+ta_jsn['uuid']] = True
+
+            # Query the imported objects
+            q_q = (Q(name__icontains=queryterm) | Q(identifier__uid=queryterm)) & Q(iobject_type__name__icontains="Campaign")
             data =  InfoObject.objects.all(). \
                     exclude(latest_of=None). \
                     exclude(iobject_family__name__exact=DINGOS_INTERNAL_IOBJECT_FAMILY_NAME). \
                     exclude(iobject_family__name__exact='ioc'). \
                     filter(q_q). \
                     distinct().order_by('name')[:10]
-            # TODO: fetch campaigns and associated threatactor from DB
-            res['data'] = map(lambda x : {'id': "{%s}%s" % (x.identifier.namespace.uri,x.identifier.uid),
-                                          'name': x.name,
-                                          'cat': str(x.iobject_type),
-                                          'threatactor': {}}, data)
+
+            for x in data:
+                r = {'id': "{%s}%s" % (x.identifier.namespace.uri,x.identifier.uid),
+                     'uuid': x.identifier.uid,
+                     'ns': x.identifier.namespace.uri,
+                     'name': x.name,
+                     'cat': str(x.iobject_type),
+                     'authored': False }
+                if r['id'] in authored_campaigns:
+                    r['authored'] = True
+                    res['data'].insert(0, r)
+                else:
+                    res['data'].append(r)
+
+            res['status'] = True
         
-            
-        elif object_type == 'threatactor':
-            q_q = Q(name__icontains=queryterm) & Q(iobject_type__name__icontains="ThreatActor")
-            data =  InfoObject.objects.all(). \
-                    exclude(latest_of=None). \
-                    exclude(iobject_family__name__exact=DINGOS_INTERNAL_IOBJECT_FAMILY_NAME). \
-                    exclude(iobject_family__name__exact='ioc'). \
-                    filter(q_q). \
-                    distinct().order_by('name')[:10]
-            res['data'] = map(lambda x : {'id': "{%s}%s" % (x.identifier.namespace.uri,x.identifier.uid),
-                                          'name': x.name, 'cat': str(x.iobject_type)}, data)
 
         else:
             try:

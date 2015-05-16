@@ -320,10 +320,15 @@
      * @param {string} type
      * @param {number} timeout Time after which the message should disappear
      * @param {boolean} ret If true, return the HTML of the message instead of attaching it to the DOM
+     * @param {boolean} text If false, content will be put as plain HTML insteat of text which is escaped
      */
-    window.log_message = function(message, type, timeout, ret){
+    window.log_message = function(message, type, timeout, ret, text, callback){
         type = type || 'info';
-        var message_row = $('<li class="dda-grp-message grp-'+type+'"></li>').text(message);
+        var message_row;
+        if(text==false)
+            message_row = $('<li class="dda-grp-message grp-'+type+'">' + message + '</li>');
+        else
+            message_row = $('<li class="dda-grp-message grp-'+type+'"></li>').text(message);
         message_row.append(
             $('<span class="ui-icon ui-icon-close pull-right"></span>').click(function(){
                 $(this).parent().remove();
@@ -346,6 +351,7 @@
             msg.delay(timeout).queue(function() {
                 $(this).remove();
             });
+        if(callback) callback(msg);
     };
 
 
@@ -354,7 +360,7 @@
         beforeSend: function(xhr, settings) {
             if (!csrfSafeMethod(settings.type) && sameOrigin(settings.url)) {
                 // Send the token to same-origin, relative URLs only.
-                // Send the token only if the method warrants CSRF protection
+                // Send the token only if the method warrants CSRF protectionrt
                 // Using the CSRFToken value acquired earlier
                 xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
             }
@@ -375,8 +381,11 @@
             });
         },
         _renderItem: function( ul, item ) {
+            var authored = '';
+            if(item.authored)
+                authored = 'Authored Item - ';
             return $( "<li>" )
-                .append( "<a>" + item.id + '<br><span class="dda-autocomplete-desc">' + item.label + '</span></a>')
+                .append('<a>' + authored + item.id + '<br><span class="dda-autocomplete-desc">' + item.label + '</span></a>')
                 .appendTo( ul );
         }
     });

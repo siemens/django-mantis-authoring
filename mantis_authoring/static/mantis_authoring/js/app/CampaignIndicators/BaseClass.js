@@ -263,10 +263,7 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
             $('#dda-headline-container').find('input, select, textarea').val('');
 
             // Reset campaign info
-            $('#dda-campaign-template_Campaign', '#dda-campaign-container')
-                .find('input, select, textarea').not('[name^="I_"]').val('');
-            $('#dda-threatactor-template_ThreatActor', '#dda-campaign-container')
-                .find('input, select, textarea').not('[name^="I_"]').val('');
+            $('#dda-campaign-input', '#dda-campaign-container').val('');
 
             // Reset observables
             $.each(instance.observable_registry, function(i,v){
@@ -850,6 +847,19 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
         },
 
         /**
+         * Returns the id part of a guid
+         * @param {string} guid
+         */
+        get_id_from_guid: function(guid){
+            guid = guid || '';
+            var s = guid.substring(guid.indexOf("}")+1);
+            if(s == ''){
+                s = guid.substring(guid.indexOf(":")+1);
+            };
+            return s;
+        },
+
+        /**
          * Does some action with the current document
          * @param {string} action The action to take on the document. E.g. import, release, save
          * @param {boolean} silent be quiet about the result
@@ -925,14 +935,9 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
             });
 
             // Include the campaign information
-            stix_base.campaign = form2js(
-                $('.dda-campaign-template', '#dda-campaign-container').find('input, select, textarea').not('[name^="I_"]').get(),
-                undefined, false);
-            stix_base.campaign.threatactor = form2js(
-                $('.dda-threatactor-template', '#dda-campaign-container').find('input, select, textarea').not('[name^="I_"]').get(),
-                undefined, false);
+            stix_base.campaign = $('#dda-campaign-selected_id', '#dda-campaign-container').val();
 
-            return stix_base
+            return stix_base;
         },
 
 
@@ -1010,34 +1015,11 @@ define(['jquery', 'form2js', 'dust', 'mask'],function($, form2js, dust){
 
             // Restore the campaign information
             if(jsn.campaign!=undefined){
-                var itm = {};
-                if(jsn.campaign.object_type=='CampaignReference'){
-                    itm = {
-                        id: jsn.campaign.object_id,
-                        value: jsn.campaign.object_id,
-                        label: jsn.campaign.label
-                    };
-                    instance.cam_replace_campaign(itm);
-                }else{
-                    $.each(jsn.campaign, function(i,v){
-                        $('#dda-campaign-template_Campaign', '#dda-campaign-container').find('[name="'+i+'"]').val(v);
-                    });
-                }
-
-                // Restore the threat actor information
-                if(jsn.campaign.threatactor.object_type=='ThreatActorReference'){
-                    itm = {
-                        id: jsn.campaign.threatactor.object_id,
-                        value: jsn.campaign.threatactor.object_id,
-                        label: jsn.campaign.threatactor.label
-                    };
-                    instance.cam_replace_threat_actor(itm);
-                }else{
-                    $.each(jsn.campaign.threatactor, function(i,v){
-                        $('#dda-threatactor-template_ThreatActor', '#dda-campaign-container').find('[name="'+i+'"]').val(v);
-                    });
-                }
+                instance.cam_set_campaign(instance.get_id_from_guid(jsn.campaign), instance.get_ns_from_guid(jsn.campaign));
             }
+
+
+            
         },
 
 
